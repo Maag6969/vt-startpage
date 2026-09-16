@@ -112,14 +112,15 @@
 
   var fixture = {
     version: "2.0", class: "dataset",
-    id: ["ContentsCode", "Aasta", "Distress", "Sugu"], size: [1, 2, 2, 2],
+    id: ["ContentsCode", "Aasta", "Distress", "Sugu", "Vanuserühm"], size: [1, 2, 2, 2, 1],
     dimension: {
       ContentsCode: { category: { index: { "X": 0 }, label: { "X": "Osakaal" } } },
       Aasta: { category: { index: { "2014": 0, "2019": 1 }, label: { "2014": "2014", "2019": "2019" } } },
       Distress: { category: { index: { "0": 0, "1": 1 }, label: { "0": "ei", "1": "jah" } } },
-      Sugu: { category: { index: ["1", "2"], label: { "1": "Mehed", "2": "Naised" } } }
+      Sugu: { category: { index: ["1", "2"], label: { "1": "Mehed", "2": "Naised" } } },
+      "Vanuserühm": { category: { index: { "0": 0 }, label: { "0": "15 ja vanemad" } } }
     },
-    // järjestus: Aasta × Distress × Sugu
+    // järjestus: Aasta × Distress × Sugu (× Vanuserühm suurusega 1)
     value: [93.4, 87.4, 6.6, 12.6, 91, 82.5, 9, null]
   };
 
@@ -170,6 +171,19 @@
     catch (e) { assert(e instanceof TAI.DataError, "vale JSON: " + e.message); }
     try { await TAI.readUploadedFile(new File([JSON.stringify(fixture)], "x.json"), TAI.getTable("ETU43")); throw new Error("vale tabel läbis"); }
     catch (e) { assert(e instanceof TAI.DataError, "vale tabel: " + e.message); }
+    var partial = JSON.parse(JSON.stringify(fixture));
+    partial.id = partial.id.slice(0, 4); partial.size = partial.size.slice(0, 4); delete partial.dimension["Vanuserühm"];
+    try { await TAI.readUploadedFile(new File([JSON.stringify(partial)], "osaline.json"), cfg); throw new Error("puuduva muutujaga fail läbis"); }
+    catch (e) { assert(e instanceof TAI.DataError && /Vanuserühm/.test(e.message), "puuduv muutuja: " + e.message); }
+  });
+
+  await test(U, "indicatorShare: puuduva dimensiooni konkreetne kategooria → null, koondkategooria lubatud", function () {
+    var cfg = TAI.getTable("ETU42");
+    var partial = JSON.parse(JSON.stringify(fixture));
+    partial.id = partial.id.slice(0, 4); partial.size = partial.size.slice(0, 4); delete partial.dimension["Vanuserühm"];
+    var r = TAI.readJsonStat2(partial);
+    assertClose(TAI.indicatorShare(r, cfg, { Aasta: "2014", Sugu: "2", "Vanuserühm": "0" }), 12.6, "koond");
+    assert(TAI.indicatorShare(r, cfg, { Aasta: "2014", Sugu: "2", "Vanuserühm": "3" }) === null, "konkreetne vanuserühm ei tohi anda koondväärtust");
   });
 
   // ---- integratsioonitestid ----------------------------------------

@@ -209,6 +209,13 @@
    */
   TAI.indicatorShare = function (reader, config, selection) {
     var ind = config.indicator;
+    // Kui valik küsib konkreetset kategooriat muutujalt, mida andmetes pole, ei tohi vastuseks anda
+    // koondväärtust (lugeja ignoreerib puuduvaid dimensioone) → andmed puuduvad.
+    for (var code in selection) {
+      if (reader.dims[code]) continue;
+      var v = config.vars[code];
+      if (v && v.totalValue != null && selection[code] !== v.totalValue) return null;
+    }
     var total = 0, positive = null;
     var vals = config.vars[ind.var].values;
     for (var i = 0; i < vals.length; i++) {
@@ -339,6 +346,11 @@
           if (config && !reader.dims[config.indicator.var]) {
             throw new TAI.DataError("Fail „" + file.name + "“ ei paista olevat tabel " + config.code +
               " (puudub muutuja " + config.indicator.var + ").");
+          }
+          var missing = config ? Object.keys(config.vars).filter(function (code) { return !reader.dims[code]; }) : [];
+          if (missing.length) {
+            throw new TAI.DataError("Failist „" + file.name + "“ " + (missing.length > 1 ? "puuduvad muutujad " : "puudub muutuja ") +
+              missing.join(", ") + ". Vali PxWebis tabelit salvestades kõigi muutujate kõik väärtused.");
           }
           resolve(reader);
         } catch (e) {

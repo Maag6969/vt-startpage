@@ -45,6 +45,9 @@
       };
     },
 
+    // Selgitav rida KPI-kaardil (ühe aastaga tabelil muutuse rida pole)
+    kpiNote: "uneaeg alla soovitatud aja (18-aastased ja vanemad: 7–8 tundi ööpäevas)",
+
     footnotes: [
       "Küsimus: „Kui pikk on keskmiselt Teie ööpäevane uneaeg?“ Alla 18-aastastele soovitatakse magada 9 tundi, " +
       "18-aastastele ja vanematele 7–8 tundi ööpäevas."

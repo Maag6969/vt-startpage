@@ -99,8 +99,13 @@ Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfi
 **Tabeli konfiguratsioon** (`TAI.registerTable({...})`): `code`, `title`, `fullTitle`, `description`,
 `eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `phrase`, `higherIsWorse`), `vars` (iga
 muutuja `values`/`labels`, `elimination`, `totalValue`, `defaultValue`), `filters` (kasutaja valikud),
-`canCompareSexes`, `views` (`trend: bool`, `breakdown: { var, title }`), `queries(state)` → nimetatud
-päringud (`trend`, `breakdown`), `footnotes`.
+`canCompareSexes`, `views` (`trend: bool`, `breakdown: { var, title, inPhrase, groups? }`), `queries(state)` →
+nimetatud päringud (`trend`, `breakdown`), `footnotes`. Valikulised: `trendNote` (märkus trendijoonise all),
+`calloutCaveats` (`[{ var, values, text }]` — lisalause callout'i, kui filter vastab), `kpiNote` (selgitav rida
+muutuseta KPI-kaardil).
+
+Üleslaaditud fail peab sisaldama **kõiki** tabeli muutujaid; kui andmetes mõni dimensioon puudub, annab
+`indicatorShare` konkreetse kategooria kohta `null`, mitte koondväärtust.
 
 **Tuummooduli peamised funktsioonid:**
 

@@ -191,6 +191,9 @@
         }
       }
     }
+    (config.calloutCaveats || []).forEach(function (c) {
+      if (c.values.indexOf(model.state[c.var]) >= 0) sentences.push(c.text);
+    });
     if (hasMissing(model)) sentences.push("Valitud lõike kohta osa andmeid puudub.");
     return sentences.join(" ");
   };
@@ -212,6 +215,9 @@
     var higherIsWorse = model.config.indicator.higherIsWorse;
     return '<div class="kpi-row">' + model.kpis.map(function (k) {
       var deltaHtml = "";
+      if (!k.delta && k.prevYear && k.value != null) {
+        deltaHtml = '<p class="kpi__delta is-flat">Muutust ei saa arvutada: ' + esc(k.prevYear) + ". aasta andmed puuduvad</p>";
+      }
       if (k.delta) {
         var cls = k.delta.direction === "flat" ? "is-flat"
           : (k.delta.direction === "up") === higherIsWorse ? "is-worse" : "is-better";
@@ -224,6 +230,7 @@
           ? '<p class="kpi__value kpi__value--missing">Andmed puuduvad</p>'
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
         deltaHtml +
+        (!k.delta && model.config.kpiNote && k.value != null ? '<p class="kpi__note">' + esc(model.config.kpiNote) + "</p>" : "") +
       "</div>";
     }).join("") + "</div>";
   };

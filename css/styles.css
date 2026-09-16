@@ -239,6 +239,8 @@ fieldset.field { border: none; margin: 0; padding: 0; }
 .kpi__delta.is-better { color: var(--positiivne); }
 .kpi__delta.is-flat { color: var(--tekst-2); }
 .kpi__delta-ref { font-weight: 400; color: var(--tekst-2); }
+.kpi__note { font-size: 0.85rem; color: var(--tekst-2); }
+.chart-note--after { margin: 8px 0 0; }
 
 /* callout */
 .callout {

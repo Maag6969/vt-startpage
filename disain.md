@@ -169,8 +169,8 @@ Otsus: iga mooduli juurde lisatakse lühike tõlgendav märkus (1-2 lauset), sam
 | Tabel | Peagraafik | Erisus |
 |---|---|---|
 | ETU41 | Trendijoonis (2006/2014/2019) + tulpvõrdlus taustatunnuste lõikes | Baasmall; kujundus p. 3.1 |
-| ETU42 | Trendijoonis (2006/2014/2019) soo/vanuse lõikes | Struktuurilt identne ETU41-ga (lihtsam, vähem dimensioone) |
-| ETU43 | **Ainult tulpdiagramm** (soo/vanuserühma lõikes), **ilma trendijooneta** | Andmed ainult 2019. a kohta — trendijoonis pole mõttekas. Taaskasutab sama tulpdiagrammi komponenti, mis on ETU41 juures juba "Taustatunnuste võrdlus" jaoks ehitatud. KPI-kaart näitab ühte hetkeväärtust, mitte delta-muutust (võrdlusaastat pole). |
+| ETU42 | Trendijoonis (2006/2014/2019) soo/vanuse lõikes + vanuserühmade tulbad | Struktuurilt identne ETU41-ga. Vanuserühm on **nii filtris kui tulpades** (valitu esile tõstetud). **Metoodikamärkus trendijoonise all** (2006/2014 vanuserühmad 16+ / 16–24); kui valitud on „15–24“, lisab callout lause, et võrdlus 2014. aastaga on ligikaudne (intervjuu 16.09.2026). |
+| ETU43 | **Ainult tulpdiagramm** (soo/vanuserühma lõikes), **ilma trendijooneta** | Andmed ainult 2019. a kohta — trendijoonis pole mõttekas. Taaskasutab sama tulpdiagrammi komponenti, mis on ETU41 juures juba "Taustatunnuste võrdlus" jaoks ehitatud. KPI-kaart näitab ühte hetkeväärtust, mitte delta-muutust (võrdlusaastat pole); **kaardil selgitav rida soovitusliku uneaja kohta**. Soo vaikevalik „Kokku“ nagu teistel tabelitel (intervjuu 16.09.2026). |
 
 ## 6. Funktsionaalsed olekud
 

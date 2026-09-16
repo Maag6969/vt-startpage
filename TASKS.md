@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (etapid 1–5 lõpetatud; järgmine: etapp 6 — ETU42 ja ETU43 kontroll; renderdaja on juba üldine)
+Viimati uuendatud: 16.09.2026 (etapid 1–6 lõpetatud; järgmine: etapp 7 viimistlus)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -30,7 +30,8 @@ Viimati uuendatud: 16.09.2026 (etapid 1–5 lõpetatud; järgmine: etapp 6 — E
       varuplaan, tooltip, vormindus) — vt README „Failistruktuur ja raamistiku liides“
 - [x] Tabelipõhised konfiguratsioonid `js/tables/etu41.js`, `etu42.js`, `etu43.js` (renderdus tuleb etappides 5–6)
 - [x] Testid `tests/framework-test.html`: 13 ühiktesti + 6 integratsioonitesti päris API vastu —
-      kõik 19 läbisid 16.09.2026 (käivitamine: `tools/serve.ps1` → http://localhost:8080/tests/framework-test.html)
+      kõik 19 läbisid 16.09.2026 (etapis 6 lisandus 1 → 20/20; käivitamine: `tools/serve.ps1` →
+      http://localhost:8080/tests/framework-test.html)
 - [x] `TAI.attachTooltip` kontrollitud etapis 5 päris graafikuga
 
 ## 4. Master-lehe infoarhitektuur
@@ -60,8 +61,16 @@ Viimati uuendatud: 16.09.2026 (etapid 1–5 lõpetatud; järgmine: etapp 6 — E
 - NB! Puuduvaid väärtusi (`..`) ei tuletata „100 − teine kategooria“ kaudu — TAI on need teadlikult avaldamata jätnud
 
 ## 6. Teise ja kolmanda mooduli lisamine
-- [ ] ETU42 moodul (sama struktuur mis ETU41, testida eraldi)
-- [ ] ETU43 moodul (ainult tulpdiagramm, ilma trendijooneta — vt disain.md p. 5)
+- [x] Intervjuu 16.09.2026: ETU42 vanuserühm jääb nii filtrisse kui tulpadesse; metoodikamärkus trendi all +
+      callout-lause „15–24“ puhul; ETU43 KPI-l soovitusliku uneaja rida; ETU43 soo vaikevalik „Kokku“ — disain.md p. 5
+- [x] ETU42 moodul: trend + vanuserühmade tulbad, `trendNote`, `calloutCaveats`; kontrollitud koond (13,6%, ▲ 3,8 pp),
+      15–24 võrdlus (naised 22,9%, mehed 9,5%, meeste 2014 puudub → „Muutust ei saa arvutada“, joonel tühik)
+- [x] ETU43 moodul: ainult tulbad, KPI ilma muutuseta + `kpiNote`; kontrollitud koond 26,2%, võrdlus 24,7/27,4%
+- [x] Faili üleslaadimine mõlemale: täisfail annab samad numbrid mis API; osaline fail lükatakse tagasi selge
+      veateatega (puuduvad muutujad)
+- [x] **Parandatud viga:** kui andmetes puudus dimensioon (nt osaline fail), näidati iga vanuserühma kohta vaikselt
+      koondväärtust. Nüüd `indicatorShare` tagastab `null` ja `readUploadedFile` nõuab kõiki muutujaid (+ ühiktest, 20/20)
+- [x] Mobiilivaade (375px): mõlemal tabelil horisontaalset kerimist pole
 
 ## 7. Viimistlus
 - [ ] Disaini ühtlustamine kõigi kolme mooduli vahel

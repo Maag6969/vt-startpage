@@ -244,7 +244,9 @@
         '<p class="chart-note">' + esc(config.indicator.label) + " (%), " + esc(config.years.join(", ")) + "</p>" +
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-trend" role="group" aria-label="Trendijoonis"></svg>' +
-        '<div class="tooltip" aria-hidden="true"></div></div></section>';
+        '<div class="tooltip" aria-hidden="true"></div></div>' +
+        (config.trendNote ? '<p class="chart-note chart-note--after">' + esc(config.trendNote) + "</p>" : "") +
+        "</section>";
     }
     if (model.breakdown) {
       html += '<section class="chart-section" aria-labelledby="h-breakdown">' +

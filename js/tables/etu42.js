@@ -44,9 +44,18 @@
       };
     },
 
+    // Kuvatakse trendijoonise all (disain.md p. 5)
+    trendNote: "Märkus: 2006. ja 2014. aastal olid vanuserühmad „16 ja vanemad“ ning „16–24“, 2019. aastal " +
+      "„15 ja vanemad“ ning „15–24“.",
+
+    // Lisalause callout'i lõppu, kui filtri väärtus vastab
+    calloutCaveats: [
+      { var: "Vanuserühm", values: ["1"],
+        text: "Võrdlus varasemate aastatega on ligikaudne, sest 2006. ja 2014. aastal hõlmas see vanuserühm 16–24-aastaseid." }
+    ],
+
     footnotes: [
-      "Emotsionaalse distressi esinemine viimasel neljal nädalal.",
-      "Aastatel 2006 ja 2014 olid vanuserühmad „16 ja vanemad“ ning „16–24“, 2019. aastal „15 ja vanemad“ ning „15–24“."
+      "Emotsionaalse distressi esinemine viimasel neljal nädalal."
     ]
   });
 })(window.TAI);
