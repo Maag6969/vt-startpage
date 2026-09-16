@@ -1,0 +1,5 @@
+# Stiiliraamat — ei avaldata avalikus repos
+*.pdf
+
+# Kohalikud tööriistade failid
+.claude/settings.local.json
