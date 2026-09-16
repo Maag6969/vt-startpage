@@ -12,7 +12,10 @@
     eyebrow: "Eesti terviseuuring · ETU43",
     years: YEARS,
     yearVar: "Aasta",
-    indicator: { var: "Piisavus", positive: "1", label: "Ebapiisav uneaeg", unit: "%", higherIsWorse: true },
+    indicator: {
+      var: "Piisavus", positive: "1", label: "Ebapiisav uneaeg", unit: "%", higherIsWorse: true,
+      phrase: "ebapiisava uneajaga {kes} osakaal"
+    },
 
     vars: {
       Aasta: { label: "Aasta", values: YEARS, labels: YEARS },
@@ -28,7 +31,7 @@
     // Ainult üks aasta → trendijoonist ega delta-muutust pole (disain.md p. 5)
     views: {
       trend: false,
-      breakdown: { var: "Vanuserühm", title: "Vanuserühmade võrdlus" }
+      breakdown: { var: "Vanuserühm", title: "Vanuserühmade võrdlus", inPhrase: "vanuserühmade lõikes" }
     },
 
     queries: function (state) {

@@ -81,7 +81,8 @@ siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 pär
 index.html                  master-leht (etapp 4)
 css/styles.css              stiilid ja disainitokenid (disain.md p. 1–2)
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
-js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, mooduli karkass
+js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel
+js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
 tools/serve.ps1             kohalik staatiline server arenduseks
@@ -89,10 +90,14 @@ cors-test.html              etapi 2 CORS-test
 ```
 
 Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
-lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → lehe enda kood.
+lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `app.js`.
+
+Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfiguratsioonist
+(`indicator.phrase` callout-lause jaoks kujul „… {kes} osakaal“, `views.breakdown.groups` / `inPhrase`,
+`views.trend`). Puuduvad väärtused (API `..` → `null`) kuvatakse „Andmed puuduvad“ ja neid ei tuletata.
 
 **Tabeli konfiguratsioon** (`TAI.registerTable({...})`): `code`, `title`, `fullTitle`, `description`,
-`eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `higherIsWorse`), `vars` (iga
+`eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `phrase`, `higherIsWorse`), `vars` (iga
 muutuja `values`/`labels`, `elimination`, `totalValue`, `defaultValue`), `filters` (kasutaja valikud),
 `canCompareSexes`, `views` (`trend: bool`, `breakdown: { var, title }`), `queries(state)` → nimetatud
 päringud (`trend`, `breakdown`), `footnotes`.

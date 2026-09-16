@@ -189,10 +189,115 @@ a:hover { text-decoration-thickness: 2px; }
 .module__subtitle { color: var(--tekst-2); margin: 0 0 12px; }
 .module__meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
 
-.placeholder {
-  border: 1px dashed var(--joon); border-radius: var(--radius);
-  padding: 24px; color: var(--tekst-2); font-size: 0.9rem;
+/* filtrid */
+.filters {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px;
+  margin: 0 0 24px;
 }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field > label, .field > legend {
+  font-size: 0.8rem; font-weight: 500; color: var(--tekst-2); padding: 0;
+}
+.field select {
+  font: inherit; font-size: 0.95rem; color: var(--tekst-1);
+  background: var(--taust); border: 1px solid #c9cfcf; border-radius: var(--pill);
+  padding: 8px 36px 8px 14px; min-width: 180px; max-width: 100%;
+  appearance: none; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--som-tumesinine) 50%),
+                    linear-gradient(135deg, var(--som-tumesinine) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 55%, calc(100% - 15px) 55%;
+  background-size: 5px 5px; background-repeat: no-repeat;
+}
+fieldset.field { border: none; margin: 0; padding: 0; }
+.segmented__options { display: flex; flex-wrap: wrap; gap: 6px; }
+.segmented label { position: relative; cursor: pointer; }
+.segmented input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.segmented span {
+  display: inline-block; padding: 7px 14px; border-radius: var(--pill);
+  border: 1px solid #c9cfcf; background: var(--taust); color: var(--som-tumesinine);
+  font-size: 0.95rem; font-weight: 500; line-height: 1.3;
+}
+.segmented label:hover span { border-color: var(--som-tumesinine); }
+.segmented input:checked + span { background: var(--som-tumesinine); border-color: var(--som-tumesinine); color: #fff; }
+.segmented input:focus-visible + span { outline: 3px solid var(--som-keskmine-sinine); outline-offset: 2px; }
+
+.module__body { transition: opacity 0.15s; }
+.module__body.is-loading { opacity: 0.45; pointer-events: none; }
+
+/* KPI-kaardid */
+.kpi-row { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.kpi {
+  flex: 1 1 220px; max-width: 360px;
+  border: 1px solid var(--joon); border-radius: var(--radius); padding: 16px 20px;
+}
+.kpi p { margin: 0; }
+.kpi__label { font-size: 0.8rem; font-weight: 500; color: var(--tekst-2); text-transform: uppercase; letter-spacing: 0.04em; }
+.kpi__value { font-size: 2.6rem; font-weight: 300; color: var(--som-tumesinine); line-height: 1.2; margin: 4px 0 !important; font-variant-numeric: tabular-nums; }
+.kpi__value--missing { font-size: 1.1rem; font-weight: 400; color: var(--tekst-2); padding: 12px 0; }
+.kpi__delta { font-size: 0.9rem; font-weight: 500; }
+.kpi__delta.is-worse { color: var(--negatiivne); }
+.kpi__delta.is-better { color: var(--positiivne); }
+.kpi__delta.is-flat { color: var(--tekst-2); }
+.kpi__delta-ref { font-weight: 400; color: var(--tekst-2); }
+
+/* callout */
+.callout {
+  background: var(--sinine-15); border-left: 4px solid var(--som-keskmine-sinine);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 14px 18px; margin: 0 0 32px; color: var(--tekst-1); max-width: 760px;
+}
+
+/* graafikud */
+.chart-section { margin: 0 0 32px; }
+.chart-section h3 { color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.15rem; margin: 0 0 2px; }
+.chart-note { color: var(--tekst-2); font-size: 0.85rem; margin: 0 0 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 0 0 8px; padding: 0; font-size: 0.85rem; color: var(--tekst-2); }
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.legend__swatch { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+
+.chart-holder { position: relative; width: 100%; }
+svg.chart { display: block; max-width: 100%; height: auto; overflow: visible; font-family: var(--font); }
+svg.chart .gridline { stroke: var(--joon); stroke-width: 1; }
+svg.chart .baseline { stroke: #c9cfcf; stroke-width: 1; }
+svg.chart .axis-label { fill: var(--tekst-2); font-size: 12px; }
+svg.chart .mark-label {
+  fill: var(--tekst-1); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums;
+  paint-order: stroke; stroke: var(--taust); stroke-width: 4px; stroke-linejoin: round;  /* loetav ka joone peal */
+}
+svg.chart .ref-label { paint-order: stroke; stroke: var(--taust); stroke-width: 4px; stroke-linejoin: round; }
+svg.chart .line-series { fill: none; stroke-width: 2.5; }
+svg.chart .line-dot { stroke: var(--taust); stroke-width: 2; }
+svg.chart .group-label { fill: var(--tekst-2); font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+svg.chart .bar-label { fill: var(--tekst-1); font-size: 12.5px; }
+svg.chart .bar-label.is-selected { font-weight: 700; fill: var(--som-tumesinine); }
+svg.chart .ref-line { stroke-width: 1.5; stroke-dasharray: 4 3; }
+svg.chart .ref-label { fill: var(--tekst-2); font-size: 11px; font-weight: 500; }
+svg.chart .mark { cursor: default; }
+svg.chart .mark:focus { outline: none; }
+svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; }
+
+.tooltip {
+  position: absolute; z-index: 5; pointer-events: none;
+  transform: translate(-50%, calc(-100% - 10px));
+  background: var(--som-tumesinine); color: #fff;
+  font-size: 0.8rem; padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  opacity: 0; transition: opacity 0.1s;
+}
+.tooltip.is-visible { opacity: 1; }
+
+/* andmetabel */
+.data-details { margin: 0 0 8px; }
+.data-details summary {
+  cursor: pointer; color: var(--tekst-pealkiri); font-weight: 500; padding: 8px 0;
+}
+.data-table { width: 100%; max-width: 720px; border-collapse: collapse; font-size: 0.875rem; margin: 12px 0 20px; }
+.data-table caption { text-align: left; color: var(--tekst-2); font-size: 0.85rem; padding-bottom: 6px; }
+.data-table th, .data-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--joon); }
+.data-table thead th { color: var(--tekst-2); font-weight: 500; }
+.data-table tbody th { font-weight: 400; }
+.data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table tr.is-total th, .data-table tr.is-total td { font-weight: 500; }
+.data-table__link { font-size: 0.875rem; margin: 0; }
 
 .module__footnotes {
   margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--joon);

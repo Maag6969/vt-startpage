@@ -12,7 +12,10 @@
     eyebrow: "Eesti terviseuuring · ETU42",
     years: YEARS,
     yearVar: "Aasta",
-    indicator: { var: "Distress", positive: "1", label: "Olulise distressiga", unit: "%", higherIsWorse: true },
+    indicator: {
+      var: "Distress", positive: "1", label: "Olulise distressiga", unit: "%", higherIsWorse: true,
+      phrase: "olulise emotsionaalse distressiga {kes} osakaal"
+    },
 
     vars: {
       Aasta: { label: "Aasta", values: YEARS, labels: YEARS },
@@ -26,18 +29,18 @@
 
     views: {
       trend: true,
-      breakdown: { var: "Vanuserühm", title: "Vanuserühmade võrdlus" }
+      breakdown: { var: "Vanuserühm", title: "Vanuserühmade võrdlus", inPhrase: "vanuserühmade lõikes" }
     },
 
     queries: function (state) {
       var cfg = TAI.getTable("ETU42");
-      var trendOverrides = state.compareSexes ? { Sugu: ["1", "2"] } : {};
+      var sexOverride = state.compareSexes ? { Sugu: ["1", "2"] } : {};
       return {
-        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], trendOverrides)),
-        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu"], {
+        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], sexOverride)),
+        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu"], Object.assign({
           Aasta: [YEARS[YEARS.length - 1]],
           "Vanuserühm": cfg.vars["Vanuserühm"].values
-        }))
+        }, sexOverride)))
       };
     },
 

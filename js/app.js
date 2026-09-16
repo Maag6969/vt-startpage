@@ -1,6 +1,7 @@
 /*
- * Master-leht: vasak andmestike loend + parem kuvamisala (disain.md p. 2).
- * Mooduli sisu (KPI-d, graafikud, tabel) lisandub etappides 5–6 — renderModule() on selleks koht.
+ * Master-leht: vasak andmestike loend + parem kuvamisala (disain.md p. 2)
+ * ja valitud tabeli moodul: filtrid, KPI-d, callout, graafikud, andmetabel (disain.md p. 3.1).
+ * Sõltub core.js-ist, tabelikonfiguratsioonidest ja module.js-ist.
  */
 (function (TAI) {
   "use strict";
@@ -14,11 +15,15 @@
 
   var current = null;      // valitud tabeli kood
   var requestId = 0;       // vanemate päringute tulemused jäetakse kõrvale
+  var states = {};         // filtrivalikud tabeli kaupa (säilivad tabelite vahel liikudes)
+  var view = null;         // { config, data, source } — praegu kuvatud moodul
 
   var dateFmt = new Intl.DateTimeFormat("et-EE", { day: "2-digit", month: "2-digit", year: "numeric" });
   var timeFmt = new Intl.DateTimeFormat("et-EE", { hour: "2-digit", minute: "2-digit" });
 
   // ---- loend ----------------------------------------------------------
+
+  var pendingScroll = false;
 
   function renderList() {
     listEl.innerHTML = TAI.getTables().map(function (t) {
@@ -52,8 +57,6 @@
     });
   }
 
-  var pendingScroll = false;
-
   function rowOf(code) { return listEl.querySelector('.dataset[data-code="' + code + '"]'); }
 
   function setActiveRow(code) {
@@ -78,6 +81,7 @@
   // ---- kuvamisala olekud ---------------------------------------------
 
   function renderEmpty() {
+    view = null;
     contentEl.innerHTML =
       '<div class="empty-state">' +
         '<h2>Vali <span class="only-wide">vasakult</span><span class="only-narrow">ülalt</span> andmestik</h2>' +
@@ -93,6 +97,7 @@
   }
 
   function renderLoading(config) {
+    view = null;
     contentEl.setAttribute("aria-busy", "true");
     contentEl.innerHTML =
       backLink() +
@@ -105,6 +110,7 @@
   }
 
   function renderError(config, err) {
+    view = null;
     var info = TAI.describeError(err);
     contentEl.setAttribute("aria-busy", "false");
     contentEl.innerHTML =
@@ -129,9 +135,9 @@
         var file = input.files && input.files[0];
         if (!file) return;
         TAI.readUploadedFile(file, config).then(function (reader) {
-          // Üleslaaditud fail sisaldab kogu tabelit → sama lugeja teenindab kõiki vaateid.
+          // Üleslaaditud fail sisaldab kogu tabelit → sama lugeja teenindab kõiki vaateid ja filtreid.
           var data = {};
-          Object.keys(config.queries({})).forEach(function (name) { data[name] = reader; });
+          Object.keys(config.queries(stateOf(config))).forEach(function (name) { data[name] = reader; });
           setRowStatus(config.code, null);
           renderModule(config, data, { source: "file", fileName: file.name });
         }).catch(function (e) {
@@ -141,11 +147,47 @@
     }
   }
 
-  /*
-   * Mooduli karkass (disain.md p. 3): eyebrow, pealkiri, alapealkiri, meta-rida, sisu, jalus.
-   * Etappides 5–6 asendub .placeholder KPI-kaartide, graafikute ja andmetabeliga.
-   */
+  // ---- moodul ---------------------------------------------------------
+
+  function stateOf(config) {
+    if (!states[config.code]) {
+      var state = { compareSexes: false };
+      (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
+      states[config.code] = state;
+    }
+    return states[config.code];
+  }
+
+  function renderFilters(config, state) {
+    var html = '<div class="filters" role="group" aria-label="Filtrid">';
+    (config.filters || []).forEach(function (code) {
+      if (code === "Sugu") return;
+      var v = config.vars[code];
+      var id = "filter-" + code;
+      html += '<div class="field"><label for="' + esc(id) + '">' + esc(v.label) + "</label>" +
+        '<select id="' + esc(id) + '" data-filter="' + esc(code) + '">' +
+        v.values.map(function (val, i) {
+          return '<option value="' + esc(val) + '"' + (state[code] === val ? " selected" : "") + ">" + esc(v.labels[i]) + "</option>";
+        }).join("") + "</select></div>";
+    });
+    if ((config.filters || []).indexOf("Sugu") >= 0) {
+      var current = state.compareSexes ? "compare" : state.Sugu;
+      var options = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
+      if (config.canCompareSexes) options.push(["compare", "Mehed vs naised"]);
+      html += '<fieldset class="field segmented"><legend>Sugu</legend><div class="segmented__options">' +
+        options.map(function (o) {
+          return '<label><input type="radio" name="filter-sex" value="' + o[0] + '"' + (current === o[0] ? " checked" : "") + ">" +
+            "<span>" + esc(o[1]) + "</span></label>";
+        }).join("") + "</div></fieldset>";
+    }
+    return html + "</div>";
+  }
+
+  /* Mooduli karkass (disain.md p. 3): eyebrow, pealkiri, alapealkiri, meta, filtrid, sisu, jalus. */
   function renderModule(config, data, source) {
+    var state = stateOf(config);
+    view = { config: config, data: data, source: source };
+
     var anyReader = data[Object.keys(data)[0]];
     var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
 
@@ -165,7 +207,8 @@
           '<p class="module__subtitle">' + esc(config.description) + "</p>" +
           '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" +
         "</header>" +
-        '<div class="placeholder">Andmed on laaditud. KPI-kaardid, graafikud ja andmetabel lisanduvad siia järgmises etapis.</div>' +
+        renderFilters(config, state) +
+        '<div class="module__body" aria-live="polite"></div>' +
         '<footer class="module__footnotes">' +
           config.footnotes.map(function (f) { return "<p>" + esc(f) + "</p>"; }).join("") +
           '<p>Allikas: Tervise Arengu Instituut, <a href="' + esc(TAI.pxwebUrl(config)) + '" target="_blank" rel="noopener">tabel ' +
@@ -173,12 +216,131 @@
         "</footer>" +
       "</article>";
 
-    if (source.source === "api") {
-      var now = new Date();
-      loadedAtEl.textContent = "Andmed laaditud otse TAI andmebaasist · " + dateFmt.format(now) + " " + timeFmt.format(now);
-      loadedAtEl.hidden = false;
+    renderBody();
+
+    if (source.source === "api") markLoaded();
+  }
+
+  function markLoaded() {
+    var now = new Date();
+    loadedAtEl.textContent = "Andmed laaditud otse TAI andmebaasist · " + dateFmt.format(now) + " " + timeFmt.format(now);
+    loadedAtEl.hidden = false;
+  }
+
+  function renderBody() {
+    if (!view) return;
+    var body = contentEl.querySelector(".module__body");
+    if (!body) return;
+    var config = view.config;
+    var model = TAI.buildModel(config, view.data, stateOf(config));
+    var callout = TAI.calloutText(model);
+
+    var html = TAI.renderKpis(model);
+    if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
+
+    if (model.trend) {
+      html += '<section class="chart-section" aria-labelledby="h-trend">' +
+        '<h3 id="h-trend">Trend aastate lõikes</h3>' +
+        '<p class="chart-note">' + esc(config.indicator.label) + " (%), " + esc(config.years.join(", ")) + "</p>" +
+        TAI.renderLegend(model.series) +
+        '<div class="chart-holder"><svg class="chart" id="chart-trend" role="group" aria-label="Trendijoonis"></svg>' +
+        '<div class="tooltip" aria-hidden="true"></div></div></section>';
+    }
+    if (model.breakdown) {
+      html += '<section class="chart-section" aria-labelledby="h-breakdown">' +
+        '<h3 id="h-breakdown">' + esc(model.breakdown.title) + "</h3>" +
+        '<p class="chart-note">' + esc(model.breakdown.year) + ". aasta, " + esc(config.indicator.label.toLowerCase()) +
+          " (%). Katkendjoon näitab koondväärtust.</p>" +
+        TAI.renderLegend(model.series) +
+        '<div class="chart-holder"><svg class="chart" id="chart-breakdown" role="group" aria-label="Tulpdiagramm"></svg>' +
+        '<div class="tooltip" aria-hidden="true"></div></div></section>';
+    }
+    html += '<details class="data-details"><summary>Näita andmeid tabelina</summary>' + TAI.renderDataTables(model) + "</details>";
+
+    body.innerHTML = html;
+    body.classList.remove("is-loading");
+    body.removeAttribute("aria-busy");
+    body._model = model;
+    drawCharts();
+  }
+
+  var lastChartWidth = 0;
+
+  function drawCharts() {
+    var body = contentEl.querySelector(".module__body");
+    if (!body || !body._model) return;
+    var model = body._model;
+    var trendSvg = body.querySelector("#chart-trend");
+    var barSvg = body.querySelector("#chart-breakdown");
+    var holder = body.querySelector(".chart-holder");
+    if (!holder) return;
+    var width = Math.floor(holder.clientWidth);
+    lastChartWidth = width;
+    if (trendSvg) {
+      TAI.drawTrendChart(trendSvg, model, width);
+      attachTooltipOnce(trendSvg);
+    }
+    if (barSvg) {
+      TAI.drawBarChart(barSvg, model, width);
+      attachTooltipOnce(barSvg);
     }
   }
+
+  // ümberjoonistamisel (resize) sama SVG element jääb alles → kuulajaid mitte dubleerida
+  function attachTooltipOnce(svg) {
+    if (svg._hasTooltip) return;
+    TAI.attachTooltip(svg, svg.nextElementSibling);
+    svg._hasTooltip = true;
+  }
+
+  // filtrid: muutmine laadib andmed kohe (API) või arvutab failist uuesti
+  contentEl.addEventListener("change", function (evt) {
+    if (!view) return;
+    var t = evt.target;
+    var state = stateOf(view.config);
+    if (t.matches("select[data-filter]")) {
+      state[t.getAttribute("data-filter")] = t.value;
+    } else if (t.matches('input[name="filter-sex"]')) {
+      state.compareSexes = t.value === "compare";
+      state.Sugu = state.compareSexes ? "0" : t.value;
+    } else {
+      return;
+    }
+    reload();
+  });
+
+  async function reload() {
+    var config = view.config;
+    if (view.source.source === "file") { renderBody(); return; }
+
+    var body = contentEl.querySelector(".module__body");
+    var myRequest = ++requestId;
+    body.classList.add("is-loading");
+    body.setAttribute("aria-busy", "true");
+    setRowStatus(config.code, "loading");
+    try {
+      var data = await TAI.loadTable(config, stateOf(config));
+      if (myRequest !== requestId || !view || view.config !== config) return;
+      view.data = data;
+      setRowStatus(config.code, null);
+      renderBody();
+      markLoaded();
+    } catch (err) {
+      if (myRequest !== requestId) return;
+      console.error(err);
+      setRowStatus(config.code, "error");
+      renderError(config, err);
+    }
+  }
+
+  var resizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      var holder = contentEl.querySelector(".chart-holder");
+      if (holder && Math.floor(holder.clientWidth) !== lastChartWidth) drawCharts();
+    }, 150);
+  });
 
   // ---- valimine -------------------------------------------------------
 
@@ -196,7 +358,7 @@
     if (opts.scroll) scrollToContent();
 
     try {
-      var data = await TAI.loadTable(config, defaultState(config));
+      var data = await TAI.loadTable(config, stateOf(config));
       if (myRequest !== requestId) return;
       setRowStatus(code, null);
       renderModule(config, data, { source: "api" });
@@ -209,12 +371,6 @@
       // sisu vahetus katkestab laadimise ajal alanud sujuva kerimise → keri uuesti
       if (opts.scroll) scrollToContent();
     }
-  }
-
-  function defaultState(config) {
-    var state = { compareSexes: false };
-    (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
-    return state;
   }
 
   function scrollToContent() {

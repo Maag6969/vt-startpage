@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–4 lõpetatud; järgmine: etapp 5 ETU41 moodul)
+Viimati uuendatud: 16.09.2026 (etapid 1–5 lõpetatud; järgmine: etapp 6 — ETU42 ja ETU43 kontroll; renderdaja on juba üldine)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -31,7 +31,7 @@ Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–4 lõpetatud; j�
 - [x] Tabelipõhised konfiguratsioonid `js/tables/etu41.js`, `etu42.js`, `etu43.js` (renderdus tuleb etappides 5–6)
 - [x] Testid `tests/framework-test.html`: 13 ühiktesti + 6 integratsioonitesti päris API vastu —
       kõik 19 läbisid 16.09.2026 (käivitamine: `tools/serve.ps1` → http://localhost:8080/tests/framework-test.html)
-- [ ] `TAI.attachTooltip` on kirjutatud, kuid testimata — kontrollida etapis 5 päris graafikuga
+- [x] `TAI.attachTooltip` kontrollitud etapis 5 päris graafikuga
 
 ## 4. Master-lehe infoarhitektuur
 - [x] Stiiliotsused intervjuuga (päis, loendi rida, tühi olek, mobiil, jalus, paneelide eristus) — disain.md p. 2
@@ -44,11 +44,20 @@ Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–4 lõpetatud; j�
       paigutus, horisontaalset kerimist pole
 - [ ] Mobiilis sujuv automaatne kerimine mooduli juurde — loogika kontrollitud, kuid animatsiooni ei saanud
       arenduspaneelis näha (paneel ei joonistanud kaadreid); kontrollida päris telefonis/brauseris
-- Mooduli sisus on ajutine märge „…lisanduvad järgmises etapis“ — asendub etapis 5
+- Mooduli ajutine märge asendatud etapis 5 päris sisuga
 
 ## 5. Esimese mooduli (ETU41) integreerimine
-- [ ] Üleslaaditud faili loogika ümber tõstetud uude raamistikku
-- [ ] Visuaal viidud disain.md mallile vastavaks (eyebrow, KPI-kaardid, callout jne)
+- [x] Kujundusotsused intervjuuga (filtrid, soo lüliti, KPI sisu ja stiil, trendi sildid, tulpade rühmitus,
+      võrdlusrežiim, callout, andmetabel, järjekord) — disain.md p. 3.1
+- [x] `js/module.js`: andmemudel, KPI-kaardid, automaatne callout, trendijoonis, rühmitatud tulpdiagramm
+      („Kokku“ võrdlusjoonena, paaristulbad võrdlusel), andmetabel; `js/app.js`: filtrid + kohene uuestilaadimine,
+      filtrivalikud säilivad tabelite vahel, graafikud joonistuvad laiuse muutumisel ümber
+- [x] Üleslaaditud faili tee: filtrid arvutatakse failist ilma API-päringuta
+- [x] Brauseris kontrollitud 16.09.2026: koond (10,9%, ▲ 2,6 pp), taustatunnuse filter + esiletõstetud tulp,
+      mehed vs naised (KPI-d, 2 joont, paaristulbad, 2 võrdlusjoont), puuduvad väärtused (API `..`, nt 75+ kõrgharidus
+      → „Andmed puuduvad“, callout märgib), lai + mobiilivaade (ilma horisontaalse kerimiseta), tooltip hiire ja fookusega
+- [x] `TAI.attachTooltip` kontrollitud päris graafikuga
+- NB! Puuduvaid väärtusi (`..`) ei tuletata „100 − teine kategooria“ kaudu — TAI on need teadlikult avaldamata jätnud
 
 ## 6. Teise ja kolmanda mooduli lisamine
 - [ ] ETU42 moodul (sama struktuur mis ETU41, testida eraldi)

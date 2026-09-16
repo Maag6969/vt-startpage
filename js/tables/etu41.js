@@ -12,7 +12,10 @@
     eyebrow: "Eesti terviseuuring · ETU41",
     years: YEARS,
     yearVar: "Aasta",
-    indicator: { var: "Depressioon", positive: "1", label: "Olulise depressiooniga", unit: "%", higherIsWorse: true },
+    indicator: {
+      var: "Depressioon", positive: "1", label: "Olulise depressiooniga", unit: "%", higherIsWorse: true,
+      phrase: "olulise depressiooniga {kes} osakaal"   // callout-lausete jaoks; {kes} = inimeste/meeste/naiste
+    },
 
     vars: {
       Aasta: { label: "Aasta", values: YEARS, labels: YEARS },
@@ -30,12 +33,23 @@
     },
 
     // Kasutaja valitavad filtrid (järjekord = kuvamise järjekord)
-    filters: ["Taustatunnus", "Sugu", "Vanuserühm"],
+    filters: ["Taustatunnus", "Vanuserühm", "Sugu"],
     canCompareSexes: true,
 
     views: {
       trend: true,
-      breakdown: { var: "Taustatunnus", title: "Taustatunnuste võrdlus" }
+      breakdown: {
+        var: "Taustatunnus",
+        title: "Taustatunnuste võrdlus",
+        inPhrase: "taustatunnuste lõikes",
+        // "0" (Kokku) kuvatakse võrdlusjoonena, mitte tulbana
+        groups: [
+          { label: "Rahvus", values: ["1", "2"] },
+          { label: "Haridus", values: ["3", "4", "5"] },
+          { label: "Kooselu", values: ["6", "7"] },
+          { label: "Majanduslik aktiivsus", values: ["8", "9"] }
+        ]
+      }
     },
 
     /*
@@ -45,13 +59,13 @@
      */
     queries: function (state) {
       var cfg = TAI.getTable("ETU41");
-      var trendOverrides = state.compareSexes ? { Sugu: ["1", "2"] } : {};
+      var sexOverride = state.compareSexes ? { Sugu: ["1", "2"] } : {};
       return {
-        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Taustatunnus", "Sugu", "Vanuserühm"], trendOverrides)),
-        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], {
+        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Taustatunnus", "Sugu", "Vanuserühm"], sexOverride)),
+        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], Object.assign({
           Aasta: [YEARS[YEARS.length - 1]],
           Taustatunnus: cfg.vars.Taustatunnus.values
-        }))
+        }, sexOverride)))
       };
     },
 

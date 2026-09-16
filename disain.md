@@ -121,6 +121,37 @@ Iga moodul järgib sama struktuuri, mis on laenatud "Depressiooni Trendid" näid
 8. **Andmetabel** (details/summary taga peidus) — toorandmed
 9. **Jalus** — allikaviide TAI andmebaasile, mõistete lühiselgitus
 
+### 3.1 Mooduli kujundusotsused (intervjuu 16.09.2026, etapp 5)
+
+**Järjekord:** eyebrow → pealkiri → alapealkiri → meta-sildid → **filtrid** → **KPI-kaardid** → **callout** →
+trendijoonis → tulpdiagramm → andmetabel → jalus.
+
+**Filtrid:**
+- Rida kohe meta-siltide all; rippmenüüd (nt Taustatunnus, Vanuserühm). Muutmine laadib andmed kohe,
+  eraldi „Rakenda“ nuppu pole.
+- **Sugu = ümar lüliti:** Kokku | Mehed | Naised | Mehed vs naised. Aktiivne valik tumesinine `#181E54`
+  taust + valge kiri (15:1); mitteaktiivsed valge taust, helehall piirjoon, tumesinine kiri.
+
+**KPI-kaardid:**
+- Üks kaart seeria kohta (võrdlusel 2): **viimase aasta väärtus + muutus eelmise mõõtmisega** protsendipunktides
+  (▲ punane = halvenemine, ▼ roheline = paranemine). Ühe aastaga tabelil (ETU43) ainult väärtus.
+- Välimus: valge kaart, helehall piirjoon, number tumesinine Roboto Light suurelt.
+
+**Callout:** sinise tooni `#E4ECFF` taust + 4px keskmise sinise vasakriba, tekst murtud must.
+Tekst **genereeritakse automaatselt kuvatud numbritest** (muutub koos filtritega), järgides p. 4 reegleid.
+
+**Trendijoonis:** väärtuse sildid punktidel + tooltip + helehallid abijooned. Seeriad: mehed/ainus seeria
+sinine `#4B7DFF`, naised oranž `#f17a29`.
+
+**Tulpdiagramm (taustatunnused):**
+- Tulbad **rühmiti** (Rahvus, Haridus, Kooselu, Majanduslik aktiivsus) koos rühmapealkirjadega.
+- „Kokku“ **võrdlusjoonena**.
+- Valitud taustatunnus tumesinine, ülejäänud keskmine sinine.
+- „Mehed vs naised“ režiimis **paaristulbad** (sinine/oranž), valitud taustatunnus rõhutatud paksu sildiga.
+
+**Andmetabel** (`<details>`, vaikimisi suletud): graafikute arvuline sisu praeguste filtritega +
+link „Vaata kogu tabelit TAI andmebaasis ↗“. CSV allalaadimist ei ole.
+
 ## 4. Sisu toon ja callout-tekstid
 
 Otsus: iga mooduli juurde lisatakse lühike tõlgendav märkus (1-2 lauset), samas vaimus nagu
@@ -137,7 +168,7 @@ Otsus: iga mooduli juurde lisatakse lühike tõlgendav märkus (1-2 lauset), sam
 
 | Tabel | Peagraafik | Erisus |
 |---|---|---|
-| ETU41 | Trendijoonis (2006/2014/2019) + tulpvõrdlus taustatunnuste lõikes | Baasmall, juba prototüübis olemas |
+| ETU41 | Trendijoonis (2006/2014/2019) + tulpvõrdlus taustatunnuste lõikes | Baasmall; kujundus p. 3.1 |
 | ETU42 | Trendijoonis (2006/2014/2019) soo/vanuse lõikes | Struktuurilt identne ETU41-ga (lihtsam, vähem dimensioone) |
 | ETU43 | **Ainult tulpdiagramm** (soo/vanuserühma lõikes), **ilma trendijooneta** | Andmed ainult 2019. a kohta — trendijoonis pole mõttekas. Taaskasutab sama tulpdiagrammi komponenti, mis on ETU41 juures juba "Taustatunnuste võrdlus" jaoks ehitatud. KPI-kaart näitab ühte hetkeväärtust, mitte delta-muutust (võrdlusaastat pole). |
 
