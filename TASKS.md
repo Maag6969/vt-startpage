@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; järgmine: etapp 8 SharePointi integratsioon)
+Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -89,8 +89,12 @@ Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; järgmine: etapp 8 Share
 
 ## 8. Avaldamine ja SharePointi integratsioon
 - [x] GitHub Pagesile avaldatud: https://maag6969.github.io/vt-startpage/
-- [ ] SharePointi Embed-veebiosasse lisatud
-- [ ] HTML Field Security seadistus kontrollitud/lisatud (vajab IT/admini kaasamist)
+- [ ] SharePointi Embed-veebiosasse lisatud — **ootel** (kasutaja otsus 16.09.2026)
+- [ ] HTML Field Security seadistus kontrollitud/lisatud (vajab IT/admini kaasamist) — **ootel**
+
+**Praegune seis (16.09.2026):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
+tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem, kui vaja.
+Järgmine samm: koolitaja/kolleegide tagasiside läbitöötamine.
 
 ## Avatud küsimused / blokeerijad
 

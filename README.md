@@ -1,5 +1,10 @@
 # TAI Vaimse Tervise Näidikulaud — Lähteülesanne / README
 
+**Vaata töötavat lehte:** https://maag6969.github.io/vt-startpage/
+(nt otselink vaatele: https://maag6969.github.io/vt-startpage/#ETU41?sugu=vordlus)
+
+Otsused ja hetkeseis: [disain.md](disain.md) (kujundus) · [TASKS.md](TASKS.md) (tööetapid).
+
 ## Eesmärk
 
 Master-dashboard, kus vasak paneel (~1/3 laiusest) koondab loeteluna vaimse tervise andmeallikad Tervise
