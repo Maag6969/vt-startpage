@@ -75,6 +75,40 @@ siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 pär
 3. **Master-leht** — vasak loendipaneel (rida = pealkiri + lühikirjeldus + allika viide + "API" nupp),
    parem paneel renderdab valitud tabeli mooduli.
 
+### Failistruktuur ja raamistiku liides (etapp 3, 16.09.2026)
+
+```
+index.html                  master-leht (etapp 4)
+js/core.js                  ühine tuummoodul, nimeruum window.TAI
+js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
+tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
+tools/serve.ps1             kohalik staatiline server arenduseks
+cors-test.html              etapi 2 CORS-test
+```
+
+Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
+lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → lehe enda kood.
+
+**Tabeli konfiguratsioon** (`TAI.registerTable({...})`): `code`, `title`, `fullTitle`, `description`,
+`eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `higherIsWorse`), `vars` (iga
+muutuja `values`/`labels`, `elimination`, `totalValue`, `defaultValue`), `filters` (kasutaja valikud),
+`canCompareSexes`, `views` (`trend: bool`, `breakdown: { var, title }`), `queries(state)` → nimetatud
+päringud (`trend`, `breakdown`), `footnotes`.
+
+**Tuummooduli peamised funktsioonid:**
+
+| Funktsioon | Mida teeb |
+|---|---|
+| `TAI.buildQuery(config, selection)` | Koostab PxWeb POST-päringu; näitaja kõigi väärtustega, eliminatsioonita muutujatele lisab koondkategooria |
+| `TAI.selectionFromState(config, state, vars, overrides)` | Kasutaja valikutest päringu piirangud |
+| `TAI.loadTable(config, state)` | Laeb kõik `queries(state)` päringud paralleelselt → `{ trend, breakdown }` lugejad |
+| `TAI.readJsonStat2(payload)` | JSON-stat2 lugeja; `get(selection)` keeldub lugemast, kui suurem dimensioon on valimata |
+| `TAI.indicatorShare(reader, config, selection)` | Näitaja osakaal protsentides |
+| `TAI.readUploadedFile(file, config)` | Varuplaan: PxWebist alla laaditud JSON-stat2 fail, kontrollib tabeli vastavust |
+| `TAI.NetworkError` / `HttpError` / `DataError`, `TAI.describeError(err)` | Veatüübid ja eestikeelne selgitus (+ kas pakkuda faili üleslaadimist) |
+| `TAI.attachTooltip(svg, el)` | Tooltip hiire, puute ja klaviatuurifookusega |
+| `TAI.formatPct`, `TAI.delta`, `TAI.escapeHtml` | Eesti numbriformaat, protsendipunktide muutus, HTML-i turvaline väljund |
+
 ## Avaldamine ja hostimine
 
 - **Peamine tee:** GitHub Pages (kattub koolituse nõudega). Live-fetch TAI API-sse peab CORS-i osas

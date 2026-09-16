@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–2 lõpetatud; järgmine: etapp 3 raamistik)
+Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–3 lõpetatud; järgmine: etapp 4 master-leht)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -26,10 +26,12 @@ Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–2 lõpetatud; j�
 **Blokeerija lahendatud** — edasine plaan (live-fetch GitHub Pagesilt) kehtib.
 
 ## 3. Korduvkasutatava raamistiku disain ja kirjutamine
-- [ ] Ühine tuummoodul (json-stat2 lugeja, tooltip, veakäsitlus, üleslaadimise varuplaan)
-- [ ] Tabelipõhise konfiguratsiooni muster (API-tee, VARS, buildQuery, renderdus)
-
-Otsused olemas (disain.md), kood veel kirjutamata.
+- [x] Ühine tuummoodul `js/core.js` (json-stat2 lugeja, päringu koostamine, veatüübid, üleslaadimise
+      varuplaan, tooltip, vormindus) — vt README „Failistruktuur ja raamistiku liides“
+- [x] Tabelipõhised konfiguratsioonid `js/tables/etu41.js`, `etu42.js`, `etu43.js` (renderdus tuleb etappides 5–6)
+- [x] Testid `tests/framework-test.html`: 13 ühiktesti + 6 integratsioonitesti päris API vastu —
+      kõik 19 läbisid 16.09.2026 (käivitamine: `tools/serve.ps1` → http://localhost:8080/tests/framework-test.html)
+- [ ] `TAI.attachTooltip` on kirjutatud, kuid testimata — kontrollida etapis 5 päris graafikuga
 
 ## 4. Master-lehe infoarhitektuur
 - [ ] Vasak loendipaneel (rida = pealkiri + selgitus + viide + API-nupp)
