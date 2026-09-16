@@ -70,19 +70,42 @@ Kõrge kontrastsus ja ligipääsetavus (WCAG AA) on riigiveebi kontekstis kohust
 
 ## 2. Layout
 
-Master-leht jaguneb kaheks vertikaalseks paneeliks: vasak loendipaneel (~1/3 laiusest, min-width nt 320px)
-ja parem kuvamisala (~2/3). Kitsamal ekraanil (mobiil/tahvel) paneelid virnastuvad — loend jääb üleval,
-valitud mooduli sisu allpool.
+Kinnitatud intervjuus 16.09.2026 (etapp 4).
+
+Master-leht jaguneb kaheks vertikaalseks paneeliks: vasak loendipaneel (~1/3 laiusest, min-width 320px)
+ja parem kuvamisala (~2/3). Mõlemad valgel taustal, vahel helehall `#e7eaea` **püstjoon** (mitte kaardid,
+mitte kleepuv loend).
+
+### Päis
+- Pealkiri **„Vaimse tervise näidikulaud“** — valge taust, tumesinine `#181E54` Roboto Medium, all helehall eraldusjoon.
+- Lisaks: link **„TAI tervisestatistika andmebaas ↗“** ja **laadimise aeg** („Andmed laaditud otse TAI
+  andmebaasist · 16.09.2026 14:32“; nähtav pärast esimest edukat laadimist).
+- Alapealkirja ei ole.
 
 ### Vasak loendipaneel
-Iga rida sisaldab: tabeli pealkirja (nt "Depressiooni sümptomid"), ühe-lauselist selgitust, allika viidet
-väikese lingina, ja "API" nuppu. Valitud/aktiivne rida eristub visuaalselt (vasakservas keskmise sinise
-`#4B7DFF` aktsentriba + taust `--sinine-15`). Nupul kolm olekut: vaikimisi ("Laadi andmed"), laadimisel
-(spinner/"Laadin..."), veaolekus (punane tekst + "proovi uuesti").
+- Paneelil **pealkirja ei ole** — loend algab kohe esimese reaga; read eraldatud helehallide joontega.
+- **Kogu rida on nupp** (eraldi „API“ nuppu pole): klikitav ala = pealkiri + ühelauseline kirjeldus + „›“.
+- **Allika link** („Allikas: TAI ETU41 ↗“) on eraldi väike rida nupu all, sama rea sees, oma fookusega
+  (link ei tohi olla nupu sees).
+- Aktiivne rida: keskmise sinise `#4B7DFF` vasakriba + taust `--sinine-15`; `aria-current="true"`.
+- Rea olekud: laadimisel spinner + „Laadin…“; vea korral punane tekst „Laadimine ebaõnnestus“.
 
 ### Parem kuvamisala
-Tühjas olekus (enne esimest klõpsu) neutraalne juhistekst ("Vali vasakult andmeallikas"). Valitud mooduli
-kuvamisel struktuur järgib alljärgnevat malli.
+- **Tühi olek:** juhis „Vali vasakult andmestik“ + 2–3 lauset, mida näidikulaud näitab ja et andmed
+  laaditakse reaalajas TAI andmebaasist.
+- Valitud mooduli kuvamisel struktuur järgib alljärgnevat malli; meta-reas ka **tabeli ametlik
+  uuenduskuupäev** API `updated` väljast (nt „Tabel uuendatud 28.04.2021“).
+- Viga: pealkiri + selgitus (`TAI.describeError`), nupp „Proovi uuesti“ ja vajadusel faili üleslaadimine.
+
+### Kitsas ekraan (< 768px)
+Paneelid virnas, loend üleval. Rea valimisel keritakse automaatselt mooduli algusesse; mooduli ülaosas
+link „↑ Tagasi andmestike juurde“.
+
+### Lehe üldjalus
+Ainult andmeallikas: „Andmed: Tervise Arengu Instituut, Eesti terviseuuring“ + link TAI andmebaasi.
+
+### Aadress
+Valitud tabel kajastub aadressis (`#ETU42`) — otselink ja brauseri „tagasi“ töötavad.
 
 ## 3. Mooduli sisukorra mall (iga tabeli jaoks korduv)
 

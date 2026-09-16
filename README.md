@@ -79,7 +79,9 @@ siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 pär
 
 ```
 index.html                  master-leht (etapp 4)
+css/styles.css              stiilid ja disainitokenid (disain.md p. 1–2)
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
+js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
 tools/serve.ps1             kohalik staatiline server arenduseks

@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–3 lõpetatud; järgmine: etapp 4 master-leht)
+Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–4 lõpetatud; järgmine: etapp 5 ETU41 moodul)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -34,10 +34,17 @@ Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–3 lõpetatud; j�
 - [ ] `TAI.attachTooltip` on kirjutatud, kuid testimata — kontrollida etapis 5 päris graafikuga
 
 ## 4. Master-lehe infoarhitektuur
-- [ ] Vasak loendipaneel (rida = pealkiri + selgitus + viide + API-nupp)
-- [ ] Parem kuvamisala + tühi olek
-
-Paigutuse otsused olemas (disain.md p. 2), kood veel kirjutamata.
+- [x] Stiiliotsused intervjuuga (päis, loendi rida, tühi olek, mobiil, jalus, paneelide eristus) — disain.md p. 2
+- [x] `index.html` + `css/styles.css` + `js/app.js`: päis („Vaimse tervise näidikulaud“, TAI link, laadimise aeg),
+      vasak loend (kogu rida nupp, allika link eraldi), tühi olek, laadimise skelett, veaolek
+      („Proovi uuesti“ + faili üleslaadimine), mooduli karkass (eyebrow, pealkiri, meta-sildid koos tabeli
+      uuenduskuupäevaga, jalus), lehe jalus, valik aadressis (`#ETU42`, tagasi-nupp töötab)
+- [x] Brauseris kontrollitud 16.09.2026: kõigi 3 tabeli laadimine, veaolek (simuleeritud võrgutõrge),
+      uuesti proovimine, faili üleslaadimine päris API JSON-iga, brauseri tagasi-nupp, laia ja mobiilivaate
+      paigutus, horisontaalset kerimist pole
+- [ ] Mobiilis sujuv automaatne kerimine mooduli juurde — loogika kontrollitud, kuid animatsiooni ei saanud
+      arenduspaneelis näha (paneel ei joonistanud kaadreid); kontrollida päris telefonis/brauseris
+- Mooduli sisus on ajutine märge „…lisanduvad järgmises etapis“ — asendub etapis 5
 
 ## 5. Esimese mooduli (ETU41) integreerimine
 - [ ] Üleslaaditud faili loogika ümber tõstetud uude raamistikku
