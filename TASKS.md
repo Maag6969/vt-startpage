@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapp 1 lõpetatud; järgmine: etapp 2 CORS-test)
+Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapid 1–2 lõpetatud; järgmine: etapp 3 raamistik)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -17,12 +17,13 @@ Viimati uuendatud: 16.09.2026 (stiiliotsused tehtud, etapp 1 lõpetatud; järgmi
       kõik päringud õnnestusid 16.09.2026
 - [x] API CORS-päised kontrollitud: preflight OPTIONS → 200, `Access-Control-Allow-Origin: *`,
       `Allow-Methods: GET, POST`, `Allow-Headers: Content-Type` — suure tõenäosusega töötab ka GitHub Pagesilt
-- [ ] Repo `vt-startpage` loodud (ootab Git + GitHub CLI paigaldust); PDF on `.gitignore`-s, avalikuks ei lähe
-- [ ] Testleht GitHub Pagesile üles pandud
-- [ ] Kinnitatud, et fetch() TAI API-sse töötab reaalselt sealt (mitte ainult lokaalselt/eelvaates)
-- [ ] Kui ei tööta: otsustada varuvariant (faili-üleslaadimine peamiseks teeks vs proxy)
+- [x] Avalik repo loodud: https://github.com/Maag6969/vt-startpage (PDF on `.gitignore`-s, avalikuks ei läinud)
+- [x] GitHub Pages sisse lülitatud (haru `main`, juurkaust): https://maag6969.github.io/vt-startpage/
+- [x] **Kinnitatud 16.09.2026:** https://maag6969.github.io/vt-startpage/cors-test.html — kõik 6 päringut
+      (3 tabelit × GET + POST) õnnestusid originilt `https://maag6969.github.io`, konsoolis vigu pole
+- [x] Varuvarianti peamiseks teeks pole vaja — live-fetch on põhitee; faili-üleslaadimine jääb ainult varuplaaniks
 
-**BLOKEERIJA:** see samm pole veel tehtud — kogu edasine plaan eeldab, et see õnnestub.
+**Blokeerija lahendatud** — edasine plaan (live-fetch GitHub Pagesilt) kehtib.
 
 ## 3. Korduvkasutatava raamistiku disain ja kirjutamine
 - [ ] Ühine tuummoodul (json-stat2 lugeja, tooltip, veakäsitlus, üleslaadimise varuplaan)
@@ -58,4 +59,4 @@ Paigutuse otsused olemas (disain.md p. 2), kood veel kirjutamata.
 
 - ~~Visuaalne stiil täpsustamata~~ — **lahendatud 16.09.2026**: allikaks SoM_stiiliraamat_2024.pdf,
   otsused tehtud kolmes intervjuuringus (vt disain.md p. 1.1–1.2).
-- **CORS TAI API-st pole päriselt testitud** — vt samm 2, kogu live-fetch plaan seisab selle peal.
+- ~~CORS TAI API-st pole päriselt testitud~~ — **lahendatud 16.09.2026**, töötab GitHub Pagesilt (vt samm 2).
