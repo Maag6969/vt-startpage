@@ -3,7 +3,7 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (etapid 1–6 lõpetatud; järgmine: etapp 7 viimistlus)
+Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; järgmine: etapp 8 SharePointi integratsioon)
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
@@ -73,12 +73,22 @@ Viimati uuendatud: 16.09.2026 (etapid 1–6 lõpetatud; järgmine: etapp 7 viimi
 - [x] Mobiilivaade (375px): mõlemal tabelil horisontaalset kerimist pole
 
 ## 7. Viimistlus
-- [ ] Disaini ühtlustamine kõigi kolme mooduli vahel
-- [ ] Responsiivsus (paneelide virnastumine kitsal ekraanil)
-- [ ] Veakäsitlus kontrollitud kõigi kolme tabeli jaoks
+- [x] Ülevaatus 16.09.2026: tekstikontrast AA (automaatkontroll, 0 probleemi), pealkirjade järjekord, maamärgid,
+      vormisildid — korras
+- [x] Parandatud ilma otsuseta: lehe `<title>` valitud tabeli järgi; kõigil uues aknas avanevatel linkidel
+      ekraanilugeja märge (`TAI.externalLink`); kerimine arvestab „vähenda liikumist“ seadistust
+- [x] Intervjuu: oranž → `#d4621a` (graafikukontrast ≥ 3:1); favicon (sinine ring + „V“); printimise stiil
+      (valitud lõige tekstina, andmetabel avatud); Open Graph lingi eelvaade; filtrid aadressis
+- [x] Kontrollitud: otselink filtritega, filtri muutus uuendab aadressi ilma uue ajaloo kirjeta, tabelite vahel
+      liikudes filtrid säilivad aadressis, vigased parameetrid ignoreeritakse, brauseri „tagasi“, printvaate simulatsioon
+- [x] Responsiivsus (paneelide virnastumine) ja veakäsitlus kõigi kolme tabeli jaoks — kontrollitud etappides 4–6
+- [x] Avalik repo koristatud: testid, tööriistad, CORS-test ja vana prototüüp ainult kohalikus arvutis (`.gitignore`);
+      git'i ajaloos on vanad versioonid endiselt nähtavad
+- [ ] Päris printimine (Ctrl+P) ja lingi eelvaade SharePointis/Teamsis — kontrollida päris keskkonnas
+- NB! Lingi eelvaatel pole pilti (`og:image`) — vajaks eraldi PNG-pilti
 
 ## 8. Avaldamine ja SharePointi integratsioon
-- [ ] GitHub Pagesile avaldatud
+- [x] GitHub Pagesile avaldatud: https://maag6969.github.io/vt-startpage/
 - [ ] SharePointi Embed-veebiosasse lisatud
 - [ ] HTML Field Security seadistus kontrollitud/lisatud (vajab IT/admini kaasamist)
 

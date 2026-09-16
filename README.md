@@ -79,15 +79,23 @@ siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 pär
 
 ```
 index.html                  master-leht (etapp 4)
-css/styles.css              stiilid ja disainitokenid (disain.md p. 1–2)
+favicon.svg                 vahekaardi ikoon
+css/styles.css              stiilid, disainitokenid ja printimise stiil (disain.md p. 1–2)
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
+
+Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
 tools/serve.ps1             kohalik staatiline server arenduseks
-cors-test.html              etapi 2 CORS-test
+.claude/launch.json         eelvaate serveri seadistus
+cors-test.html              etapi 2 CORS-test (tulemus TASKS.md-s)
+tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
 ```
+
+**Otselink vaatele:** `#KOOD?taustatunnus=3&vanus=2&sugu=vordlus` (`sugu` = `mehed` | `naised` | `vordlus`;
+vaikeväärtused jäetakse aadressist välja, vigased parameetrid ignoreeritakse).
 
 Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
 lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `app.js`.

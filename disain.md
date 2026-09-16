@@ -18,7 +18,7 @@ disain.md vastab küsimusele "kuidas see kasutajale välja näeb ja milline jutt
 | `--som-keskmine-sinine` | `#4B7DFF` | põhivärv | **Juhtiv aktsentvärv:** peamised nupud, aktiivse rea aktsentriba, fookus/hover |
 | `--som-tumesinine` | `#181E54` | põhivärv | Tekstiline aktsent: pealkirjad, lingid |
 | `--series-1` | `#4B7DFF` | põhivärv | Graafikute 1. seeria (nt mehed / ainus seeria) |
-| `--series-2` | `#f17a29` | lisavärv (oranž) | Graafikute 2. seeria (nt naised) |
+| `--series-2` | ~~`#f17a29`~~ → **`#d4621a`** | lisavärv (oranž), tumendatud | Graafikute 2. seeria (nt naised). Raamatu oranž andis valgel 2,8:1, WCAG nõuab graafikuelementidele 3:1 → tumedam toon ~3,8:1 (intervjuu 16.09.2026, etapp 7) |
 
 - **Font:** Roboto (Google Fonts) — sisutekst Regular 400, esiletõstmine Medium 500 / Bold 700,
   pealkirjad Light 300 / Medium / Bold (stiiliraamatu lk 6 järgi).
@@ -105,7 +105,16 @@ link „↑ Tagasi andmestike juurde“.
 Ainult andmeallikas: „Andmed: Tervise Arengu Instituut, Eesti terviseuuring“ + link TAI andmebaasi.
 
 ### Aadress
-Valitud tabel kajastub aadressis (`#ETU42`) — otselink ja brauseri „tagasi“ töötavad.
+Valitud tabel **ja filtrid** kajastuvad aadressis (nt `#ETU41?taustatunnus=3&vanus=2&sugu=vordlus`) —
+otselink konkreetsele vaatele ja brauseri „tagasi“ töötavad (etapp 7).
+
+### Viimistlus (intervjuu 16.09.2026, etapp 7)
+- **Favicon:** SVG — keskmise sinise `#4B7DFF` ring, sees valge „V“ (logota).
+- **Printimine:** loend, nupud, filtrid ja lingid „tagasi“ peidetakse; moodul trükitakse täislaiuses,
+  andmetabel avatakse; valitud filtrid trükitakse tekstina mooduli pealkirja alla.
+- **Lingi eelvaade:** Open Graph metaandmed (pealkiri, kirjeldus, keel) SharePointi/Teamsi/e-posti jaoks.
+- **Avalik repo:** ainult lehe failid + README, disain.md, TASKS.md; abi- ja arendusfailid (testid, tööriistad,
+  CORS-test, vana prototüüp) jäävad ainult kohalikku arvutisse.
 
 ## 3. Mooduli sisukorra mall (iga tabeli jaoks korduv)
 

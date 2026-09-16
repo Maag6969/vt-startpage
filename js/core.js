@@ -405,6 +405,12 @@
 
   // ---- abifunktsioonid ----------------------------------------------
 
+  /** Uues aknas avanev link koos ekraanilugeja märkega. text ja href escape'itakse. */
+  TAI.externalLink = function (href, text) {
+    return '<a href="' + TAI.escapeHtml(href) + '" target="_blank" rel="noopener">' + TAI.escapeHtml(text) +
+      ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>';
+  };
+
   TAI.escapeHtml = function (s) {
     return String(s).replace(/[&<>"']/g, function (c) {
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];

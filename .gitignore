@@ -1,5 +1,9 @@
 # Stiiliraamat — ei avaldata avalikus repos
 *.pdf
 
-# Kohalikud tööriistade failid
-.claude/settings.local.json
+# Arendus- ja abifailid — ainult kohalikus arvutis, avalikku repo ei lähe (disain.md p. 2 „Viimistlus“)
+.claude/
+tests/
+tools/
+cors-test.html
+tai_vaimse_tervise_dashboard.html

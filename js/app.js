@@ -18,6 +18,9 @@
   var states = {};         // filtrivalikud tabeli kaupa (säilivad tabelite vahel liikudes)
   var view = null;         // { config, data, source } — praegu kuvatud moodul
 
+  var BASE_TITLE = document.title;
+  var REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   var dateFmt = new Intl.DateTimeFormat("et-EE", { day: "2-digit", month: "2-digit", year: "numeric" });
   var timeFmt = new Intl.DateTimeFormat("et-EE", { hour: "2-digit", minute: "2-digit" });
 
@@ -47,14 +50,70 @@
     listEl.addEventListener("click", function (evt) {
       var btn = evt.target.closest(".dataset__button");
       if (!btn) return;
-      var code = btn.closest(".dataset").getAttribute("data-code");
-      if (location.hash === "#" + code) {
-        select(code, { scroll: true }); // sama rida uuesti → laadi uuesti
+      var config = TAI.getTable(btn.closest(".dataset").getAttribute("data-code"));
+      var target = hashFor(config);
+      if (location.hash === target) {
+        select(config.code, { scroll: true }); // sama vaade uuesti → laadi uuesti
       } else {
         pendingScroll = true;
-        location.hash = code;           // hashchange → select()
+        location.hash = target;                // hashchange → select()
       }
     });
+  }
+
+  // ---- aadress: #KOOD?taustatunnus=3&vanus=2&sugu=vordlus ------------
+
+  var PARAM_NAMES = { Taustatunnus: "taustatunnus", "Vanuserühm": "vanus", Sugu: "sugu" };
+  var SEX_PARAM = { "1": "mehed", "2": "naised", compare: "vordlus" };
+
+  function parseHash() {
+    var raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    var q = raw.indexOf("?");
+    var params = {};
+    (q >= 0 ? raw.slice(q + 1) : "").split("&").forEach(function (pair) {
+      if (!pair) return;
+      var eq = pair.indexOf("=");
+      params[eq >= 0 ? pair.slice(0, eq) : pair] = eq >= 0 ? pair.slice(eq + 1) : "";
+    });
+    return { code: q >= 0 ? raw.slice(0, q) : raw, params: params };
+  }
+
+  function defaultState(config) {
+    var state = { compareSexes: false };
+    (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
+    return state;
+  }
+
+  /** Aadressi parameetritest olek; tundmatud või vigased väärtused jäetakse vaikimisi. */
+  function stateFromParams(config, params) {
+    var state = defaultState(config);
+    (config.filters || []).forEach(function (code) {
+      var val = params[PARAM_NAMES[code] || code.toLowerCase()];
+      if (val == null) return;
+      if (code === "Sugu") {
+        if (val === SEX_PARAM.compare && config.canCompareSexes) { state.compareSexes = true; state.Sugu = "0"; }
+        else if (val === SEX_PARAM["1"]) state.Sugu = "1";
+        else if (val === SEX_PARAM["2"]) state.Sugu = "2";
+      } else if (config.vars[code].values.indexOf(val) >= 0) {
+        state[code] = val;
+      }
+    });
+    return state;
+  }
+
+  function hashFor(config) {
+    var state = states[config.code] || defaultState(config);
+    var parts = [];
+    (config.filters || []).forEach(function (code) {
+      var name = PARAM_NAMES[code] || code.toLowerCase();
+      if (code === "Sugu") {
+        var key = state.compareSexes ? "compare" : state.Sugu;
+        if (SEX_PARAM[key]) parts.push(name + "=" + SEX_PARAM[key]);
+      } else if (state[code] != null && state[code] !== config.vars[code].totalValue) {
+        parts.push(name + "=" + encodeURIComponent(state[code]));
+      }
+    });
+    return "#" + config.code + (parts.length ? "?" + parts.join("&") : "");
   }
 
   function rowOf(code) { return listEl.querySelector('.dataset[data-code="' + code + '"]'); }
@@ -82,6 +141,7 @@
 
   function renderEmpty() {
     view = null;
+    document.title = BASE_TITLE;
     contentEl.innerHTML =
       '<div class="empty-state">' +
         '<h2>Vali <span class="only-wide">vasakult</span><span class="only-narrow">ülalt</span> andmestik</h2>' +
@@ -122,8 +182,8 @@
         (info.offerUpload ?
           '<div class="error-box__upload">' +
             '<label for="upload-file">Või lae andmed failina üles</label>' +
-            '<p class="muted">Ava <a href="' + esc(TAI.pxwebUrl(config)) + '" target="_blank" rel="noopener">tabel ' +
-              esc(config.code) + " TAI andmebaasis ↗</a>, vali kõik väärtused ja salvesta vormingus JSON-stat2.</p>" +
+            '<p class="muted">Ava ' + TAI.externalLink(TAI.pxwebUrl(config), "tabel " + config.code + " TAI andmebaasis") +
+              ", vali kõik väärtused ja salvesta vormingus JSON-stat2.</p>" +
             '<input type="file" id="upload-file" accept=".json,application/json">' +
           "</div>" : "") +
       "</div>";
@@ -150,12 +210,18 @@
   // ---- moodul ---------------------------------------------------------
 
   function stateOf(config) {
-    if (!states[config.code]) {
-      var state = { compareSexes: false };
-      (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
-      states[config.code] = state;
-    }
+    if (!states[config.code]) states[config.code] = defaultState(config);
     return states[config.code];
+  }
+
+  /** Valitud filtrid lausena (printimiseks). */
+  function filterSummary(config, state) {
+    var parts = (config.filters || []).map(function (code) {
+      var label = config.vars[code].label;
+      if (code === "Sugu") return label + ": " + (state.compareSexes ? "mehed vs naised" : TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
+      return label + ": " + TAI.labelOf(config, code, state[code]);
+    });
+    return parts.length ? "Valitud lõige — " + parts.join(" · ") : "";
   }
 
   function renderFilters(config, state) {
@@ -197,6 +263,7 @@
     if (updated && !isNaN(updated)) meta.push("Tabel uuendatud " + dateFmt.format(updated));
     if (source.source === "file") meta.push("Allikas: fail " + source.fileName);
 
+    document.title = config.title + " · " + BASE_TITLE;
     contentEl.setAttribute("aria-busy", "false");
     contentEl.innerHTML =
       backLink() +
@@ -211,8 +278,7 @@
         '<div class="module__body" aria-live="polite"></div>' +
         '<footer class="module__footnotes">' +
           config.footnotes.map(function (f) { return "<p>" + esc(f) + "</p>"; }).join("") +
-          '<p>Allikas: Tervise Arengu Instituut, <a href="' + esc(TAI.pxwebUrl(config)) + '" target="_blank" rel="noopener">tabel ' +
-            esc(config.code) + " ↗</a>.</p>" +
+          "<p>Allikas: Tervise Arengu Instituut, " + TAI.externalLink(TAI.pxwebUrl(config), "tabel " + config.code) + ".</p>" +
         "</footer>" +
       "</article>";
 
@@ -235,7 +301,8 @@
     var model = TAI.buildModel(config, view.data, stateOf(config));
     var callout = TAI.calloutText(model);
 
-    var html = TAI.renderKpis(model);
+    var summary = filterSummary(config, stateOf(config));
+    var html = (summary ? '<p class="print-only filter-summary">' + esc(summary) + "</p>" : "") + TAI.renderKpis(model);
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
     if (model.trend) {
@@ -308,6 +375,8 @@
     } else {
       return;
     }
+    // aadress kajastab vaadet; replaceState ei tekita hashchange'i ega uut ajaloo kirjet
+    history.replaceState(null, "", hashFor(view.config));
     reload();
   });
 
@@ -375,8 +444,10 @@
     }
   }
 
+  function scrollBehavior() { return REDUCED_MOTION.matches ? "auto" : "smooth"; }
+
   function scrollToContent() {
-    if (MOBILE_QUERY.matches) contentEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (MOBILE_QUERY.matches) contentEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
   }
 
   function focusHeading() {
@@ -386,14 +457,25 @@
   }
 
   function onHashChange() {
-    var code = decodeURIComponent(location.hash.replace(/^#/, ""));
+    var parsed = parseHash();
+    var config = TAI.getTable(parsed.code);
     var scroll = pendingScroll;
     pendingScroll = false;
-    if (!TAI.getTable(code)) {
+    if (!config) {
       if (current) { current = null; setActiveRow(null); renderEmpty(); }
       return;
     }
-    if (code !== current || scroll) select(code, { scroll: scroll });
+    var before = JSON.stringify(states[config.code] || null);
+    states[config.code] = stateFromParams(config, parsed.params);
+    var filtersChanged = before !== JSON.stringify(states[config.code]);
+
+    if (config.code !== current || scroll) {
+      select(config.code, { scroll: scroll });
+    } else if (filtersChanged) {
+      // sama tabel, teised filtrid (nt brauseri „tagasi“ või käsitsi muudetud aadress)
+      if (view && view.config === config) { renderModule(config, view.data, view.source); if (view.source.source !== "file") reload(); }
+      else select(config.code);
+    }
   }
 
   // ---- käivitus -------------------------------------------------------
@@ -403,14 +485,25 @@
     var link = evt.target.closest(".back-link");
     if (!link) return;
     evt.preventDefault();
-    listEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    listEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
     var activeBtn = listEl.querySelector(".dataset.is-active .dataset__button");
     if (activeBtn) activeBtn.focus({ preventScroll: true });
   });
 
+  // printimine: andmetabel avatakse, pärast taastatakse kasutaja valik
+  var reopened = [];
+  window.addEventListener("beforeprint", function () {
+    reopened = Array.prototype.filter.call(contentEl.querySelectorAll("details.data-details"), function (d) { return !d.open; });
+    reopened.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    reopened.forEach(function (d) { d.open = false; });
+    reopened = [];
+  });
+
   renderList();
   window.addEventListener("hashchange", onHashChange);
-  if (TAI.getTable(decodeURIComponent(location.hash.replace(/^#/, "")))) {
+  if (TAI.getTable(parseHash().code)) {
     onHashChange();
   } else {
     renderEmpty();

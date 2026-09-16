@@ -273,8 +273,7 @@
         }).join("") + "</tbody></table>";
     }
 
-    html += '<p class="data-table__link"><a href="' + esc(TAI.pxwebUrl(config)) + '" target="_blank" rel="noopener">' +
-      "Vaata kogu tabelit TAI andmebaasis ↗</a></p>";
+    html += '<p class="data-table__link">' + TAI.externalLink(TAI.pxwebUrl(config), "Vaata kogu tabelit TAI andmebaasis") + "</p>";
     return html;
   };
 
