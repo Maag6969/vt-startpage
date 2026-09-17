@@ -22,6 +22,12 @@ maakonna lõige, mõnel mitte) ja mõnel tabelil on mitu võimalikku "mida me n�
    metaandmete GET-päringuga, kas midagi jäi kasutamata). Eesmärk: katsetada "iga muutuja rolli
    otsustamise" protsessi (näitaja / filter / breakdown-telg / eraldi kirje) tuttavatel, juba
    kinnitatud tabelitel, enne kui seda uutele andmetele rakendame.
+   **ALUSTADES:** vaata enne kodeerimist üle, kui kaugele on jõudnud
+   [M3 (tervishoiuteenuste kvaliteet)](../M3_kodutoo_tervishoiu_kvaliteet/README.md) projekt —
+   kasutaja soovitas 17.09.2026 sealt üle võtta, mis sobib. Sealses README-s on juba dokumenteeritud
+   PT05/PT06/PT07/PT01 ja PTU80-82 tabelite kaudu täpselt sama „suvalise taustatelje" üldistusvajadus
+   (vt seal „Arhitektuuri mõju") — kui M3 on selle `js/module.js` üldistuse juba teinud ja testinud,
+   on see otse siia (ja vastupidi) taaskasutatav, mitte kahes kohas eraldi lahendatav.
 3. **Uute TAI andmete lisamine 2. etapi põhimõttel.** Iga uus TAI tabel (nt `02Haigestumus/
    05Psyyhikahaired` PKH1–PKH8, `06Narkomaaniaravi` NR-tabelid — vt allpool 17.09.2026 uurimistöö)
    läbib sama protsessi: metaandmete kaardistus → muutujate rollide intervjuu → kood → test.
