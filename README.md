@@ -17,6 +17,28 @@ põhjal.
 - **Funktsionaalsus:** referents `tai_vaimse_tervise_dashboard.html` (live API-fetch nupp, JSON-stat2 lugeja,
   CORS-i tõrke korral faili-üleslaadimise varuplaan).
 
+## Põhimõte: ei mingeid isiklikke tokeneid/mandaate lahenduses (kinnitatud 17.09.2026)
+
+**Kokkulepe kasutajaga, kehtib läbivalt kogu selle projekti ja kõigi tulevaste sarnaste vibe-coding
+lahenduste arendusel:** rakendus ei tohi kasutada ega nõuda lahenduse looja (kasutaja) isiklikke API-võtmeid,
+tokeneid, kontosid ega muid mandaate selleks, et **külastajad** saaksid rakendust kasutada. Kõik
+külastaja-poolsed andmepäringud peavad minema külastaja enda brauserist otse avalikku, autentimist
+mittevajavasse teenusesse — täpselt nii, nagu külastaja avaks selle teenuse kodulehe ise oma brauseris.
+
+Selles projektis kehtib see kahe välisteenuse kohta:
+
+- **TAI PxWeb API** (`statistika.tai.ee`) — avalik andmeliides, päringu teeb iga külastaja brauser ise,
+  ilma sisselogimiseta ja ilma tokenita. Andmebaasi vaatest ei erine see millegi poolest külastajast, kes
+  avaks TAI kodulehe otse.
+- **Abacus** (`abacus.jasoncameron.dev`, kasutusstatistika loendurid) — avalik, kontota teenus; loendurite
+  nimed on avalikud "võtmed", mitte kellegi isiklikud mandaadid.
+
+Mõlemad päringud käivituvad kasutaja arvutis (vt `js/core.js` `fetch()`-kutsed ja `js/usage.js`), mitte
+serveris ega mõne AI-assistendi taustaprotsessis — sest see leht **ongi** ainult staatilised failid
+GitHub Pagesil, ilma serveripoolse loogikata. Kui edaspidi lisandub allikas, mis nõuab autentimist
+(API-võti, konto), tuleb see **enne kasutuselevõttu** kasutajaga eraldi läbi arutada, sest see rikuks seda
+põhimõtet.
+
 ## Andmeallikad (I versioon — 3 tabelit)
 
 Kõik pärinevad samast TAI PxWeb kaustast: `Andmebaas/05Uuringud/01ETeU/04VaimneTervis/`

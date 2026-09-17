@@ -4,6 +4,10 @@ Selles failis on kirjas visuaalsed, sisulised ja funktsionaalsed otsused, mis t�
 kirjeldatud tehnilist arhitektuuri. README vastab küsimusele "millised andmed ja kuidas need liiguvad",
 disain.md vastab küsimusele "kuidas see kasutajale välja näeb ja milline jutt numbrite ümber käib".
 
+> **Arhitektuuri põhimõte (vt README.md "Põhimõte: ei mingeid isiklikke tokeneid/mandaate lahenduses"):**
+> lahendus ei tohi külastajate teenindamiseks kasutada kasutaja isiklikke API-võtmeid ega kontosid — kõik
+> andmepäringud käivad külastaja enda brauserist avalikesse, autentimist mittevajavatesse teenustesse.
+
 > **STAATUS: kinnitamisel (16.09.2026).** Visuaalne stiil põhineb Sotsiaalministeeriumi stiiliraamatul
 > `SoM_stiiliraamat_2024.pdf` („Visuaalne suund sise- ja väliskommunikatsiooni ühtlustamiseks“, nov 2023).
 > Raamatust võetakse elemente **valikuliselt** — iga otsus tehakse kasutajaga intervjuu põhjal ja
