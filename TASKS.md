@@ -28,6 +28,13 @@ maakonna lõige, mõnel mitte) ja mõnel tabelil on mitu võimalikku "mida me n�
    PT05/PT06/PT07/PT01 ja PTU80-82 tabelite kaudu täpselt sama „suvalise taustatelje" üldistusvajadus
    (vt seal „Arhitektuuri mõju") — kui M3 on selle `js/module.js` üldistuse juba teinud ja testinud,
    on see otse siia (ja vastupidi) taaskasutatav, mitte kahes kohas eraldi lahendatav.
+   **NB (kasutaja täpsustus 17.09.2026): see puudutab ainult tehnilist koodi/arhitektuuri**
+   (`core.js`-tüüpi loogika, `seriesOf()`-i üldistus, päringute koostamine, veakäsitlus).
+   **Visuaalseid/disainiotsuseid (`css/styles.css`, `disain.md`) ei tohi kunagi vaikimisi teisest
+   projektist üle kanda** — mõlemal näidikulaual on eraldi tellija, kelle maitse võib SoM
+   stiiliraamatu piires siiski erineda, ja iga uus disainiotsus vajab oma intervjuud selles
+   projektis, isegi kui M3 sai oma stiilitokenid siit üks kord kasutaja selgel soovil üle kantud
+   (see oli ühekordne erand, mitte pretsedent).
 3. **Uute TAI andmete lisamine 2. etapi põhimõttel.** Iga uus TAI tabel (nt `02Haigestumus/
    05Psyyhikahaired` PKH1–PKH8, `06Narkomaaniaravi` NR-tabelid — vt allpool 17.09.2026 uurimistöö)
    läbib sama protsessi: metaandmete kaardistus → muutujate rollide intervjuu → kood → test.
