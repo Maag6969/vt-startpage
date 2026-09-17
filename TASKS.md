@@ -96,7 +96,11 @@ Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; leht jagatud tagasisidek
 - [x] 17.09.2026: soo lüliti tekst „Mehed vs naised“ → „Mehed vrdl Naised“ (ka printimise kokkuvõttes)
 - [x] 17.09.2026: lehe pealkiri 25% suurem (2rem; mobiilis 1,6875rem)
 - [x] 17.09.2026: vaatamiste loendur pealkirja all (intervjuu; Abacus, loeb lehe avamisi, ainult avaldatud lehel +1) —
-      disain.md p. 2 „Päis“; halduskood kohalikus failis `.counter-admin-key.txt` (gitignore)
+      disain.md p. 2 „Päis“
+- [x] 17.09.2026: kasutusstatistika laiendatud (intervjuu) — andmestike avamised (arv loendi real), filtrivalikud,
+      lisategevused; 54 loendurit loodud Abacuses, halduskoodid `.counter-admin-keys.tsv` (gitignore);
+      kohalik statistikaleht `tools/stats.html`. Kontrollitud simuleeritud avaldatud lehega: õiged loendurid,
+      seansisisesed kordused ei loe, statistikaleht loeb kõik 54 (päringupiirangu tõttu aeglane, ~40 s)
 - [x] `tools/serve.ps1` parandatud: HEAD-päring ega üksik viga ei peata enam serverit
 
 **Praegune seis (16.09.2026):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele

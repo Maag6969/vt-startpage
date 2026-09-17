@@ -41,6 +41,7 @@
           '<div class="dataset__footer">' +
             '<a href="' + esc(TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: TAI ' + esc(t.code) +
               ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
+            '<span class="dataset__views" hidden></span>' +
             '<span class="dataset__status" role="status"></span>' +
           "</div>" +
         "</li>"
@@ -200,6 +201,7 @@
           Object.keys(config.queries(stateOf(config))).forEach(function (name) { data[name] = reader; });
           setRowStatus(config.code, null);
           renderModule(config, data, { source: "file", fileName: file.name });
+          usage.track(usage.keyAction(config.code, "fail"));
         }).catch(function (e) {
           renderError(config, e);
         });
@@ -369,9 +371,11 @@
     var state = stateOf(view.config);
     if (t.matches("select[data-filter]")) {
       state[t.getAttribute("data-filter")] = t.value;
+      usage.track(usage.keyFilter(view.config.code, t.getAttribute("data-filter"), t.value));
     } else if (t.matches('input[name="filter-sex"]')) {
       state.compareSexes = t.value === "compare";
       state.Sugu = state.compareSexes ? "0" : t.value;
+      usage.track(usage.keyFilter(view.config.code, "Sugu", t.value));
     } else {
       return;
     }
@@ -433,6 +437,7 @@
       if (myRequest !== requestId) return;
       setRowStatus(code, null);
       renderModule(config, data, { source: "api" });
+      usage.track(usage.keyDataset(code)).then(function (v) { showRowCount(code, v); });
       if (opts.scroll) { scrollToContent(); focusHeading(); }
     } catch (err) {
       if (myRequest !== requestId) return;
@@ -490,31 +495,54 @@
     if (activeBtn) activeBtn.focus({ preventScroll: true });
   });
 
-  // ---- vaatamiste loendur (Abacus, disain.md p. 2 „Päis“) ----------------
-  // Loeb lehe avamisi. Ainult avaldatud lehel suurendatakse arvu (hit); mujal (arendus) ainult loetakse (get).
-  // Kui teenus ei vasta, loendurit lihtsalt ei kuvata — leht töötab edasi.
+  // ---- kasutusstatistika (js/usage.js, disain.md p. 2) --------------------
+  // Kui teenus ei vasta, arve lihtsalt ei kuvata — leht töötab edasi.
 
-  var COUNTER_API = "https://abacus.jasoncameron.dev/";
-  var COUNTER_KEY = "maag6969.github.io/vt-startpage";
-  var LIVE_HOST = "maag6969.github.io";
+  var usage = TAI.usage;
+  var numberFmt = new Intl.NumberFormat("et-EE");
+
+  function viewsText(n) { return numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
+
+  function showCount(el, value) {
+    if (!el || value == null) return;
+    el.textContent = viewsText(value);
+    el.hidden = false;
+  }
+
+  function showRowCount(code, value) {
+    var row = rowOf(code);
+    showCount(row && row.querySelector(".dataset__views"), value);
+  }
 
   function loadViewCount() {
-    var el = document.getElementById("view-count");
-    if (!el || typeof fetch !== "function") return;
-    var action = location.hostname === LIVE_HOST ? "hit/" : "get/";
-    fetch(COUNTER_API + action + COUNTER_KEY)
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) {
-        if (!data || typeof data.value !== "number") return;
-        el.textContent = new Intl.NumberFormat("et-EE").format(data.value) + (data.value === 1 ? " vaatamine" : " vaatamist");
-        el.hidden = false;
-      })
-      .catch(function () { /* teenus pole kättesaadav → loendurit ei kuvata */ });
+    usage.track("vt-startpage", { everyTime: true }).then(function (v) { showCount(document.getElementById("view-count"), v); });
+    TAI.getTables().forEach(function (t) {
+      usage.get(usage.keyDataset(t.code)).then(function (v) { showRowCount(t.code, v); });
+    });
   }
+
+  // andmetabeli avamine (toggle ei mullitu → capture)
+  contentEl.addEventListener("toggle", function (evt) {
+    if (view && evt.target.matches && evt.target.matches("details.data-details") && evt.target.open) {
+      usage.track(usage.keyAction(view.config.code, "andmetabel"));
+    }
+  }, true);
+
+  // TAI allikalingi klõps (loendis või moodulis; ka keskmise nupuga uude kaardi avamine)
+  function onSourceClick(evt) {
+    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"]');
+    if (!link) return;
+    var row = link.closest(".dataset");
+    var code = row ? row.getAttribute("data-code") : (contentEl.contains(link) && view ? view.config.code : null);
+    if (code) usage.track(usage.keyAction(code, "allikas"));
+  }
+  document.addEventListener("click", onSourceClick);
+  document.addEventListener("auxclick", onSourceClick);
 
   // printimine: andmetabel avatakse, pärast taastatakse kasutaja valik
   var reopened = [];
   window.addEventListener("beforeprint", function () {
+    if (view) usage.track(usage.keyAction(view.config.code, "prindi"));
     reopened = Array.prototype.filter.call(contentEl.querySelectorAll("details.data-details"), function (d) { return !d.open; });
     reopened.forEach(function (d) { d.open = true; });
   });

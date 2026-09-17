@@ -88,12 +88,15 @@ favicon.svg                 vahekaardi ikoon
 css/styles.css              stiilid, disainitokenid ja printimise stiil (disain.md p. 1–2)
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel
+js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
 
 Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
 tools/serve.ps1             kohalik staatiline server arenduseks
+tools/stats.html            kasutusstatistika järjestatult (http://localhost:8080/tools/stats.html)
+.counter-admin-keys.tsv     loendurite halduskoodid (salajane)
 .claude/launch.json         eelvaate serveri seadistus
 cors-test.html              etapi 2 CORS-test (tulemus TASKS.md-s)
 tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
@@ -103,7 +106,7 @@ tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
 vaikeväärtused jäetakse aadressist välja, vigased parameetrid ignoreeritakse).
 
 Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
-lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `app.js`.
+lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `usage.js` → `app.js`.
 
 Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfiguratsioonist
 (`indicator.phrase` callout-lause jaoks kujul „… {kes} osakaal“, `views.breakdown.groups` / `inPhrase`,

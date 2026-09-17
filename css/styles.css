@@ -144,6 +144,8 @@ a:hover { text-decoration-thickness: 2px; }
   padding: 2px 20px 16px 24px;
   font-size: 0.8rem; color: var(--tekst-2);
 }
+.dataset__views { font-variant-numeric: tabular-nums; }
+.dataset__views[hidden] { display: none; }
 .dataset__status { display: inline-flex; align-items: center; gap: 6px; }
 .dataset__status.is-error { color: var(--negatiivne); font-weight: 500; }
 

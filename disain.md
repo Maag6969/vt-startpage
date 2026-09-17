@@ -80,10 +80,27 @@ mitte kleepuv loend).
 - Pealkiri **„Vaimse tervise näidikulaud“** — valge taust, tumesinine `#181E54` Roboto Medium, all helehall eraldusjoon.
   Suurus 2rem (mobiilis 1,6875rem) — 17.09.2026 suurendatud 25%.
 - **Vaatamiste loendur** (intervjuu 17.09.2026): väike hall rida pealkirja all („1 234 vaatamist“). Loeb
-  **lehe avamisi** (ka värskendamine = +1; tabelite/filtrite vahetus lehe sees ei loe). Teenus: Abacus
-  (`abacus.jasoncameron.dev`, loendur `maag6969.github.io/vt-startpage`, küpsisteta, kontota). Arvu suurendatakse
-  ainult avaldatud lehel; kui teenus ei vasta, loendurit ei kuvata. Printides peidetud. Halduskood (nullimiseks)
-  on ainult kohalikus failis `.counter-admin-key.txt`.
+  **lehe avamisi** (ka värskendamine = +1). Printides peidetud.
+
+### Kasutusstatistika (intervjuu 17.09.2026)
+Eesmärk: näha, millist infot kõige rohkem kasutatakse. Teenus **Abacus** (`abacus.jasoncameron.dev`, küpsisteta,
+kontota; ainult koguarvud, ajalugu pole). Kood: `js/usage.js`.
+
+| Loendur | Mida loeb |
+|---|---|
+| `vt-startpage` | avalehe avamine (iga kord) |
+| `ds-<KOOD>` | andmestiku avamine (andmed laaditud edukalt API-st) |
+| `f-<KOOD>-<filter>-<väärtus>` | kasutaja tehtud filtrivalik, nt `f-ETU41-sugu-vordlus`, `f-ETU42-vanus-1` |
+| `a-<KOOD>-andmetabel/allikas/prindi/fail` | andmetabeli avamine, TAI allikalingi klõps, printimine, faili üleslaadimine |
+
+- Sama tegevus loetakse **ühe brauseriseansi jooksul üks kord** (va avaleht); vaikevalikud ja otselingi filtrid
+  ei lähe filtrite alla.
+- **Andmestiku vaatamiste arv on kõigile nähtav loendi real** („57 vaatamist“, allika lingi kõrval).
+- Arve suurendatakse ainult avaldatud lehel; kui teenus ei vasta, arve ei kuvata ja leht töötab edasi.
+- Kogu statistika järjestatult: kohalik leht `tools/stats.html` (ainult loeb). Halduskoodid (nullimiseks)
+  kohalikus failis `.counter-admin-keys.tsv` — mõlemad ei lähe avalikku repo.
+- Uue tabeli/filtri lisamisel tekivad loendurite nimed automaatselt (`TAI.usage.allKeys()`), kuid Abacuses
+  tuleb need enne luua (`/create`), et saada halduskood ja et statistikaleht näitaks nulle.
 - Lisaks: link **„TAI tervisestatistika andmebaas ↗“** ja **laadimise aeg** („Andmed laaditud otse TAI
   andmebaasist · 16.09.2026 14:32“; nähtav pärast esimest edukat laadimist).
 - Alapealkirja ei ole.
