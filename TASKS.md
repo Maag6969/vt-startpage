@@ -102,6 +102,17 @@ Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; leht jagatud tagasisidek
       kohalik statistikaleht `tools/stats.html`. Kontrollitud simuleeritud avaldatud lehega: õiged loendurid,
       seansisisesed kordused ei loe, statistikaleht loeb kõik 54 (päringupiirangu tõttu aeglane, ~40 s)
 - [x] `tools/serve.ps1` parandatud: HEAD-päring ega üksik viga ei peata enam serverit
+- [x] 17.09.2026: turvaküsimus läbi arutatud — kas dashboard kasutab kasutaja tokeneid/mandaate. Vastus: ei,
+      TAI PxWeb API ja Abacus on mõlemad avalikud kontota teenused, päring käib külastaja enda brauserist.
+      Kontrollitud: pole kunagi commit'itud tokenit/võtit (ka git ajaloos), XSS-i teed pidi API andmed lehele
+      ei jõua ilma escape'imata. Läbiv põhimõte kirjas README.md "Põhimõte: ei mingeid isiklikke
+      tokeneid/mandaate lahenduses" ja disain.md-s.
+
+**Ootel (kasutaja otsus 17.09.2026 — mitte praegu, hiljem kui vaja):**
+- [ ] Content-Security-Policy päis (piirab, milliste domeenidega leht tohib suhelda; kaitseks nt Google Fontsi
+      kompromiteerimise puhul) — vajab hoolikat testimist, et fondid/API-d/loendurid jääksid tööle
+- [ ] Abacuse loendurid GoatCounterile üle viia (praegu saab loendurite nimesid teades neid võõras skript
+      suvaliselt suurendada — kosmeetiline risk, statistika täpsus, mitte turvarisk)
 
 **Praegune seis (16.09.2026):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
 tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem, kui vaja.
