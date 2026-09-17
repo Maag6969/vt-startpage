@@ -112,7 +112,8 @@ js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel
 js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
-js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable)
+js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
+js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS.md 17.09.2026)
 
 Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)

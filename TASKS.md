@@ -3,8 +3,47 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 17.09.2026 (piloteerimise kava kokku lepitud; vt allpool. Tehnilised
-töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+Viimati uuendatud: 17.09.2026 (Eurostati esimene tabel `ilc_pw01` lisatud, vt allpool uus jaotis.
+Tehnilised töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+
+## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
+
+M3 (tervishoiu-kvaliteet) projektis oli juba tehtud `js/core.js`/`js/module.js` üldistus
+(`config.seriesVar`/`measureLabel`, PxWeb POST kõrval GET-URL tugi Eurostati jaoks) — see toodi siia
+üle **muutmata kujul, kõrvuti vana koodiga** (dispatch `config.seriesVar` olemasolu järgi), nii et
+ETU41–43 (vana `config.indicator` kuju) jäid täiesti puutumata — kõik 20 raamistiku testi ja täpsed
+vanad numbrid (Mehed 8,4%, Naised 13,1%) kontrollitud muutumatuna pärast porti.
+
+**Uus tabel:** `js/tables/eurostat-ilc-pw01.js` — Eurostat `ilc_pw01`, eluga rahulolu (0–10 skaala),
+2013–2025, Eesti + ~36 riigi võrdlus. Kasutaja eesmärk (17.09.2026): "pilt on poliitikakujundajale
+kiirelt haaratav, kuid väikese vaevaga näha ka Eesti-EL keskmise-teiste riikide võrdlust".
+
+**Lahendus (intervjuu + tehniline avastus 17.09.2026):**
+- Algne plaan „Eesti vs EL-27 kaks täisseeriat trendis" ei sobinud mootoriga: sama "geo" muutuja
+  peaks täitma korraga kitsa (trend/KPI) ja laia (36 riigi tulbad) rolli — konflikt, mille lahendasin
+  uue `config.seriesValues` väljaga (piirab, millised `vars[seriesVar]` väärtused saavad "seeriaks",
+  breakdown kasutab ikka täit väärtuste nimekirja) ja uue `config.kpiReference`-mehhanismiga (väike
+  lisarida KPI-kaardil, mitte teine täisseeria).
+- **Tulemus:** trend = ainult Eesti (üks lihtne joon), KPI-kaart näitab Eesti väärtust + väikest rida
+  "EL-27 keskmine: 7,2 (0,1 palli kõrgem)" allpool, tulpdiagramm = riikide võrdlus (vaikimisi Balti +
+  Põhjamaad, "Näita kõiki (36)" nupp avab kõik, Eesti tumesinisena esile tõstetud, EL-27 katkendjoon).
+- **Leitud ja parandatud viga Eurostati API kasutuses:** mitmeväärtuseline `geo=` valik EI tööta
+  komadega ("geo=EE,EU27_2020" → tühi vastus, size=0) — vajab korduvaid parameetreid
+  ("geo=EE&geo=EU27_2020"). Kontrollitud otse API vastu enne ja pärast parandust.
+- **Leitud ja parandatud viga graafikutel:** `niceMax()` astmestik (5/10/20/…) on mõeldud lahtise
+  suurusjärguga arvudele ja venitas 0–10 hindeskaala telje 20-ni. Lisatud `config.axisMax` (fikseeritud
+  ülempiir, 5 ühtlast sammu) — kasutab iga tulevane fikseeritud-skaalaga tabel (nt hinnangud, indeksid).
+- **Brauseris kontrollitud:** koond (Eesti 7,3, ▲0,2 vs 2024; EL-27 7,2), tulpade vaike-/täiskomplekt
+  ("Näita kõiki" nupp ei tee uut API-päringut — andmed juba laaditud), callout, andmetabel, lai- ja
+  mobiilivaade (kerimist pole), loendi rea allikaviide ("Allikas: Eurostat ilc_pw01", mitte "TAI").
+- **Teadlik lihtsustus:** filtri muutmine (sugu/vanus/haridus) laeb andmed API-st uuesti täies mahus
+  (mõlemad päringud, sh kõik 37 riiki) — pole optimeeritud, aga URL/vastus on väike (~400 tähemärki
+  päring, testitud), nii et see pole probleem.
+
+**Taaskasutatavad uued mehhanismid (kasutatavad ka tulevastel Eurostat/muu-allika tabelitel):**
+`TAI.EUROSTAT_BASE`, `TAI.fetchJsonStatUrl(url)`, `TAI.sourceLabel/sourceLongLabel/sourceUrl(config)`,
+`TAI.unitText(config)`, `TAI.formatValue(v, unit)`, `config.seriesValues`, `config.kpiReference`,
+`config.axisMax`, `views.breakdown.defaultValues` + `expandFlag` (kompaktne/täisloend + nupp).
 
 ## Piloteerimise etapid (andmeallikate laiendamise kava, kokku lepitud 17.09.2026)
 

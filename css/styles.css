@@ -168,6 +168,13 @@ a:hover { text-decoration-thickness: 2px; }
 .btn:hover { filter: brightness(0.94); }
 .btn:disabled { opacity: 0.6; cursor: progress; }
 
+/* Väiksem, tagasihoidlikum nupuvariant (nt „Näita kõiki riike“ tulpdiagrammi all) */
+.btn--ghost {
+  background: none; color: var(--som-tumesinine); font-size: 0.9rem;
+  padding: 6px 14px; border: 1px solid var(--joon); margin-top: 4px;
+}
+.btn--ghost:hover { filter: none; background: var(--sinine-15); }
+
 /* ---- ümarad sildid -------------------------------------------------- */
 
 .pill {
@@ -245,6 +252,10 @@ fieldset.field { border: none; margin: 0; padding: 0; }
 .kpi__delta.is-flat { color: var(--tekst-2); }
 .kpi__delta-ref { font-weight: 400; color: var(--tekst-2); }
 .kpi__note { font-size: 0.85rem; color: var(--tekst-2); }
+.kpi__reference {
+  font-size: 0.85rem; color: var(--tekst-2); margin-top: 8px !important;
+  padding-top: 8px; border-top: 1px solid var(--joon);
+}
 .chart-note--after { margin: 8px 0 0; }
 
 /* callout */

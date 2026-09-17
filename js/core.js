@@ -33,13 +33,27 @@
     return null;
   };
 
+  /*
+   * Kaks tabelikonfiguratsiooni kuju kehtivad kõrvuti (17.09.2026, esimene Eurostati tabel):
+   *  - vana, ETU-põhine: config.indicator = { var, positive, ... } (binaarne osakaal, nt Depressioon jah/ei)
+   *  - uus, üldine: config.seriesVar + config.measureLabel (suvaline väärtusteljega muutuja, nt
+   *    hindamisskaala või riik) — vt js/module.js, kus kõik renderdusfunktsioonid harjutavad
+   *    kumba kuju kasutada `config.seriesVar` olemasolu järgi. Uut kuju EI kanta ETU-tabelitele üle
+   *    ilma eraldi otsuseta (vt TASKS.md „2. etapp“) — need jäävad vana kujuga muutumatuks.
+   */
   function validateConfig(c) {
-    var required = ["code", "title", "description", "indicator", "vars", "years"];
+    var required = ["code", "title", "description", "vars", "years"];
     required.forEach(function (key) {
       if (!c[key]) throw new Error("Tabeli konfiguratsioonist puudub väli '" + key + "'" + (c.code ? " (" + c.code + ")" : ""));
     });
-    if (!c.vars[c.indicator.var]) {
+    if (!c.indicator && !c.seriesVar) {
+      throw new Error(c.code + ": tabelil peab olema kas 'indicator' (vana kuju) või 'seriesVar' (uus kuju)");
+    }
+    if (c.indicator && !c.vars[c.indicator.var]) {
       throw new Error(c.code + ": näitaja muutujat '" + c.indicator.var + "' pole vars-is kirjeldatud");
+    }
+    if (c.seriesVar && !c.vars[c.seriesVar]) {
+      throw new Error(c.code + ": seeriamuutujat '" + c.seriesVar + "' pole vars-is kirjeldatud");
     }
     Object.keys(c.vars).forEach(function (code) {
       var v = c.vars[code];
@@ -251,12 +265,18 @@
   /** Vastus või fail ei ole loetav JSON-stat2. */
   TAI.DataError = makeError("DataError");
 
-  /** Kasutajale näidatav eestikeelne selgitus + kas faili üleslaadimine on mõistlik varuvariant. */
-  TAI.describeError = function (err) {
+  /*
+   * Kasutajale näidatav eestikeelne selgitus + kas faili üleslaadimine on mõistlik varuvariant.
+   * `config` on valikuline — kui antud ja tabelil on config.source (nt Eurostat), kasutatakse
+   * allikaspetsiifilist sõnastust; muidu vaikimisi "TAI andmebaas" (tagasiühilduvus).
+   */
+  TAI.describeError = function (err, config) {
+    var srcLabel = (config && config.source && config.source.longLabel) || "TAI andmebaas";
+    var srcParen = (config && config.source) ? " (" + config.source.label + ")" : "";
     if (err instanceof TAI.NetworkError) {
       return {
-        title: "Ühendus TAI andmebaasiga ebaõnnestus",
-        text: "Päring ei jõudnud kohale. Põhjus võib olla internetiühenduses, TAI andmebaasi ajutises " +
+        title: "Ühendus " + srcLabel + "ga ebaõnnestus",
+        text: "Päring ei jõudnud kohale. Põhjus võib olla internetiühenduses, andmebaasi" + srcParen + " ajutises " +
               "kättesaamatuses või brauseri turvapiirangus (CORS). Proovi uuesti või lae andmed failina üles.",
         offerUpload: true
       };
@@ -268,7 +288,7 @@
                : status === 400 ? " Päringu vorming ei sobinud andmebaasile (tõenäoliselt muutunud tabeli struktuur)."
                : "";
       return {
-        title: "TAI andmebaas vastas veaga (HTTP " + status + ")",
+        title: srcLabel + srcParen + " vastas veaga (HTTP " + status + ")",
         text: "Andmeid ei õnnestunud laadida." + hint,
         offerUpload: status !== 400
       };
@@ -283,18 +303,13 @@
 
   var FETCH_TIMEOUT_MS = 20000;
 
-  /** POST-päring TAI API-sse; tagastab JSON-stat2 lugeja. Vead on TAI.*Error tüüpi. */
-  TAI.fetchJsonStat2 = async function (config, body) {
+  /** Ühine fetch+veakäsitlus PxWeb POST-päringu ja lihtsa GET-URL-i jaoks. */
+  async function doFetch(url, init) {
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     var timer = controller ? setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS) : null;
     var res;
     try {
-      res = await fetch(TAI.apiUrl(config), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-        signal: controller ? controller.signal : undefined
-      });
+      res = await fetch(url, Object.assign({}, init, { signal: controller ? controller.signal : undefined }));
     } catch (e) {
       var msg = e && e.name === "AbortError" ? "Päring aegus (" + FETCH_TIMEOUT_MS / 1000 + " s)." : (e && e.message) || "Failed to fetch";
       throw new TAI.NetworkError(msg, { cause: e });
@@ -304,21 +319,61 @@
     if (!res.ok) {
       throw new TAI.HttpError("API vastas staatusega " + res.status, { status: res.status });
     }
-    var json;
     try {
-      json = await res.json();
+      return await res.json();
     } catch (e) {
       throw new TAI.DataError("API vastus ei olnud korrektne JSON.");
     }
+  }
+
+  /** POST-päring TAI PxWeb API-sse; tagastab JSON-stat2 lugeja. Vead on TAI.*Error tüüpi. */
+  TAI.fetchJsonStat2 = async function (config, body) {
+    var json = await doFetch(TAI.apiUrl(config), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
     return TAI.readJsonStat2(json);
   };
 
-  /** Laeb kõik konfiguratsiooni päringud (config.queries(state)) paralleelselt. Tagastab { nimi: lugeja }. */
+  /*
+   * GET-päring suvalisest URL-ist (nt Eurostat, mille API on GET+query-string, mitte POST+body
+   * nagu PxWeb) — tagastab JSON-stat lugeja. Eurostati JSON-stat v1 vastus kontrollitud 17.09.2026:
+   * struktuur (dimension/category/index/label, id, size, value) ühildub otse TAI.readJsonStat2-ga.
+   */
+  TAI.EUROSTAT_BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/";
+
+  TAI.fetchJsonStatUrl = async function (url) {
+    var json = await doFetch(url, {});
+    return TAI.readJsonStat2(json);
+  };
+
+  /*
+   * Tabeli allika-URL/silt: kui config.source on määratud (nt Eurostat-tabelil), kasutatakse seda;
+   * muidu vaikimisi TAI PxWeb (tagasiühilduvus olemasolevate ETU-tabelitega, mis config.source-it
+   * ei määra).
+   */
+  TAI.sourceLabel = function (config) { return (config.source && config.source.label) || "TAI"; };
+  TAI.sourceLongLabel = function (config) { return (config.source && config.source.longLabel) || "Tervise Arengu Instituut"; };
+  TAI.sourceUrl = function (config) { return (config.source && config.source.url) || TAI.pxwebUrl(config); };
+
+  /*
+   * Kuvatav ühikutekst: kas lühike sufiks number otsa (config.unit, vaikimisi "%"), või kui väärtus
+   * pole protsent (config.unit === "") — pikem kirjeldav fraas (config.unitLabel).
+   */
+  TAI.unitText = function (config) {
+    if (config.unit === "") return config.unitLabel || "";
+    return config.unit != null ? config.unit : "%";
+  };
+
+  /** Laeb kõik konfiguratsiooni päringud (config.queries(state)) paralleelselt. Tagastab { nimi: lugeja }.
+   *  Iga päring on kas PxWeb query-objekt (POST) või lihtne URL-string (GET, nt Eurostat). */
   TAI.loadTable = async function (config, state) {
     var queries = config.queries(state || {});
     var names = Object.keys(queries);
     var readers = await Promise.all(names.map(function (name) {
-      return TAI.fetchJsonStat2(config, queries[name]);
+      var q = queries[name];
+      return typeof q === "string" ? TAI.fetchJsonStatUrl(q) : TAI.fetchJsonStat2(config, q);
     }));
     var out = {};
     names.forEach(function (name, i) { out[name] = readers[i]; });
@@ -343,9 +398,10 @@
         }
         try {
           var reader = TAI.readJsonStat2(json);
-          if (config && !reader.dims[config.indicator.var]) {
+          var seriesVarName = config && (config.seriesVar || (config.indicator && config.indicator.var));
+          if (config && seriesVarName && !reader.dims[seriesVarName]) {
             throw new TAI.DataError("Fail „" + file.name + "“ ei paista olevat tabel " + config.code +
-              " (puudub muutuja " + config.indicator.var + ").");
+              " (puudub muutuja " + seriesVarName + ").");
           }
           var missing = config ? Object.keys(config.vars).filter(function (code) { return !reader.dims[code]; }) : [];
           if (missing.length) {
@@ -419,16 +475,24 @@
 
   var pctFormat = new Intl.NumberFormat("et-EE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
-  /** 12.34 → "12,3%" (eesti formaat). */
-  TAI.formatPct = function (v) { return v == null ? "–" : pctFormat.format(v) + "%"; };
+  /* 12.34 → "12,3<unit>" (eesti formaat). `unit` vaikimisi "%" (tagasiühilduvus tabelitega, mis
+     config.unit ei määra). Tabelid, mille väärtus pole protsent (nt hindamisskaala 0–10), määravad
+     config.unit = "" (tühi, ühik selgitatakse mujal, vt TAI.unitText) või mõne muu sufiksi. */
+  TAI.formatValue = function (v, unit) { return v == null ? "–" : pctFormat.format(v) + (unit != null ? unit : "%"); };
 
-  /** Protsendipunktide muutus: { diff, direction: "up" | "down" | "flat", text }. */
-  TAI.delta = function (current, previous) {
+  /** 12.34 → "12,3%" (eesti formaat). */
+  TAI.formatPct = function (v) { return TAI.formatValue(v, "%"); };
+
+  /* Muutus kahe väärtuse vahel: { diff, direction: "up" | "down" | "flat", text }. `phrase` on
+     ühikusõna deltateksti lõpus (vaikimisi "protsendipunkti" — tagasiühilduvus); anna tühi string,
+     kui tabelil pole sobivat lühikest ühikusõna. */
+  TAI.delta = function (current, previous, phrase) {
     if (current == null || previous == null) return null;
     var diff = current - previous;
     var direction = diff > 0.05 ? "up" : diff < -0.05 ? "down" : "flat";
     var arrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "→";
-    return { diff: diff, direction: direction, text: arrow + " " + pctFormat.format(Math.abs(diff)) + " protsendipunkti" };
+    var p = phrase != null ? phrase : "protsendipunkti";
+    return { diff: diff, direction: direction, text: arrow + " " + pctFormat.format(Math.abs(diff)) + (p ? " " + p : "") };
   };
 
 })(window);

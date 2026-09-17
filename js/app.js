@@ -39,7 +39,8 @@
             '<span class="dataset__chevron" aria-hidden="true">›</span>' +
           "</button>" +
           '<div class="dataset__footer">' +
-            '<a href="' + esc(TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: TAI ' + esc(t.code) +
+            '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: ' +
+              esc(t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + esc(t.code) +
               ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
             '<span class="dataset__views" hidden></span>' +
             '<span class="dataset__status" role="status"></span>' +
@@ -172,7 +173,7 @@
 
   function renderError(config, err) {
     view = null;
-    var info = TAI.describeError(err);
+    var info = TAI.describeError(err, config);
     contentEl.setAttribute("aria-busy", "false");
     contentEl.innerHTML =
       backLink() +
@@ -183,8 +184,9 @@
         (info.offerUpload ?
           '<div class="error-box__upload">' +
             '<label for="upload-file">Või lae andmed failina üles</label>' +
-            '<p class="muted">Ava ' + TAI.externalLink(TAI.pxwebUrl(config), "tabel " + config.code + " TAI andmebaasis") +
-              ", vali kõik väärtused ja salvesta vormingus JSON-stat2.</p>" +
+            '<p class="muted">Ava ' + TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config),
+              "tabel " + config.code + " " + (config.seriesVar ? TAI.sourceLabel(config) : "TAI") + " andmebaasis") +
+              ", vali kõik väärtused ja salvesta vormingus JSON-stat.</p>" +
             '<input type="file" id="upload-file" accept=".json,application/json">' +
           "</div>" : "") +
       "</div>";
@@ -259,9 +261,12 @@
     var anyReader = data[Object.keys(data)[0]];
     var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
 
+    var yearLabels = config.seriesVar ? config.years.map(function (y) { return TAI.yearLabel(config, y); }) : config.years;
     var meta = [];
-    meta.push((config.years.length > 1 ? "Uuringuaastad " : "Uuringuaasta ") + config.years.join(" · "));
-    meta.push(config.indicator.label + ", %");
+    meta.push((yearLabels.length > 1 ? "Uuringuaastad " : "Uuringuaasta ") + yearLabels.join(" · "));
+    meta.push(config.seriesVar
+      ? config.measureLabel + (TAI.unitText(config) ? ", " + TAI.unitText(config) : "")
+      : config.indicator.label + ", %");
     if (updated && !isNaN(updated)) meta.push("Tabel uuendatud " + dateFmt.format(updated));
     if (source.source === "file") meta.push("Allikas: fail " + source.fileName);
 
@@ -280,7 +285,8 @@
         '<div class="module__body" aria-live="polite"></div>' +
         '<footer class="module__footnotes">' +
           config.footnotes.map(function (f) { return "<p>" + esc(f) + "</p>"; }).join("") +
-          "<p>Allikas: Tervise Arengu Instituut, " + TAI.externalLink(TAI.pxwebUrl(config), "tabel " + config.code) + ".</p>" +
+          "<p>Allikas: " + esc(config.seriesVar ? TAI.sourceLongLabel(config) : "Tervise Arengu Instituut") + ", " +
+            TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config), "tabel " + config.code) + ".</p>" +
         "</footer>" +
       "</article>";
 
@@ -307,10 +313,15 @@
     var html = (summary ? '<p class="print-only filter-summary">' + esc(summary) + "</p>" : "") + TAI.renderKpis(model);
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
+    var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
+    var unitTxt = config.seriesVar ? TAI.unitText(config) : "%";
+    var yearOf = function (y) { return config.seriesVar ? TAI.yearLabel(config, y) : y; };
+
     if (model.trend) {
       html += '<section class="chart-section" aria-labelledby="h-trend">' +
         '<h3 id="h-trend">Trend aastate lõikes</h3>' +
-        '<p class="chart-note">' + esc(config.indicator.label) + " (%), " + esc(config.years.join(", ")) + "</p>" +
+        '<p class="chart-note">' + esc(measureLabel) + (unitTxt ? " (" + unitTxt + ")" : "") + ", " +
+          esc(config.years.map(yearOf).join(", ")) + "</p>" +
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-trend" role="group" aria-label="Trendijoonis"></svg>' +
         '<div class="tooltip" aria-hidden="true"></div></div>' +
@@ -318,13 +329,17 @@
         "</section>";
     }
     if (model.breakdown) {
+      var b = model.breakdown;
       html += '<section class="chart-section" aria-labelledby="h-breakdown">' +
-        '<h3 id="h-breakdown">' + esc(model.breakdown.title) + "</h3>" +
-        '<p class="chart-note">' + esc(model.breakdown.year) + ". aasta, " + esc(config.indicator.label.toLowerCase()) +
-          " (%). Katkendjoon näitab koondväärtust.</p>" +
+        '<h3 id="h-breakdown">' + esc(b.title) + "</h3>" +
+        '<p class="chart-note">' + esc(yearOf(b.year)) + ". aasta, " + esc(measureLabel.toLowerCase()) +
+          (unitTxt ? " (" + unitTxt + ")" : "") + (b.totals ? ". Katkendjoon näitab koondväärtust." : "") + "</p>" +
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-breakdown" role="group" aria-label="Tulpdiagramm"></svg>' +
-        '<div class="tooltip" aria-hidden="true"></div></div></section>';
+        '<div class="tooltip" aria-hidden="true"></div></div>' +
+        (b.expandable ? '<button type="button" class="btn btn--ghost" data-action="toggle-expand">' +
+          (b.expanded ? "Näita vähem" : "Näita kõiki (" + b.totalCount + ")") + "</button>" : "") +
+        "</section>";
     }
     html += '<details class="data-details"><summary>Näita andmeid tabelina</summary>' + TAI.renderDataTables(model) + "</details>";
 
@@ -382,6 +397,18 @@
     // aadress kajastab vaadet; replaceState ei tekita hashchange'i ega uut ajaloo kirjet
     history.replaceState(null, "", hashFor(view.config));
     reload();
+  });
+
+  // "Näita kõiki" / "Näita vähem" (riikide vms kompaktse breakdown-loendi laiendus) — andmed on
+  // juba laaditud (API vastuses on kõik väärtused korraga), nii et ei ole vaja uuesti pärida.
+  contentEl.addEventListener("click", function (evt) {
+    var btn = evt.target.closest('[data-action="toggle-expand"]');
+    if (!btn || !view) return;
+    var flag = view.config.views.breakdown && view.config.views.breakdown.expandFlag;
+    if (!flag) return;
+    var state = stateOf(view.config);
+    state[flag] = !state[flag];
+    renderBody();
   });
 
   async function reload() {
