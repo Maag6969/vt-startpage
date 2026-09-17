@@ -78,6 +78,12 @@ mitte kleepuv loend).
 
 ### Päis
 - Pealkiri **„Vaimse tervise näidikulaud“** — valge taust, tumesinine `#181E54` Roboto Medium, all helehall eraldusjoon.
+  Suurus 2rem (mobiilis 1,6875rem) — 17.09.2026 suurendatud 25%.
+- **Vaatamiste loendur** (intervjuu 17.09.2026): väike hall rida pealkirja all („1 234 vaatamist“). Loeb
+  **lehe avamisi** (ka värskendamine = +1; tabelite/filtrite vahetus lehe sees ei loe). Teenus: Abacus
+  (`abacus.jasoncameron.dev`, loendur `maag6969.github.io/vt-startpage`, küpsisteta, kontota). Arvu suurendatakse
+  ainult avaldatud lehel; kui teenus ei vasta, loendurit ei kuvata. Printides peidetud. Halduskood (nullimiseks)
+  on ainult kohalikus failis `.counter-admin-key.txt`.
 - Lisaks: link **„TAI tervisestatistika andmebaas ↗“** ja **laadimise aeg** („Andmed laaditud otse TAI
   andmebaasist · 16.09.2026 14:32“; nähtav pärast esimest edukat laadimist).
 - Alapealkirja ei ole.
@@ -138,7 +144,7 @@ trendijoonis → tulpdiagramm → andmetabel → jalus.
 **Filtrid:**
 - Rida kohe meta-siltide all; rippmenüüd (nt Taustatunnus, Vanuserühm). Muutmine laadib andmed kohe,
   eraldi „Rakenda“ nuppu pole.
-- **Sugu = ümar lüliti:** Kokku | Mehed | Naised | Mehed vs naised. Aktiivne valik tumesinine `#181E54`
+- **Sugu = ümar lüliti:** Kokku | Mehed | Naised | Mehed vrdl Naised (sõnastus muudetud 17.09.2026). Aktiivne valik tumesinine `#181E54`
   taust + valge kiri (15:1); mitteaktiivsed valge taust, helehall piirjoon, tumesinine kiri.
 
 **KPI-kaardid:**
@@ -156,7 +162,7 @@ sinine `#4B7DFF`, naised oranž `#f17a29`.
 - Tulbad **rühmiti** (Rahvus, Haridus, Kooselu, Majanduslik aktiivsus) koos rühmapealkirjadega.
 - „Kokku“ **võrdlusjoonena**.
 - Valitud taustatunnus tumesinine, ülejäänud keskmine sinine.
-- „Mehed vs naised“ režiimis **paaristulbad** (sinine/oranž), valitud taustatunnus rõhutatud paksu sildiga.
+- „Mehed vrdl Naised“ režiimis **paaristulbad** (sinine/oranž), valitud taustatunnus rõhutatud paksu sildiga.
 
 **Andmetabel** (`<details>`, vaikimisi suletud): graafikute arvuline sisu praeguste filtritega +
 link „Vaata kogu tabelit TAI andmebaasis ↗“. CSV allalaadimist ei ole.

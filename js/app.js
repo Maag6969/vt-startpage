@@ -218,7 +218,7 @@
   function filterSummary(config, state) {
     var parts = (config.filters || []).map(function (code) {
       var label = config.vars[code].label;
-      if (code === "Sugu") return label + ": " + (state.compareSexes ? "mehed vs naised" : TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
+      if (code === "Sugu") return label + ": " + (state.compareSexes ? "Mehed vrdl Naised" : TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
       return label + ": " + TAI.labelOf(config, code, state[code]);
     });
     return parts.length ? "Valitud lõige — " + parts.join(" · ") : "";
@@ -239,7 +239,7 @@
     if ((config.filters || []).indexOf("Sugu") >= 0) {
       var current = state.compareSexes ? "compare" : state.Sugu;
       var options = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
-      if (config.canCompareSexes) options.push(["compare", "Mehed vs naised"]);
+      if (config.canCompareSexes) options.push(["compare", "Mehed vrdl Naised"]);
       html += '<fieldset class="field segmented"><legend>Sugu</legend><div class="segmented__options">' +
         options.map(function (o) {
           return '<label><input type="radio" name="filter-sex" value="' + o[0] + '"' + (current === o[0] ? " checked" : "") + ">" +
@@ -490,6 +490,28 @@
     if (activeBtn) activeBtn.focus({ preventScroll: true });
   });
 
+  // ---- vaatamiste loendur (Abacus, disain.md p. 2 „Päis“) ----------------
+  // Loeb lehe avamisi. Ainult avaldatud lehel suurendatakse arvu (hit); mujal (arendus) ainult loetakse (get).
+  // Kui teenus ei vasta, loendurit lihtsalt ei kuvata — leht töötab edasi.
+
+  var COUNTER_API = "https://abacus.jasoncameron.dev/";
+  var COUNTER_KEY = "maag6969.github.io/vt-startpage";
+  var LIVE_HOST = "maag6969.github.io";
+
+  function loadViewCount() {
+    var el = document.getElementById("view-count");
+    if (!el || typeof fetch !== "function") return;
+    var action = location.hostname === LIVE_HOST ? "hit/" : "get/";
+    fetch(COUNTER_API + action + COUNTER_KEY)
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || typeof data.value !== "number") return;
+        el.textContent = new Intl.NumberFormat("et-EE").format(data.value) + (data.value === 1 ? " vaatamine" : " vaatamist");
+        el.hidden = false;
+      })
+      .catch(function () { /* teenus pole kättesaadav → loendurit ei kuvata */ });
+  }
+
   // printimine: andmetabel avatakse, pärast taastatakse kasutaja valik
   var reopened = [];
   window.addEventListener("beforeprint", function () {
@@ -502,6 +524,7 @@
   });
 
   renderList();
+  loadViewCount();
   window.addEventListener("hashchange", onHashChange);
   if (TAI.getTable(parseHash().code)) {
     onHashChange();

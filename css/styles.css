@@ -73,9 +73,12 @@ a:hover { text-decoration-thickness: 2px; }
   margin: 0;
   color: var(--tekst-pealkiri);
   font-weight: 500;
-  font-size: 1.6rem;
+  font-size: 2rem;          /* 1.6rem × 1,25 (kasutaja soov 17.09.2026) */
   line-height: 1.25;
 }
+.site-header__views { margin: 2px 0 0; font-size: 0.875rem; color: var(--tekst-2); font-variant-numeric: tabular-nums; }
+.site-header__views[hidden] { display: none; }
+
 .site-header__meta {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px;
   font-size: 0.875rem; color: var(--tekst-2);
@@ -338,7 +341,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 
 @media (max-width: 767px) {
   .site-header { padding: 16px; }
-  .site-header h1 { font-size: 1.35rem; }
+  .site-header h1 { font-size: 1.6875rem; }  /* 1.35rem × 1,25 */
   .layout { grid-template-columns: 1fr; min-height: 0; }
   .panel-list { border-right: none; border-bottom: 1px solid var(--joon); padding: 0; }
   .dataset__button { padding: 14px 16px 4px 20px; }
@@ -355,7 +358,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 @media print {
   @page { margin: 15mm; }
   html, body { font-size: 11pt; }
-  .skip-link, .panel-list, .back-link, .filters, .dataset__status,
+  .skip-link, .panel-list, .back-link, .filters, .dataset__status, .site-header__views,
   .site-header__meta, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
   .filter-summary { font-weight: 500; color: var(--tekst-1); margin: 0 0 12px; }

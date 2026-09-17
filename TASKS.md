@@ -92,6 +92,13 @@ Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; leht jagatud tagasisidek
 - [ ] SharePointi Embed-veebiosasse lisatud — **ootel** (kasutaja otsus 16.09.2026)
 - [ ] HTML Field Security seadistus kontrollitud/lisatud (vajab IT/admini kaasamist) — **ootel**
 
+## 9. Täiendused pärast jagamist
+- [x] 17.09.2026: soo lüliti tekst „Mehed vs naised“ → „Mehed vrdl Naised“ (ka printimise kokkuvõttes)
+- [x] 17.09.2026: lehe pealkiri 25% suurem (2rem; mobiilis 1,6875rem)
+- [x] 17.09.2026: vaatamiste loendur pealkirja all (intervjuu; Abacus, loeb lehe avamisi, ainult avaldatud lehel +1) —
+      disain.md p. 2 „Päis“; halduskood kohalikus failis `.counter-admin-key.txt` (gitignore)
+- [x] `tools/serve.ps1` parandatud: HEAD-päring ega üksik viga ei peata enam serverit
+
 **Praegune seis (16.09.2026):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
 tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem, kui vaja.
 Järgmine samm: koolitaja/kolleegide tagasiside läbitöötamine.
