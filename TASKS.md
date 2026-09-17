@@ -3,7 +3,77 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 16.09.2026 (etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+Viimati uuendatud: 17.09.2026 (piloteerimise kava kokku lepitud; vt allpool. Tehnilised
+töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+
+## Piloteerimise etapid (andmeallikate laiendamise kava, kokku lepitud 17.09.2026)
+
+**See jaotus on eraldiseisev allpool olevatest tehnilistest töövoo-etappidest (nummerdatud 1–9)** —
+need kirjeldavad *mis andmeallikad* ja *mis järjekorras* lisanduvad, mitte üksikuid ehitussamme.
+Taustaks: TAI PxWeb tabelid erinevad tugevalt mahult (mõnel 27 aastat trendi, mõnel 1; mõnel
+maakonna lõige, mõnel mitte) ja mõnel tabelil on mitu võimalikku "mida me näitame" kandidaati
+(nt näitaja-muutuja, mis pole binaarne, või kümnete väärtustega diagnoosihierarhia) — vt
+17.09.2026 arutelu. Seetõttu otsustati minna samm-sammult, kinnitades protsessi enne mahu laiendamist.
+
+1. **Piloteerimine (praegu, valmis).** Kolm ETU tabelit (ETU41–43), reaalajas TAI API-st, töötav
+   raamistik. Tõestab, et lähenemine üldiselt töötab. ✅
+2. **Olemasoleva kolme tabeli taustatunnuste laiendus.** Iga juba valitud tabeli (ETU41–43) kõik
+   TAI poolt pakutavad taustaandmed kaasata, mitte ainult praegu valitud alamhulk (kontrollida
+   metaandmete GET-päringuga, kas midagi jäi kasutamata). Eesmärk: katsetada "iga muutuja rolli
+   otsustamise" protsessi (näitaja / filter / breakdown-telg / eraldi kirje) tuttavatel, juba
+   kinnitatud tabelitel, enne kui seda uutele andmetele rakendame.
+3. **Uute TAI andmete lisamine 2. etapi põhimõttel.** Iga uus TAI tabel (nt `02Haigestumus/
+   05Psyyhikahaired` PKH1–PKH8, `06Narkomaaniaravi` NR-tabelid — vt allpool 17.09.2026 uurimistöö)
+   läbib sama protsessi: metaandmete kaardistus → muutujate rollide intervjuu → kood → test.
+   Kõik TAI lingid moodustavad ühise **„TAI" grupi** vasakul loendipaneelil.
+4. **Esimesed kolm Tervisekassa viidet 2. etapi põhimõttel.**
+5. **Tervisekassa andmete laiendus**, moodustades vastava **„Tervisekassa" grupi**.
+6. **Edasi:** muud Eesti avaandmed samas valdkonnas, kui leiame.
+
+**Minu hinnang: plaan on mõistlik ja tehniliselt teostatav**, sequencing on hea — protsess
+kinnitatakse madala riskiga tuttavatel tabelitel (2. etapp) enne uutele andmetele rakendamist
+(3. etapp), ja TAI tehakse enne Tervisekassat lõpuni, mitte paralleelselt. Kaks asja, mida tasub
+teada juba praegu, mitte alles siis, kui neile jõuame:
+
+- **3. etapp nõuab `js/module.js` üldistust enne esimest tabelit, mis ei sobi ETU kujuga.**
+  Praegune `seriesOf()` eeldab, et "Sugu" on põhiline võrdlustelg — PKH1-l oleks loomulikum telg
+  Diagnoos, Sugu jääks tavaliseks filtriks. See tuleb lahti harutada enne PKH1 (või sarnase) lisamist,
+  mitte selle käigus improviseerida.
+- **„TAI" grupi moodustamine (3. etapp) on uus liidesetöö, mitte ainult andmetöö.** Vasak loendipaneel
+  (`js/app.js` `renderList()`) on praegu lame nimekiri; rühmadega pealkirjastatud loendi jaoks on
+  vaja väike, aga päris liidesemuudatus.
+- **4. etapp ei saa tehniliselt korrata 2.–3. etapi "reaalajas API" mustrit sellisel kujul.**
+  17.09.2026 uurimine kinnitas: Tervisekassa vaimse tervise andmed (`tervisekassa.ee/vaimne-tervis-
+  retseptide-ja-arvete-andmed`) on Power BI embedded raport, mitte avalik JSON/CSV-liides — seda ei
+  saa `fetch()`-iga tõmmata ega iframe'iga mujale manustada (`frame-ancestors 'self'`). Nende oma
+  PxWeb-portaal (`statistika.tervisekassa.ee`) ei vasta praegu üldse (DNS ei resolveeru — võib-olla
+  ajutine). **4. etapi käivitudes tuleb enne kokku leppida, milline tehniline muster Tervisekassa
+  andmete jaoks sobib** (nt lihtne välislink-kirje, perioodiline käsitsi andmeeksport meie olemasoleva
+  faili-üleslaadimise mehhanismi kaudu põhiteena, või otseühendus, kui `statistika.tervisekassa.ee`
+  taastub) — see pole blokeerija praegu, aga ei tohi tulla üllatusena 4. etapis.
+
+### 17.09.2026 uurimistulemused (andmeallikate kaardistus — sisend 3./4. etapile)
+
+**TAI PxWeb, kaust `02Haigestumus/05Psyyhikahaired` — „Psüühika- ja käitumishäired"** (avaleht:
+https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__02Haigestumus__05Psyyhikahaired/):
+PKH1 (ambulatoorselt konsulteeritud, diagnoosi/soo/vanuse järgi), PKH2–3 (uued haigusjuhud, sh
+100 000 elaniku kohta), PKH4 (haiglaravilt väljakirjutatud), PKH5 (haiglaravi näitajad, sh tahtest
+olenemata hospitaliseeritud), PKH7 (psühhoaktiivsete ainete tarvitamisest tingitud häired),
+PKH8 (päevaravilt lahkunud). PKH1 metaandmed kontrollitud: Aasta 1999–2025, Diagnoos (RHK-10,
+täielik F-peatükk F00-F98 alamkoodideni), Vanuserühm (0/1/2 = Kokku/0-14/15+), Sugu (0/1/2, sama
+kood mis ETU-tabelites), Konsultatsioonid (Kokku/Uued haigusjuhud). Uuendatud 16.06.2026.
+
+**TAI PxWeb, kaust `02Haigestumus/06Narkomaaniaravi`** (17 NR-tabelit, F10-F19): lisaks soole/vanusele
+ka maakonna, hariduse, rahvuse, majandusliku aktiivsuse lõiked mõnel tabelil.
+
+**Tervisekassa „Vaimne tervis (retseptide ja arvete andmed)"**
+(https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed): kolm vahekaarti (Üldine
+statistika — isikud/arved/summad/Tervisekassa tasutud summa; Esmased diagnoosid — F-koodide kaupa;
+Maakondade statistika). **Tehniliselt Power BI embedded raport**, mitte API — `fetch()`-iga ei saa
+tõmmata, `frame-ancestors 'self'` keelab iframe-manustamise mujal. Nende PxWeb-portaal
+`statistika.tervisekassa.ee` (viidatud otsingumootorites) ei vasta praegu (DNS ei resolveeru).
+Muu leitud: https://tervisekassa.ee/andmeparingud (ühekordsed PDF/HTML raportid, sh 2021 depressiooni
+raviteekonna analüüs — mitte API).
 
 ## 1. Andmeallikate API-struktuuri lõplik kontroll
 - [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
