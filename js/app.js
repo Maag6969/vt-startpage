@@ -159,7 +159,7 @@
 
   /* Mooduli oma pealkirja kohal olev staatusrida (kulmu asemel): laadimine / õnnestunud / ebaõnnestunud.
      Vana kulmu sisu (nt "Eesti terviseuuring · ETU42") liigub siia viitena samale reale. */
-  function statusLineHtml(config, kind) {
+  function statusLineHtml(config, kind, updatedText) {
     var link = TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config), config.eyebrow);
     if (kind === "loading") return '<p class="module__status">Laen andmeid — ' + link + "</p>";
     if (kind === "error") return '<p class="module__status module__status--error">Andmeid ei õnnestunud laadida! — ' + link + "</p>";
@@ -167,13 +167,21 @@
     var now = new Date();
     var src = config.seriesVar ? TAI.sourceLabel(config) : "TAI";
     return '<p class="module__status">Andmed laaditud otse ' + esc(src) + " andmebaasist · " +
-      esc(dateFmt.format(now) + " " + timeFmt.format(now)) + " — " + link + "</p>";
+      esc(dateFmt.format(now) + " " + timeFmt.format(now)) + " — " + link +
+      (updatedText ? " · " + esc(updatedText) : "") + "</p>";
+  }
+
+  /* Tabeli enda uuendusaeg (API vastuse "updated" väli) — kuvatakse staatusreal, allikaviite järel. */
+  function tableUpdatedText(data) {
+    var anyReader = data[Object.keys(data)[0]];
+    var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
+    return updated && !isNaN(updated) ? "Tabel uuendatud " + dateFmt.format(updated) : null;
   }
 
   /* Filtrimuutusel (reload()) uuendatakse ainult juba ekraanil oleva mooduli staatusrida, mitte kogu päist. */
-  function setStatus(config, kind) {
+  function setStatus(config, kind, updatedText) {
     var el = contentEl.querySelector(".module__status");
-    if (el) el.outerHTML = statusLineHtml(config, kind);
+    if (el) el.outerHTML = statusLineHtml(config, kind, updatedText);
   }
 
   function renderLoading(config) {
@@ -285,16 +293,7 @@
     var state = stateOf(config);
     view = { config: config, data: data, source: source };
 
-    var anyReader = data[Object.keys(data)[0]];
-    var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
-
-    var yearLabels = config.seriesVar ? config.years.map(function (y) { return TAI.yearLabel(config, y); }) : config.years;
     var meta = [];
-    meta.push((yearLabels.length > 1 ? "Uuringuaastad " : "Uuringuaasta ") + yearLabels.join(" · "));
-    meta.push(config.seriesVar
-      ? config.measureLabel + (TAI.unitText(config) ? ", " + TAI.unitText(config) : "")
-      : config.indicator.label + ", %");
-    if (updated && !isNaN(updated)) meta.push("Tabel uuendatud " + dateFmt.format(updated));
     if (source.source === "file") meta.push("Allikas: fail " + source.fileName);
 
     document.title = config.title + " · " + BASE_TITLE;
@@ -303,10 +302,10 @@
       backLink() +
       '<article class="module">' +
         '<header class="module__head">' +
-          statusLineHtml(config, source.source === "api" ? "loaded" : "none") +
+          statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data)) +
           '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
           '<p class="module__subtitle">' + esc(config.description) + "</p>" +
-          '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" +
+          (meta.length ? '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" : "") +
         "</header>" +
         renderFilters(config, state) +
         '<div class="module__body" aria-live="polite"></div>' +
@@ -446,7 +445,7 @@
       view.data = data;
       setRowStatus(config.code, null);
       renderBody();
-      setStatus(config, "loaded");
+      setStatus(config, "loaded", tableUpdatedText(data));
     } catch (err) {
       if (myRequest !== requestId) return;
       console.error(err);

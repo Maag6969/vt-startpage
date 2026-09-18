@@ -36,6 +36,17 @@ kuvamine jäeti (ajutiselt) teemast välja.
   kohapeal; päises pole enam vana meta-plokki (kontrollitud `read_page` kaudu, `banner` sisaldab
   ainult pealkirja).
 
+**Täpsustus sama päeva õhtul (kasutaja pilt mooduli meta-plaatidest):** mooduli pealkirja all olnud
+kolmest pillist ("Uuringuaastad …", mõõdik/ühik, "Tabel uuendatud …") kaks esimest eemaldati täielikult
+(sama info on juba nähtaval trendigraafikul, andmetabelis ja callout-tekstis, seega dubleerimine
+polnud vajalik) ning "Tabel uuendatud …" liigub staatusreale, kohe allikaviite järele: "Andmed
+laaditud otse TAI andmebaasist · [kellaaeg] — [allikaviide] ↗ · Tabel uuendatud [kuupäev]". Uus
+`tableUpdatedText(data)` abifunktsioon arvutab selle nii `renderModule()`-s kui `reload()`-s (viimane
+uuendab staatusrida kohapeal, sama nagu laadimisoleku puhul). Kui `meta`-massiiv jääb tühjaks
+(enamikul juhtudel, v.a faililt laaditud andmed), `<ul class="module__meta">` jäetakse üldse
+renderimata, et tühi rida ei jätaks tarbetut tühikut. Kontrollitud brauseris nii TAI (ETU42) kui
+Eurostat (ilc_pw01) tabeliga — sama muudatus tehtud paralleelselt ka M3-s (vt sealne TASKS.md).
+
 ## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
 
 M3 (tervishoiu-kvaliteet) projektis oli juba tehtud `js/core.js`/`js/module.js` üldistus
