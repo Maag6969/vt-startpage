@@ -47,6 +47,21 @@ uuendab staatusrida kohapeal, sama nagu laadimisoleku puhul). Kui `meta`-massiiv
 renderimata, et tühi rida ei jätaks tarbetut tühikut. Kontrollitud brauseris nii TAI (ETU42) kui
 Eurostat (ilc_pw01) tabeliga — sama muudatus tehtud paralleelselt ka M3-s (vt sealne TASKS.md).
 
+**Veel kolm sõnastuse täpsustust sama õhtu tagasisidest:**
+1. "Andmed laaditud otse [allikas] andmebaasist" → "otse" eemaldatud kui üleliigne, mõlemas projektis.
+2. "Tabel uuendatud …" → "Andmed uuendatud …", mõlemas projektis (`tableUpdatedText()`).
+3. Ilc_pw01 KPI-kaardi silt "EESTI · 2025" → "KOKKU · 2025" — riik on juba lehe kontekstist selge,
+   silt näitas varem eksitavalt riiki, mitte valitud lõiget. Uus `config.kpiLabel` (module.js
+   `buildModelGeneral`) rakendub ainult ühe seeriaga KPI-kaartidele, et tulevastel mitme-riigi
+   võrdlustel jääks tegelik riiginimi ikka nähtavaks. Kuna silt enam riiki ei nimeta, pidi
+   võrdlusrida ("EL-27 keskmine: 7,2 (… kõrgem)") ise selgeks tegema, KELLE tulemus on kõrgem/
+   madalam — uus `config.kpiReference.subjectLabel` ("Eesti tulemus") lisati just selleks.
+   Tulemus: "EL-27 keskmine: 7,2 (Eesti tulemus 0,1 palli kõrgem)". Mehhanism on üldine (mitte
+   ilc_pw01-spetsiifiline kõva kood), aga hetkel kasutab seda ainult see üks tabel — M3-s
+   `config.kpiReference`-mehhanismi veel ei ole (ükski tabel ei vaja praegu), nii et sinna pole
+   midagi laiendada; kui M3-le lisandub sarnane "fikseeritud üksus + võrdlusväärtus" tabel, vt
+   siit eeskuju. Kontrollitud brauseris (ETU42 mõjutamata, ilc_pw01 uus sõnastus õige).
+
 ## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
 
 M3 (tervishoiu-kvaliteet) projektis oli juba tehtud `js/core.js`/`js/module.js` üldistus

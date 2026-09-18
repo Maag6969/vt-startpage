@@ -166,7 +166,7 @@
     if (kind !== "loaded") return '<p class="module__status"></p>';
     var now = new Date();
     var src = config.seriesVar ? TAI.sourceLabel(config) : "TAI";
-    return '<p class="module__status">Andmed laaditud otse ' + esc(src) + " andmebaasist · " +
+    return '<p class="module__status">Andmed laaditud ' + esc(src) + " andmebaasist · " +
       esc(dateFmt.format(now) + " " + timeFmt.format(now)) + " — " + link +
       (updatedText ? " · " + esc(updatedText) : "") + "</p>";
   }
@@ -175,7 +175,7 @@
   function tableUpdatedText(data) {
     var anyReader = data[Object.keys(data)[0]];
     var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
-    return updated && !isNaN(updated) ? "Tabel uuendatud " + dateFmt.format(updated) : null;
+    return updated && !isNaN(updated) ? "Andmed uuendatud " + dateFmt.format(updated) : null;
   }
 
   /* Filtrimuutusel (reload()) uuendatakse ainult juba ekraanil oleva mooduli staatusrida, mitte kogu päist. */

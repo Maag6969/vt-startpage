@@ -569,10 +569,22 @@
     });
 
     /*
+     * Kinnitatud kasutajaga 18.09.2026: kui KPI-kaart näitab üldist (mitte kategooriate vahel
+     * võrdlevat) näitajat — nagu ilc_pw01, kus seeria on lihtsalt fikseeritud üks riik —, on
+     * kaardi ülemine silt ("EESTI") eksitav, sest üksus (riik) on juba lehe kontekstist selge.
+     * config.kpiLabel asendab siis sildi üldise "Kokku"-sõnaga (rakendub ainult ühe seeriaga
+     * kaartidele, et mitmeseerialistes tabelites (nt tulevased riikidevahelised võrdlused) jääks
+     * ikka tegelik üksuse nimi nähtavaks).
+     */
+    if (config.kpiLabel && kpis.length === 1) kpis[0].label = config.kpiLabel;
+
+    /*
      * Valikuline väike võrdlusrida KPI-kaardil (nt "EL-27 keskmine: 7,3") — ei ole omaette KPI-kaart
      * ega täistelg, ainult üks lisaväärtus samast lugejast (config.kpiReference = { var, value, label }).
      * Kinnitatud kasutajaga 17.09.2026 (ilc_pw01): lihtne trend + kompaktne viide, mitte kaks tervet
      * paralleelset seeriat, sest sama "geo" muutuja täidab siin kahte eri rolli (vt seriesValues).
+     * subjectLabel (kinnitatud 18.09.2026): võrdlusrea "kõrgem/madalam" peab ütlema, KELLE tulemus
+     * see on (nt "Eesti tulemus"), sest kaardi enda silt ei pruugi enam üksust nimetada (vt kpiLabel).
      */
     if (config.kpiReference && kpis.length && kpis[0].value != null) {
       var kr = config.kpiReference;
@@ -580,7 +592,10 @@
       refSel[kr.var] = kr.value;
       var refValue = valueAt(data.trend || data.breakdown, refSel);
       if (refValue != null) {
-        kpis[0].reference = { label: kr.label, value: refValue, delta: TAI.delta(kpis[0].value, refValue, config.deltaPhrase) };
+        kpis[0].reference = {
+          label: kr.label, value: refValue, subjectLabel: kr.subjectLabel,
+          delta: TAI.delta(kpis[0].value, refValue, config.deltaPhrase)
+        };
       }
     }
 
@@ -727,8 +742,8 @@
         (!k.delta && config.kpiNote && k.value != null ? '<p class="kpi__note">' + esc(config.kpiNote) + "</p>" : "") +
         (k.reference ? '<p class="kpi__reference">' + esc(k.reference.label) + ": " + fmt(k.reference.value) +
           (k.reference.delta && k.reference.delta.direction !== "flat"
-            ? " (" + esc(k.reference.delta.text.replace(/^[▲▼]\s*/, "")) +
-              (k.reference.delta.direction === "up" ? " kõrgem" : " madalam") + ")"
+            ? " (" + esc((k.reference.subjectLabel || "Tulemus") + " " + k.reference.delta.text.replace(/^[▲▼]\s*/, "") +
+              (k.reference.delta.direction === "up" ? " kõrgem" : " madalam")) + ")"
             : k.reference.delta ? " (sama)" : "") + "</p>" : "") +
       "</div>";
     }).join("") + "</div>";
