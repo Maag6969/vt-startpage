@@ -4,7 +4,9 @@ Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama 
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
 Viimati uuendatud: 18.09.2026 (filtrikonteksti läbivaatus, vt allpool uus jaotis.
-Tehnilised töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+Tehnilised töövoo-etapid 1–7 põhiosas lõpetatud — 2 väikest kontrolli seisab veel päris keskkonnas
+(mobiilikerimise animatsioon, päris printimine/SharePointi lingi eelvaade, vt etapid 4 ja 7); leht
+jagatud tagasisideks; etapp 8 SharePoint ootel)
 
 ## Filtrikonteksti läbivaatus — vale mulje, kui filtreid pole KPI/graafiku juures näha (18.09.2026)
 
@@ -350,9 +352,12 @@ raviteekonna analüüs — mitte API).
 - [x] 17.09.2026: vaatamiste loendur pealkirja all (intervjuu; Abacus, loeb lehe avamisi, ainult avaldatud lehel +1) —
       disain.md p. 2 „Päis“
 - [x] 17.09.2026: kasutusstatistika laiendatud (intervjuu) — andmestike avamised (arv loendi real), filtrivalikud,
-      lisategevused; 54 loendurit loodud Abacuses, halduskoodid `.counter-admin-keys.tsv` (gitignore);
-      kohalik statistikaleht `tools/stats.html`. Kontrollitud simuleeritud avaldatud lehega: õiged loendurid,
-      seansisisesed kordused ei loe, statistikaleht loeb kõik 54 (päringupiirangu tõttu aeglane, ~40 s)
+      lisategevused; 54 loendurit loodud Abacuses (seis 17.09.2026, ETU41–43 kohta; ilc_pw01 lisandumisega
+      18.09.2026 on tegelik loendurite arv nüüd suurem — `tools/stats.html` loeb need automaatselt
+      `TAI.usage.allKeys()` kaudu, arvu ei ole vaja käsitsi uuendada), halduskoodid `.counter-admin-keys.tsv`
+      (gitignore); kohalik statistikaleht `tools/stats.html`. Kontrollitud simuleeritud avaldatud lehega:
+      õiged loendurid, seansisisesed kordused ei loe, statistikaleht luges siis kõik 54 (päringupiirangu
+      tõttu aeglane, ~40 s)
 - [x] `tools/serve.ps1` parandatud: HEAD-päring ega üksik viga ei peata enam serverit
 - [x] 17.09.2026: turvaküsimus läbi arutatud — kas dashboard kasutab kasutaja tokeneid/mandaate. Vastus: ei,
       TAI PxWeb API ja Abacus on mõlemad avalikud kontota teenused, päring käib külastaja enda brauserist.
@@ -366,9 +371,12 @@ raviteekonna analüüs — mitte API).
 - [ ] Abacuse loendurid GoatCounterile üle viia (praegu saab loendurite nimesid teades neid võõras skript
       suvaliselt suurendada — kosmeetiline risk, statistika täpsus, mitte turvarisk)
 
-**Praegune seis (16.09.2026):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
+**Praegune seis (16.09.2026, aegunud — jäetud ajaloo huvides, vt uuemad jaotised üleval päris
+hetkeseisu jaoks):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
 tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem, kui vaja.
-Järgmine samm: koolitaja/kolleegide tagasiside läbitöötamine.
+Järgmine samm oli siis koolitaja/kolleegide tagasiside läbitöötamine — sellest ajast on lisandunud
+Eurostati tabel, loendi sortimine, päise/staatusrea ümberdisain ja filtrikonteksti läbivaatus
+(17.–18.09.2026, vt jaotised üleval).
 
 ## Avatud küsimused / blokeerijad
 
