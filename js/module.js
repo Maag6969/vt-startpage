@@ -96,6 +96,16 @@
       return { label: s.label, color: s.color, year: latest, prevYear: prev, value: value, delta: delta };
     });
 
+    /*
+     * Kinnitatud kasutajaga 18.09.2026: KPI-silt näitab juba valitud Sugu-t (label ülal), aga
+     * ETU tabelitel on peale Sugu ka teine filter (nt Vanuserühm) — kui see erineb vaikeväärtusest,
+     * peab silt seda märkima, muidu jätab kaart mulje, et arv käib kogu populatsiooni, mitte
+     * kitsama vanuserühma kohta (vt ka populationSuffix, mida kasutab callout sama eesmärgiga).
+     */
+    if (populationSuffix(config, state)) {
+      kpis.forEach(function (k) { k.label = k.label + ", valitud lõige"; });
+    }
+
     var breakdown = null;
     var bd = config.views.breakdown;
     if (bd && data.breakdown) {
@@ -571,13 +581,17 @@
     /*
      * Kinnitatud kasutajaga 18.09.2026: kui KPI-kaart näitab üldist (mitte kategooriate vahel
      * võrdlevat) näitajat — nagu ilc_pw01, kus seeria on lihtsalt fikseeritud üks riik —, peab
-     * silt igal juhul nimetama nii üksuse KUI valitud lõike ("EESTI KOKKU"), et lauset/kaarti
-     * saaks lugeda eraldiseisvana, ilma et peaks lehe muust kontekstist üksust ise tuletama.
-     * config.kpiLabel annab selle täpse sildi (rakendub ainult ühe seeriaga kaartidele, et
-     * mitmeseerialistes tabelites, nt tulevastes riikidevahelistes võrdlustes, jääks ikka iga
-     * seeria enda nimi nähtavaks, mitte üks ühine silt).
+     * silt igal juhul nimetama nii üksuse KUI valitud lõike, et kaarti saaks lugeda eraldiseisvana.
+     * config.kpiSubject on üksuse nimi (nt "Eesti"); silt saab kas " kokku" (kõik filtrid
+     * vaikeväärtusel) või ", valitud lõige" (mõni filter erineb — vt populationSuffixGeneral,
+     * mida kasutab ka callout sama eesmärgiga). "Kokku" ja "valitud lõige" EI tohi kunagi koos
+     * esineda, sest need väidaksid vastandlikku asja (kas kogu populatsioon või kitsam lõige).
+     * Rakendub ainult ühe seeriaga kaartidele, et mitmeseerialistes tabelites (nt tulevastes
+     * riikidevahelistes võrdlustes) jääks ikka iga seeria enda nimi nähtavaks.
      */
-    if (config.kpiLabel && kpis.length === 1) kpis[0].label = config.kpiLabel;
+    if (config.kpiSubject && kpis.length === 1) {
+      kpis[0].label = config.kpiSubject + (populationSuffixGeneral(config, state) ? ", valitud lõige" : " kokku");
+    }
 
     /*
      * Valikuline väike võrdlusrida KPI-kaardil (nt "EL-27 keskmine: 7,3") — ei ole omaette KPI-kaart

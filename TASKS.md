@@ -3,10 +3,53 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 18.09.2026 (päise/mooduli staatusrea ümberdisain, vt allpool uus jaotis.
+Viimati uuendatud: 18.09.2026 (filtrikonteksti läbivaatus, vt allpool uus jaotis.
 Tehnilised töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
 
-## Päise ja mooduli staatusrea ümberdisain (18.09.2026)
+## Filtrikonteksti läbivaatus — vale mulje, kui filtreid pole KPI/graafiku juures näha (18.09.2026)
+
+Kasutaja pildi põhjal (ilc_pw01, Vanuserühm=16–24 + Haridustase=Põhiharidus, aga KPI-kaart ütles
+ikka "EESTI KOKKU · 2025"): KPI-silt oli eksitav, väitis "kokku" (koondnäitaja), kuigi tegelik
+väärtus oli kitsa lõike oma. Intervjueerisin kasutajat ("Kuhu peaks filtrite kontekst ilmuma?" /
+"Millal nähtav?") enne muutmist — vastus: **mõlemad** (ühine rida FILTRITE kohal + KPI sildi enda
+parandus), näidatakse **ainult siis, kui vähemalt üks filter erineb vaikeväärtusest**.
+
+**Leitud, et probleem oli laiem kui pildil nähtu:**
+- Uue (General) mudeli `kpiLabel` oli staatiline string, ignoreeris filtreid täielikult (otsene viga).
+- Vana (Indicator, ETU) mudeli KPI-silt kajastas juba Sugu filtrit, aga MITTE teist filtrit
+  (nt Vanuserühm) — sama probleemiklass, ainult osaline.
+- Trendi-/jaotusgraafiku pealkirjarida ja andmetabeli caption ei kajastanud filtreid üldse.
+- Ainuke koht, kus filtrikontekst juba korrektselt oli, oli callout-lõigu sissejuhatav lause
+  (`populationSuffix`/`populationSuffixGeneral`) — aga see on üks lause pika teksti sees, kergesti
+  ülelugemiseks, mitte kohe silma jääv.
+- Olemasolev `filterSummary()` (app.js) ehitas juba täpselt õige lause ("Valitud lõige — ..."), aga
+  oli `print-only` klassiga — nähtav AINULT printimisel, ekraanil peidus!
+
+**Tehtud:**
+- `js/app.js` `filterSummary()`: ehitab nüüd ainult vaikeväärtusest erinevad filtrid (varem
+  kõik, iga kord — sobis printimiseks, aga ekraanil oleks alati näidanud rida, ka vaikeväärtustega).
+  `print-only` klass eemaldatud — sama `<p class="filter-summary">` toimib nüüd korraga nii ekraanil
+  kui prindil.
+- `css/styles.css`: uus ekraanistiil `.filter-summary` (helesinine taustaplokk, samast perekonnast
+  mis `.callout`, aga visuaalselt eristuv — callout on automaatne tõlgendus, filter-summary kasutaja
+  valik). Prindi-meediareegel täpsustatud (taust/padding tagasi nullitud, et printimisel ei raiskaks
+  tinti).
+- `js/module.js`: uus `config.kpiSubject` (nt "Eesti") asendab vana `config.kpiLabel`-i — silt on
+  kas `subject + " kokku"` (kõik filtrid vaikeväärtusel) või `subject + ", valitud lõige"` (mõni
+  erineb, arvutatud `populationSuffixGeneral()`-ga). "Kokku" ja "valitud lõige" EI esine kunagi koos.
+  Sama loogika lisatud ka vanale Indicator-mudelile (ETU): kui `populationSuffix()` tuvastab
+  vaikeväärtusest erineva filtri, lisatakse kõigi KPI-de sildile ", valitud lõige" (Sugu-põhine osa
+  sildist, nt "MEHED", jääb muutumatuks — see oli juba õige).
+- `js/tables/eurostat-ilc-pw01.js`: `kpiLabel: "Eesti kokku"` → `kpiSubject: "Eesti"`.
+- **Sama muudatus tehtud paralleelselt M3-s** (vt sealne TASKS.md) — sealne avastus oli isegi
+  olulisem: mõnel M3 tabelil (PT01, PT05, ...) pole seda filtrit üldse võimalik "Kokku" olekusse
+  panna (nt "Teenus" — ei saa kaheksat teenust kokku liita), mistõttu `", valitud lõige"` ja
+  filtririba ilmuvad seal PÜSIVALT, ka esmakordsel avamisel — see on õige käitumine, mitte viga,
+  sest neil tabelitel pole kunagi tõelist "üldist" vaadet.
+- **Kontrollitud brauseris (mõlemas projektis, otse JS-i kaudu filtreid muutes ja tulemust
+  kontrollides, mitte ainult visuaalselt):** vaikeväärtustega ei näidata rida ega lisandit; filtri
+  muutmisel ilmuvad kohe õiges kohas (KPI-rida/graafikute/tabeli kohal); tagasi vaikeväärtusele
+  minnes kaovad uuesti; Sugu vrdl Naised (ETU) jääb korrektseks, ei saa üleliigset lisandit.
 
 Kasutaja tagasiside pildi põhjal: üldpäises peab jääma ainult näidikulaua pealkiri; iga aruande oma
 "kulm" (nt "Eesti terviseuuring · ETU42") koos "Andmed laaditud..."/veateatega peab olema **iga

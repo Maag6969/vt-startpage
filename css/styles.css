@@ -254,6 +254,15 @@ fieldset.field { border: none; margin: 0; padding: 0; }
 }
 .chart-note--after { margin: 8px 0 0; }
 
+/* Valitud lõige — kuvatakse KPI-rea, graafikute ja tabeli kohal, kui vähemalt üks filter
+   erineb vaikeväärtusest (vt app.js filterSummary()). Selgelt eristuv callout'ist (mis on
+   automaatselt genereeritud tõlgendus, mitte kasutaja valik), aga sama tähelepanu köitev. */
+.filter-summary {
+  background: var(--sinine-15); border-radius: var(--radius);
+  padding: 8px 14px; margin: 0 0 16px; color: var(--tekst-1); font-weight: 500; font-size: 0.9rem;
+  max-width: 760px;
+}
+
 /* callout */
 .callout {
   background: var(--sinine-15); border-left: 4px solid var(--som-keskmine-sinine);
@@ -370,7 +379,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   .skip-link, .panel-list, .back-link, .filters, .dataset__status, .site-header__views,
   .module__status, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
-  .filter-summary { font-weight: 500; color: var(--tekst-1); margin: 0 0 12px; }
+  .filter-summary { background: none; padding: 0; font-weight: 500; color: var(--tekst-1); margin: 0 0 12px; }
 
   .site-header { padding: 0 0 8px; }
   .layout { display: block; min-height: 0; }

@@ -253,13 +253,21 @@
     return states[config.code];
   }
 
-  /** Valitud filtrid lausena (printimiseks). */
+  /*
+   * Valitud lõige, kui vähemalt üks filter erineb vaikeväärtusest (nt "Kokku") — kinnitatud
+   * kasutajaga 18.09.2026: KPI-rea, graafikute ja tabeli kohal peab olema alati selge, milline
+   * valik neid numbreid kujundab, mitte ainult callout-tekstis. Vaikefiltritega tabelivaates
+   * jääb rida näitamata, et esmavaade ei koormaks üleliigse infoga (vt renderBody()).
+   */
   function filterSummary(config, state) {
     var parts = (config.filters || []).map(function (code) {
-      var label = config.vars[code].label;
-      if (code === "Sugu") return label + ": " + (state.compareSexes ? "Mehed vrdl Naised" : TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
-      return label + ": " + TAI.labelOf(config, code, state[code]);
-    });
+      var v = config.vars[code];
+      if (code === "Sugu") {
+        if (state.compareSexes) return "Sugu: Mehed vrdl Naised";
+        return state.Sugu != null && state.Sugu !== v.totalValue ? "Sugu: " + TAI.labelOf(config, "Sugu", state.Sugu) : null;
+      }
+      return state[code] != null && state[code] !== v.totalValue ? v.label + ": " + TAI.labelOf(config, code, state[code]) : null;
+    }).filter(function (p) { return p != null; });
     return parts.length ? "Valitud lõige — " + parts.join(" · ") : "";
   }
 
@@ -328,7 +336,7 @@
     var callout = TAI.calloutText(model);
 
     var summary = filterSummary(config, stateOf(config));
-    var html = (summary ? '<p class="print-only filter-summary">' + esc(summary) + "</p>" : "") + TAI.renderKpis(model);
+    var html = (summary ? '<p class="filter-summary">' + esc(summary) + "</p>" : "") + TAI.renderKpis(model);
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
     var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;

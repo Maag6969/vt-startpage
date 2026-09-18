@@ -56,7 +56,7 @@
     deltaPhrase: "palli",
     axisMax: 10,
 
-    kpiLabel: "Eesti kokku",
+    kpiSubject: "Eesti",
     kpiReference: { var: "geo", value: "EU27_2020", label: "EL-27 keskmine", subjectLabel: "Eesti tulemus" },
 
     source: {
