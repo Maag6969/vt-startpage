@@ -570,11 +570,12 @@
 
     /*
      * Kinnitatud kasutajaga 18.09.2026: kui KPI-kaart näitab üldist (mitte kategooriate vahel
-     * võrdlevat) näitajat — nagu ilc_pw01, kus seeria on lihtsalt fikseeritud üks riik —, on
-     * kaardi ülemine silt ("EESTI") eksitav, sest üksus (riik) on juba lehe kontekstist selge.
-     * config.kpiLabel asendab siis sildi üldise "Kokku"-sõnaga (rakendub ainult ühe seeriaga
-     * kaartidele, et mitmeseerialistes tabelites (nt tulevased riikidevahelised võrdlused) jääks
-     * ikka tegelik üksuse nimi nähtavaks).
+     * võrdlevat) näitajat — nagu ilc_pw01, kus seeria on lihtsalt fikseeritud üks riik —, peab
+     * silt igal juhul nimetama nii üksuse KUI valitud lõike ("EESTI KOKKU"), et lauset/kaarti
+     * saaks lugeda eraldiseisvana, ilma et peaks lehe muust kontekstist üksust ise tuletama.
+     * config.kpiLabel annab selle täpse sildi (rakendub ainult ühe seeriaga kaartidele, et
+     * mitmeseerialistes tabelites, nt tulevastes riikidevahelistes võrdlustes, jääks ikka iga
+     * seeria enda nimi nähtavaks, mitte üks ühine silt).
      */
     if (config.kpiLabel && kpis.length === 1) kpis[0].label = config.kpiLabel;
 
@@ -584,7 +585,8 @@
      * Kinnitatud kasutajaga 17.09.2026 (ilc_pw01): lihtne trend + kompaktne viide, mitte kaks tervet
      * paralleelset seeriat, sest sama "geo" muutuja täidab siin kahte eri rolli (vt seriesValues).
      * subjectLabel (kinnitatud 18.09.2026): võrdlusrea "kõrgem/madalam" peab ütlema, KELLE tulemus
-     * see on (nt "Eesti tulemus"), sest kaardi enda silt ei pruugi enam üksust nimetada (vt kpiLabel).
+     * see on (nt "Eesti tulemus"). Rida algab ka valitud aastaga (vt renderKpisGeneral), et see
+     * oleks iseseisvalt loetav ega eeldaks, et lugeja seob selle kaardi pealkirja aastaga.
      */
     if (config.kpiReference && kpis.length && kpis[0].value != null) {
       var kr = config.kpiReference;
@@ -740,7 +742,7 @@
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
         deltaHtml +
         (!k.delta && config.kpiNote && k.value != null ? '<p class="kpi__note">' + esc(config.kpiNote) + "</p>" : "") +
-        (k.reference ? '<p class="kpi__reference">' + esc(k.reference.label) + ": " + fmt(k.reference.value) +
+        (k.reference ? '<p class="kpi__reference">' + esc(yl(config, k.year) + ". a " + k.reference.label) + ": " + fmt(k.reference.value) +
           (k.reference.delta && k.reference.delta.direction !== "flat"
             ? " (" + esc((k.reference.subjectLabel || "Tulemus") + " " + k.reference.delta.text.replace(/^[▲▼]\s*/, "") +
               (k.reference.delta.direction === "up" ? " kõrgem" : " madalam")) + ")"

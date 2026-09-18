@@ -62,6 +62,18 @@ Eurostat (ilc_pw01) tabeliga — sama muudatus tehtud paralleelselt ka M3-s (vt 
    midagi laiendada; kui M3-le lisandub sarnane "fikseeritud üksus + võrdlusväärtus" tabel, vt
    siit eeskuju. Kontrollitud brauseris (ETU42 mõjutamata, ilc_pw01 uus sõnastus õige).
 
+**Sama õhtu jätk — kasutaja täpsustas veel kord, pärast eelmise punkti nägemist:** "KOKKU · 2025"
+oli liiga vähe — lugeja peab IGAS KPI-kaardi/võrdlusrea lauses saama aru, mis üksuse ja mis aasta
+kohta arv käib, ilma et peaks seda tuletama pealkirjast või mujalt. Üldpõhimõte (kehtib mõlemas
+projektis, alati kui lisandub uusi KPI/võrdluskaarte): iga kaardi/rea tekst peab olema iseseisvalt
+loetav — nimetama nii üksuse KUI aasta, mitte eeldama konteksti eelmisest lausest.
+- KPI silt: `kpiLabel` "Kokku" → "Eesti kokku" (renderdub "EESTI KOKKU · 2025" — üksus + lõige +
+  aasta kõik korraga).
+- Võrdlusrida: lisati aasta rea algusesse (`renderKpisGeneral`, `js/module.js`): "2025. a EL-27
+  keskmine: 7,2 (Eesti tulemus 0,1 palli kõrgem)" — varem polnud reas üldse aastat, kuigi
+  lugeja pidi seda ikkagi eeldama sama olevat, mis KPI pealkirjal.
+- Kontrollitud brauseris uuesti — sõnastus täpselt kasutaja soovitud kujul.
+
 ## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
 
 M3 (tervishoiu-kvaliteet) projektis oli juba tehtud `js/core.js`/`js/module.js` üldistus
