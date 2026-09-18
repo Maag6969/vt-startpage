@@ -51,6 +51,18 @@ parandus), näidatakse **ainult siis, kui vähemalt üks filter erineb vaikevä�
   muutmisel ilmuvad kohe õiges kohas (KPI-rida/graafikute/tabeli kohal); tagasi vaikeväärtusele
   minnes kaovad uuesti; Sugu vrdl Naised (ETU) jääb korrektseks, ei saa üleliigset lisandit.
 
+**Viga, mis leiti kasutaja palvel M3-d brauseris visuaalselt üle vaadates (18.09.2026, samal
+õhtul) — parandatud mõlemas projektis:** esialgne lahendus KIRJUTAS ", valitud lõige" lisandi
+otse `k.label` väljale (`buildModelIndicator`/`buildModelGeneral`), aga seda sama `k.label`
+väärtust kasutab ka callout-tekst mitme-kategooria "top" lause (nt "...oli enim vastuseid
+kategoorias „Üldiselt rahul, valitud lõige“ (56,6%)..." — lisand lekkis lausesse, kus see ei
+kuulu). **Avastati just M3-s PT01 pealt**, kus see lause (mitme-kategooria "top" haru) tegelikult
+kasutusel on — M2-l endal seda konkreetset teed praegu ükski tabel ei käivita, aga viga oleks
+sama kehtinud, kui mõni tulevane tabel selle tee läbiks. Parandus: uus eraldi `k.cardLabel` väli
+(kasutusel AINULT `renderKpisIndicator`/`renderKpisGeneral`-i sildil), `k.label` ise jääb
+puutumata kõigi teiste (callout, breakdown) tarbijate jaoks. Kontrollitud uuesti mõlemas
+projektis — callout-tekst enam lisandit ei sisalda, KPI-silt aga ikka jah.
+
 Kasutaja tagasiside pildi põhjal: üldpäises peab jääma ainult näidikulaua pealkiri; iga aruande oma
 "kulm" (nt "Eesti terviseuuring · ETU42") koos "Andmed laaditud..."/veateatega peab olema **iga
 aruande enda pealkirja kohal**, mitte üldpäises — sest allikaid on nüüd mitu (TAI, Eurostat), mitte

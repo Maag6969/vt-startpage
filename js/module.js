@@ -101,10 +101,11 @@
      * ETU tabelitel on peale Sugu ka teine filter (nt Vanuserühm) — kui see erineb vaikeväärtusest,
      * peab silt seda märkima, muidu jätab kaart mulje, et arv käib kogu populatsiooni, mitte
      * kitsama vanuserühma kohta (vt ka populationSuffix, mida kasutab callout sama eesmärgiga).
+     * NB: eraldi cardLabel, mitte label ise — callout (allpool) kasutab sedasama k.label
+     * "top kategooria" lauses ning ei tohi saada lisandit "valitud lõige" kaasa.
      */
-    if (populationSuffix(config, state)) {
-      kpis.forEach(function (k) { k.label = k.label + ", valitud lõige"; });
-    }
+    var narrowedIndicator = !!populationSuffix(config, state);
+    kpis.forEach(function (k) { k.cardLabel = k.label + (narrowedIndicator ? ", valitud lõige" : ""); });
 
     var breakdown = null;
     var bd = config.views.breakdown;
@@ -244,7 +245,7 @@
           ' <span class="kpi__delta-ref">võrreldes ' + esc(k.prevYear) + ". aastaga</span></p>";
       }
       return '<div class="kpi">' +
-        '<p class="kpi__label">' + esc(k.label) + " · " + esc(k.year) + "</p>" +
+        '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(k.year) + "</p>" +
         (k.value == null
           ? '<p class="kpi__value kpi__value--missing">Andmed puuduvad</p>'
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
@@ -586,11 +587,15 @@
      * vaikeväärtusel) või ", valitud lõige" (mõni filter erineb — vt populationSuffixGeneral,
      * mida kasutab ka callout sama eesmärgiga). "Kokku" ja "valitud lõige" EI tohi kunagi koos
      * esineda, sest need väidaksid vastandlikku asja (kas kogu populatsioon või kitsam lõige).
-     * Rakendub ainult ühe seeriaga kaartidele, et mitmeseerialistes tabelites (nt tulevastes
-     * riikidevahelistes võrdlustes) jääks ikka iga seeria enda nimi nähtavaks.
+     * Mitmeseerialistel kaartidel (nt kategooriad, ilma kpiSubject'ita) lisandub lisand samast
+     * loogikast otse seeria enda nimele. Kõik läheb eraldi cardLabel väljale, MITTE label'isse —
+     * callout (allpool) kasutab sedasama k.label "top kategooria" lauses ega tohi lisandit saada.
      */
+    var narrowedGeneral = !!populationSuffixGeneral(config, state);
     if (config.kpiSubject && kpis.length === 1) {
-      kpis[0].label = config.kpiSubject + (populationSuffixGeneral(config, state) ? ", valitud lõige" : " kokku");
+      kpis[0].cardLabel = config.kpiSubject + (narrowedGeneral ? ", valitud lõige" : " kokku");
+    } else {
+      kpis.forEach(function (k) { k.cardLabel = k.label + (narrowedGeneral ? ", valitud lõige" : ""); });
     }
 
     /*
@@ -750,7 +755,7 @@
           ' <span class="kpi__delta-ref">võrreldes ' + esc(yl(config, k.prevYear)) + ". aastaga</span></p>";
       }
       return '<div class="kpi">' +
-        '<p class="kpi__label">' + esc(k.label) + " · " + esc(yl(config, k.year)) + "</p>" +
+        '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(yl(config, k.year)) + "</p>" +
         (k.value == null
           ? '<p class="kpi__value kpi__value--missing">Andmed puuduvad</p>'
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
