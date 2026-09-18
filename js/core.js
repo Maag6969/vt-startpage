@@ -24,7 +24,25 @@
     return config;
   };
 
-  TAI.getTables = function () { return tables.slice(); };
+  /*
+   * Uusima avaldamisaasta järgi kõige uuem tabel eespool; sama uusima aastaga tabelite vahel
+   * tähestikjärjekord (nimekirja pealkirja järgi) — kokku lepitud kasutajaga 18.09.2026. See
+   * kehtib automaatselt ka igale edaspidi lisatavale tabelile, register.js-i registreerimisjärjekord
+   * ise ei loe.
+   */
+  function latestYearOf(t) {
+    var code = t.years[t.years.length - 1];
+    var label = t.seriesVar ? TAI.yearLabel(t, code) : code; // TAI.yearLabel (module.js) — vt allpool
+    var n = parseInt(label, 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  TAI.getTables = function () {
+    return tables.slice().sort(function (a, b) {
+      var ya = latestYearOf(a), yb = latestYearOf(b);
+      return ya !== yb ? yb - ya : a.title.localeCompare(b.title, "et");
+    });
+  };
 
   TAI.getTable = function (code) {
     for (var i = 0; i < tables.length; i++) {

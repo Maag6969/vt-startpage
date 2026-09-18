@@ -40,6 +40,13 @@ kiirelt haaratav, kuid väikese vaevaga näha ka Eesti-EL keskmise-teiste riikid
   (mõlemad päringud, sh kõik 37 riiki) — pole optimeeritud, aga URL/vastus on väike (~400 tähemärki
   päring, testitud), nii et see pole probleem.
 
+**Loendi järjestus (18.09.2026, üldreegel):** `TAI.getTables()` sordib nüüd automaatselt — uusima
+avaldamisaasta järgi (uusim eespool), sama aasta korral pealkirja tähestikjärjekorras (`localeCompare`
+eesti lokaadiga). Ei sõltu registreerimisjärjekorrast (`<script>` ridade järjekord index.html-is on
+seega vaba). Kontrollitud: "Eluga rahulolu (EL)" (2025) tõusis automaatselt esimeseks, ETU41–43 (kõik
+2019) jäid tähestikku (Depressiooni · Emotsionaalne · Uneaja) — täpselt kasutaja soovitud järjekord,
+ilma et oleks vaja eraldi käsitsi ümber tõsta. Kõik 20 testi läbisid pärast muudatust.
+
 **Taaskasutatavad uued mehhanismid (kasutatavad ka tulevastel Eurostat/muu-allika tabelitel):**
 `TAI.EUROSTAT_BASE`, `TAI.fetchJsonStatUrl(url)`, `TAI.sourceLabel/sourceLongLabel/sourceUrl(config)`,
 `TAI.unitText(config)`, `TAI.formatValue(v, unit)`, `config.seriesValues`, `config.kpiReference`,
