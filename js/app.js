@@ -11,7 +11,6 @@
 
   var listEl = document.getElementById("dataset-list");
   var contentEl = document.getElementById("content");
-  var loadedAtEl = document.getElementById("loaded-at");
 
   var current = null;      // valitud tabeli kood
   var requestId = 0;       // vanemate päringute tulemused jäetakse kõrvale
@@ -158,11 +157,34 @@
     return '<a class="back-link" href="#dataset-list">↑ Tagasi andmestike juurde</a>';
   }
 
+  /* Mooduli oma pealkirja kohal olev staatusrida (kulmu asemel): laadimine / õnnestunud / ebaõnnestunud.
+     Vana kulmu sisu (nt "Eesti terviseuuring · ETU42") liigub siia viitena samale reale. */
+  function statusLineHtml(config, kind) {
+    var link = TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config), config.eyebrow);
+    if (kind === "loading") return '<p class="module__status">Laen andmeid — ' + link + "</p>";
+    if (kind === "error") return '<p class="module__status module__status--error">Andmeid ei õnnestunud laadida! — ' + link + "</p>";
+    if (kind !== "loaded") return '<p class="module__status"></p>';
+    var now = new Date();
+    var src = config.seriesVar ? TAI.sourceLabel(config) : "TAI";
+    return '<p class="module__status">Andmed laaditud otse ' + esc(src) + " andmebaasist · " +
+      esc(dateFmt.format(now) + " " + timeFmt.format(now)) + " — " + link + "</p>";
+  }
+
+  /* Filtrimuutusel (reload()) uuendatakse ainult juba ekraanil oleva mooduli staatusrida, mitte kogu päist. */
+  function setStatus(config, kind) {
+    var el = contentEl.querySelector(".module__status");
+    if (el) el.outerHTML = statusLineHtml(config, kind);
+  }
+
   function renderLoading(config) {
     view = null;
     contentEl.setAttribute("aria-busy", "true");
     contentEl.innerHTML =
       backLink() +
+      '<header class="module__head">' +
+        statusLineHtml(config, "loading") +
+        '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
+      "</header>" +
       '<div class="skeleton" aria-label="Laadin andmestikku ' + esc(config.title) + '">' +
         '<div class="skeleton__bar skeleton__bar--short"></div>' +
         '<div class="skeleton__bar skeleton__bar--title"></div>' +
@@ -177,6 +199,11 @@
     contentEl.setAttribute("aria-busy", "false");
     contentEl.innerHTML =
       backLink() +
+      '<header class="module__head">' +
+        statusLineHtml(config, "error") +
+        '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
+        '<p class="module__subtitle">' + esc(config.description) + "</p>" +
+      "</header>" +
       '<div class="error-box" role="alert">' +
         "<h3>" + esc(info.title) + "</h3>" +
         "<p>" + esc(info.text) + "</p>" +
@@ -276,7 +303,7 @@
       backLink() +
       '<article class="module">' +
         '<header class="module__head">' +
-          '<span class="pill pill--eyebrow">' + esc(config.eyebrow) + "</span>" +
+          statusLineHtml(config, source.source === "api" ? "loaded" : "none") +
           '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
           '<p class="module__subtitle">' + esc(config.description) + "</p>" +
           '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" +
@@ -291,14 +318,6 @@
       "</article>";
 
     renderBody();
-
-    if (source.source === "api") markLoaded();
-  }
-
-  function markLoaded() {
-    var now = new Date();
-    loadedAtEl.textContent = "Andmed laaditud otse TAI andmebaasist · " + dateFmt.format(now) + " " + timeFmt.format(now);
-    loadedAtEl.hidden = false;
   }
 
   function renderBody() {
@@ -420,13 +439,14 @@
     body.classList.add("is-loading");
     body.setAttribute("aria-busy", "true");
     setRowStatus(config.code, "loading");
+    setStatus(config, "loading");
     try {
       var data = await TAI.loadTable(config, stateOf(config));
       if (myRequest !== requestId || !view || view.config !== config) return;
       view.data = data;
       setRowStatus(config.code, null);
       renderBody();
-      markLoaded();
+      setStatus(config, "loaded");
     } catch (err) {
       if (myRequest !== requestId) return;
       console.error(err);
@@ -557,7 +577,7 @@
 
   // TAI allikalingi klõps (loendis või moodulis; ka keskmise nupuga uude kaardi avamine)
   function onSourceClick(evt) {
-    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"]');
+    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"], a[href*="ec.europa.eu/eurostat"]');
     if (!link) return;
     var row = link.closest(".dataset");
     var code = row ? row.getAttribute("data-code") : (contentEl.contains(link) && view ? view.config.code : null);

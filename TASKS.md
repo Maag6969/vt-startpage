@@ -3,8 +3,38 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 17.09.2026 (Eurostati esimene tabel `ilc_pw01` lisatud, vt allpool uus jaotis.
+Viimati uuendatud: 18.09.2026 (päise/mooduli staatusrea ümberdisain, vt allpool uus jaotis.
 Tehnilised töövoo-etapid 1–7 lõpetatud; leht jagatud tagasisideks; etapp 8 SharePoint ootel)
+
+## Päise ja mooduli staatusrea ümberdisain (18.09.2026)
+
+Kasutaja tagasiside pildi põhjal: üldpäises peab jääma ainult näidikulaua pealkiri; iga aruande oma
+"kulm" (nt "Eesti terviseuuring · ETU42") koos "Andmed laaditud..."/veateatega peab olema **iga
+aruande enda pealkirja kohal**, mitte üldpäises — sest allikaid on nüüd mitu (TAI, Eurostat), mitte
+ainult TAI. Kasutaja täpsustas veel: kulmu sisu läheb samale reale viitena; faili üleslaadimise
+kuvamine jäeti (ajutiselt) teemast välja.
+
+**Tehtud:**
+- `index.html`: `.site-header__meta` (vana `#loaded-at` + üldine "TAI tervisestatistika andmebaas ↗"
+  link) eemaldatud täielikult — päises on nüüd ainult `.site-header__title` (H1 + vaatamiste arv).
+- `js/app.js`: uus `statusLineHtml(config, kind)` ("loading"/"loaded"/"error"/muu), mis pannakse
+  otse mooduli `<header class="module__head">` sisse, H2-st kohe üle — nii `renderLoading()`,
+  `renderModule()` kui uuendatud `renderError()` (viimane näitas varem ÜLDSE mitte mooduli
+  konteksti — nüüd näeb kasutaja punase veateatega koos ka, MILLISE aruande laadimine ebaõnnestus).
+  Filtrimuutusel (`reload()`) uuendatakse ainult juba ekraanil olevat staatusrida (`setStatus()`),
+  mitte kogu päist, et fookus/kerimine ei kaoks. Vana globaalne `markLoaded()`/`#loaded-at` element
+  eemaldatud, kuna staatus on nüüd mooduli enda, mitte lehe, olek.
+  Allikalingi klõpsu statistika (`onSourceClick`) laiendatud ka Eurostati linkidele
+  (`ec.europa.eu/eurostat`), kuna see viide asub nüüd nähtavamalt staatusreal, mitte ainult jaluses.
+- `css/styles.css`: uus `.module__status`/`.module__status--error` (punane, nagu `.dataset__status.is-error`
+  eeskujul), vana `.pill--eyebrow`/`.site-header__meta` reeglid eemaldatud (kasutuseta).
+- **Sama muudatus tehtud paralleelselt ka M3 (tervishoiu-kvaliteet) projektis**, kuna sealne
+  varasem implementatsioon oli juba allika-teadlik, aga kirjutas ikka valesse (globaalsesse) kohta —
+  vt M3 oma TASKS.md.
+- **Brauseris kontrollitud (desktop + mobiil, mõlemas projektis):** laadimis-, õnnestumis- ja
+  veaolek nii TAI (ETU42) kui Eurostat (ilc_pw01 / M3 PT05) tabeliga; filtrimuutus uuendab staatusrida
+  kohapeal; päises pole enam vana meta-plokki (kontrollitud `read_page` kaudu, `banner` sisaldab
+  ainult pealkirja).
 
 ## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
 

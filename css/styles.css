@@ -79,12 +79,6 @@ a:hover { text-decoration-thickness: 2px; }
 .site-header__views { margin: 2px 0 0; font-size: 0.875rem; color: var(--tekst-2); font-variant-numeric: tabular-nums; }
 .site-header__views[hidden] { display: none; }
 
-.site-header__meta {
-  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 20px;
-  font-size: 0.875rem; color: var(--tekst-2);
-}
-.site-header__meta [hidden] { display: none; }
-
 /* ---- paneelid ------------------------------------------------------ */
 
 .layout {
@@ -183,8 +177,6 @@ a:hover { text-decoration-thickness: 2px; }
   font-size: 0.8rem; font-weight: 500; line-height: 1.4;
   padding: 3px 12px; border-radius: var(--pill);
 }
-.pill--eyebrow { text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.75rem; }
-
 /* ---- kuvamisala ----------------------------------------------------- */
 
 .back-link { display: none; margin-bottom: 16px; font-size: 0.9rem; }
@@ -193,9 +185,13 @@ a:hover { text-decoration-thickness: 2px; }
 .empty-state h2 { color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.35rem; margin: 0 0 12px; }
 .empty-state p { color: var(--tekst-2); margin: 0 0 12px; }
 
+.module__status { font-size: 0.875rem; color: var(--tekst-2); margin: 0; }
+.module__status:empty { display: none; }
+.module__status a { color: inherit; }
+.module__status--error { color: var(--negatiivne); font-weight: 500; }
 .module__head h2 {
   color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.6rem; line-height: 1.25;
-  margin: 12px 0 4px;
+  margin: 8px 0 4px;
 }
 .module__head h2:focus { outline: none; }
 .module__subtitle { color: var(--tekst-2); margin: 0 0 12px; }
@@ -372,7 +368,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   @page { margin: 15mm; }
   html, body { font-size: 11pt; }
   .skip-link, .panel-list, .back-link, .filters, .dataset__status, .site-header__views,
-  .site-header__meta, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
+  .module__status, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
   .filter-summary { font-weight: 500; color: var(--tekst-1); margin: 0 0 12px; }
 
