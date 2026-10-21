@@ -192,6 +192,7 @@ a:hover { text-decoration-thickness: 2px; }
 .empty-state { max-width: 560px; padding-top: 24px; }
 .empty-state h2 { color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.35rem; margin: 0 0 12px; }
 .empty-state p { color: var(--tekst-2); margin: 0 0 12px; }
+.empty-state ul { color: var(--tekst-2); margin: 0 0 12px; padding-left: 1.25rem; }
 
 .module__status { font-size: 0.875rem; color: var(--tekst-2); margin: 0; }
 .module__status:empty { display: none; }

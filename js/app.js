@@ -155,10 +155,13 @@
     contentEl.innerHTML =
       '<div class="empty-state">' +
         '<h2>Vali <span class="only-wide">vasakult</span><span class="only-narrow">ülalt</span> andmestik</h2>' +
-        "<p>Näidikulaud koondab Eesti terviseuuringu vaimse tervise näitajad: depressiooni sümptomid, " +
-        "emotsionaalse distressi ja uneaja piisavuse soo, vanuse ja taustatunnuste lõikes.</p>" +
-        "<p>Andmed laaditakse valimisel reaalajas Tervise Arengu Instituudi tervisestatistika andmebaasist, " +
-        "seega näed alati avaldatud värskeimaid numbreid.</p>" +
+        "<p>Näidikulaud koondab Eesti olulisemad vaimse heaolu ja tervise avaandmetena avaldatud näitajad " +
+        "erinevatest andmebaasidest.</p>" +
+        "<p>Andmed laaditakse reaalajas järgmistest andmeallikatest:</p>" +
+        // allikate loend tuleb vasaku loendi gruppidest, nii et uus allikas lisandub siia automaatselt
+        "<ul>" + TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {
+          return "<li>" + esc(g.name) + "</li>";
+        }).join("") + "</ul>" +
       "</div>";
   }
 
