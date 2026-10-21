@@ -10,6 +10,7 @@
     fullTitle: "Emotsionaalse distressi esinemine soo ja vanuserühma järgi",
     description: "Olulise emotsionaalse distressiga täiskasvanute osakaal aastatel 2006, 2014 ja 2019.",
     eyebrow: "Eesti terviseuuring · ETU42",
+    group: "Tervise Arengu Instituut",
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

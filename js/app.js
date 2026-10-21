@@ -27,25 +27,34 @@
 
   var pendingScroll = false;
 
+  function datasetRow(t) {
+    return (
+      '<li class="dataset" data-code="' + esc(t.code) + '">' +
+        '<button type="button" class="dataset__button" aria-controls="content" ' +
+            'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
+          '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
+          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(t.description) + "</span>" +
+          '<span class="dataset__chevron" aria-hidden="true">›</span>' +
+        "</button>" +
+        '<div class="dataset__footer">' +
+          '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: ' +
+            esc(t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + esc(t.code) +
+            ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
+          '<span class="dataset__views" hidden></span>' +
+          '<span class="dataset__status" role="status"></span>' +
+        "</div>" +
+      "</li>"
+    );
+  }
+
+  /* Grupid allika järgi (TAI.getTableGroups, core.js): väike hall pealkirjarida rea kohal; grupita
+     tabelid jäävad pealkirjata. Iga grupp on oma <ul>, mis viitab pealkirjale aria-labelledby kaudu. */
   function renderList() {
-    listEl.innerHTML = TAI.getTables().map(function (t) {
-      return (
-        '<li class="dataset" data-code="' + esc(t.code) + '">' +
-          '<button type="button" class="dataset__button" aria-controls="content" ' +
-              'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
-            '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
-            '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(t.description) + "</span>" +
-            '<span class="dataset__chevron" aria-hidden="true">›</span>' +
-          "</button>" +
-          '<div class="dataset__footer">' +
-            '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: ' +
-              esc(t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + esc(t.code) +
-              ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
-            '<span class="dataset__views" hidden></span>' +
-            '<span class="dataset__status" role="status"></span>' +
-          "</div>" +
-        "</li>"
-      );
+    listEl.innerHTML = TAI.getTableGroups().map(function (g, i) {
+      var id = "dataset-group-" + i;
+      return (g.name ? '<h2 class="dataset-group-heading" id="' + id + '">' + esc(g.name) + "</h2>" : "") +
+        '<ul class="dataset-list"' + (g.name ? ' aria-labelledby="' + id + '"' : "") + ">" +
+        g.items.map(datasetRow).join("") + "</ul>";
     }).join("");
 
     listEl.addEventListener("click", function (evt) {

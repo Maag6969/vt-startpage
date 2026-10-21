@@ -44,6 +44,33 @@
     });
   };
 
+  /*
+   * Vasaku loendi grupid (kokku lepitud kasutajaga 21.10.2026): grupi nimi on allika nimi
+   * (config.group, nt "Tervise Arengu Instituut" / "Eurostat"), järjekord fikseeritud: Eesti andmed ees,
+   * rahvusvaheline all. Grupi nimi on ühtlasi kuvatav pealkiri, seega kirjuta see täpselt nii, nagu lugeja näeb.
+   * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
+   * pealkirjata. Grupi sees säilib ette antud järjekord (getTables(): uusim aasta, siis tähestik).
+   */
+  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Eurostat"];
+
+  TAI.groupTables = function (list) {
+    var groups = [];
+    list.forEach(function (t) {
+      var name = t.group || "";
+      var g = groups.filter(function (x) { return x.name === name; })[0];
+      if (!g) { g = { name: name, items: [] }; groups.push(g); }
+      g.items.push(t);
+    });
+    function rank(name) {
+      if (!name) return TAI.GROUP_ORDER.length + 1;
+      var i = TAI.GROUP_ORDER.indexOf(name);
+      return i >= 0 ? i : TAI.GROUP_ORDER.length;
+    }
+    return groups.sort(function (a, b) { return rank(a.name) - rank(b.name); });
+  };
+
+  TAI.getTableGroups = function () { return TAI.groupTables(TAI.getTables()); };
+
   TAI.getTable = function (code) {
     for (var i = 0; i < tables.length; i++) {
       if (tables[i].code === code) return tables[i];

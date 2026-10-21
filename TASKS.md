@@ -3,10 +3,51 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 18.09.2026 (filtrikonteksti läbivaatus, vt allpool uus jaotis.
+Viimati uuendatud: 21.10.2026 (piloteerimise 2. etapp tehtud, vt allpool uus jaotis; samm-sammuline juhis
+[ETAPP2-JUHIS.md](ETAPP2-JUHIS.md).
 Tehnilised töövoo-etapid 1–7 põhiosas lõpetatud — 2 väikest kontrolli seisab veel päris keskkonnas
 (mobiilikerimise animatsioon, päris printimine/SharePointi lingi eelvaade, vt etapid 4 ja 7); leht
 jagatud tagasisideks; etapp 8 SharePoint ootel)
+
+## Piloteerimise 2. etapp — tehtud (21.10.2026)
+
+**Ümberraamimine (otsus 0):** algne eesmärk „kaasa ETU41–43 kõik TAI taustaandmed" osutus tühjaks —
+TAI metaandmete GET-kontroll (21.10.2026) näitas, et M2 kasutab ETU41–43 puhul juba **kõiki** API muutujaid
+(ETU41: Aasta, Taustatunnus, Depressioon, Sugu, Vanuserühm; ETU42: Aasta, Distress, Sugu, Vanuserühm;
+ETU43: Aasta (ainult 2019), Piisavus, Sugu, Vanuserühm). Seega sai etapi sisuks M3 tehnilise töö
+ülevaatus + rühmitatud loend + rollide otsustamise protsessi kirjapanek.
+
+**Otsused:** (0) etapp ümber raamitud — jah; (1) M3 `directionHint`/`yearRangeLabel` M2-sse **ei** tooda
+(vajadust pole; päise plaadid eemaldati 18.09); (2) ETU41–43 **ei viida** üldmudelile selles etapis;
+(3) loendi grupid allika järgi **„Tervise Arengu Instituut" / „Eurostat"** (TAI-grupi pealkiri kirjutati
+hiljem 21.10.2026 kasutaja soovil lühendi asemel täisnimega välja), järjekord Eesti ees, rahvusvaheline
+all, väike hall pealkirjarida rea kohal (intervjuu 21.10.2026).
+
+**Tehtud:** rühmitatud vasak loend — `config.group`, `TAI.GROUP_ORDER`/`groupTables()`/`getTableGroups()`
+(`core.js`), `datasetRow()` + rühmitatud `renderList()` (`app.js`), `.dataset-group-heading` (`styles.css`),
+`index.html` `<ul>` → `<div>`; ühiktest (nüüd 21/21). Tehniline mõte M3-st, kood ja stiil M2 omad.
+Kontrollitud brauseris (desktop, mobiil). **Teadlikult jäetud tegemata:** M3 SDMX lugeja (M2-s pole SDMX
+allikat), AI-analüüsi nupud (tootefunktsioon + disain, eraldi arutelu), ETU üleviimine üldmudelile.
+M3-st M2 kood **ei erine** muus osas kui siin loetletud (diff funktsioonide nimekirja põhjal).
+
+**Muutuja rolli otsustamise protsess (sisend 3. etapile; harjutatud ETU43 peal):**
+1. **Metaandmed:** GET `…/<TABEL>.px` → iga muutuja kood, `elimination` lipp, väärtuste arv ja tekstid.
+   `elimination` määrab, kas `buildQuery` peab koondkategooria ise lisama (ETU43: ei → lisab "0").
+2. **Roll igale muutujale:** *aeg* (`yearVar`), *näitaja* (`indicator.var` vana mudel / `seriesVar` üldmudel),
+   *filter* (kasutaja valib, `filters`), *breakdown-telg* (võrreldakse tulpadel, `views.breakdown`), *konstant*.
+3. **Kas on "Kokku" väärtus (`totalValue`)?** Sellest sõltub, kas "Valitud lõige" rida ilmub vaikimisi (M3 leid:
+   ilma `totalValue`-ta filtril on rida alati nähtaval).
+4. **Mudeli valik:** binaarne osakaal + soo võrdlusrežiim → vana (`indicator`); mitu kategooriat/fikseeritud
+   üksus/mitte-TAI allikas → üldmudel (`seriesVar`, `seriesValues`, `kpiSubject`, `kpiReference`).
+5. **Kood + test:** konfiguratsioon, siis käsitsi kontrollitud arvud API vastu (integratsioonitest), alles siis UI.
+6. **Intervjuu** igale uuele disainiotsusele (grupp, sildid, värvid) selles projektis.
+
+ETU43 rollid: *Aasta* — aeg (1 väärtus → trendi ja muutust pole); *Piisavus* — näitaja (binaarne osakaal,
+`indicator`); *Sugu* — filter + võrdlusrežiim (`canCompareSexes`); *Vanuserühm* — **ainult breakdown-telg**
+(`filters` sisaldab vaid Sugu). **Miks mitte üldmudelisse:** soo võrdlusrežiimis peaksid seeriad olema
+Mehed/Naised, tavarežiimis üks koondseeria — üldmudel eeldab fikseeritud `seriesVar` + `seriesValues`
+(config-tasemel), mitte olekust sõltuvat seeriate nimekirja. Viimine nõuaks uut tuge ja riskiks kolme
+töötava tabeliga. Vaata uuesti, kui 3. etapi tabel (nt PKH1 diagnoosiga) vanasse mudelisse ei mahu.
 
 ## Filtrikonteksti läbivaatus — vale mulje, kui filtreid pole KPI/graafiku juures näha (18.09.2026)
 

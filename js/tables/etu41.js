@@ -10,6 +10,7 @@
     fullTitle: "Depressiooni sümptomite esinemine soo, vanuserühma ja taustatunnuste järgi",
     description: "Olulise depressiooniga täiskasvanute osakaal aastatel 2006, 2014 ja 2019.",
     eyebrow: "Eesti terviseuuring · ETU41",
+    group: "Tervise Arengu Instituut",
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

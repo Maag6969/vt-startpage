@@ -45,6 +45,7 @@
     fullTitle: "Eluga rahulolu soo, vanuse ja hariduse lõikes, riikide võrdluses",
     description: "Üldine eluga rahulolu (0–10 hindamisskaala), Eesti Euroopa Liidu riikide võrdluses.",
     eyebrow: "Eurostat · ilc_pw01",
+    group: "Eurostat",
 
     years: YEARS,
     yearVar: "time",

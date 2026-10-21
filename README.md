@@ -109,11 +109,16 @@ index.html                  master-leht (etapp 4)
 favicon.svg                 vahekaardi ikoon
 css/styles.css              stiilid, disainitokenid ja printimise stiil (disain.md p. 1–2)
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
-js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel
+js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel.
+                            KAKS mudelit kõrvuti (dispatch `config.seriesVar` olemasolu järgi): vana "Indicator"
+                            (ETU, binaarne osakaal + soo võrdlusrežiim) ja üldine "General" (suvaline seeriamuutuja,
+                            Eurostat); M3-s on ainult üldmudel — põhjus vt TASKS.md „Piloteerimise 2. etapp"
 js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
 js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS.md 17.09.2026)
+js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall (EI laeta lehele; kopeeri <KOOD>.js nime alla).
+                            Vasaku loendi grupp tuleb `config.group` väljalt (järjekord `TAI.GROUP_ORDER`, core.js)
 
 Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)

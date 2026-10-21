@@ -10,6 +10,7 @@
     fullTitle: "Uneaja piisavus soo ja vanuserühma järgi",
     description: "Ebapiisava uneajaga täiskasvanute osakaal 2019. aastal.",
     eyebrow: "Eesti terviseuuring · ETU43",
+    group: "Tervise Arengu Instituut",
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

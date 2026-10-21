@@ -101,6 +101,14 @@ a:hover { text-decoration-thickness: 2px; }
 
 .dataset-list { list-style: none; margin: 0; padding: 0; }
 
+/* Grupi pealkiri (kokku lepitud kasutajaga 21.10.2026): väike hall rida rea kohal */
+.dataset-group-heading {
+  margin: 0; padding: 14px 20px 6px 24px;
+  font-size: 0.8rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--tekst-2);
+}
+.dataset-list + .dataset-group-heading { border-top: 1px solid var(--joon); margin-top: 0; }
+
 .dataset {
   position: relative;
   border-bottom: 1px solid var(--joon);
