@@ -8,7 +8,7 @@
     code: "ETU42",
     title: "Emotsionaalne distress",
     fullTitle: "Emotsionaalse distressi esinemine soo ja vanuserühma järgi",
-    description: "Olulise emotsionaalse distressiga täiskasvanute osakaal aastatel 2006, 2014 ja 2019.",
+    description: "Olulise emotsionaalse distressiga täiskasvanute osakaal {aastatel}.",
     eyebrow: "Eesti terviseuuring · ETU42",
     group: "Tervise Arengu Instituut",
     years: YEARS,
@@ -39,7 +39,6 @@
       return {
         trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], sexOverride)),
         breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu"], Object.assign({
-          Aasta: [YEARS[YEARS.length - 1]],
           "Vanuserühm": cfg.vars["Vanuserühm"].values
         }, sexOverride)))
       };

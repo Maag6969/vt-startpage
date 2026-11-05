@@ -12,6 +12,8 @@
 
   var TK = TAI.tervisekassa;
 
+  // KOHAHOIDJAD: aastad, pooleliolev aasta ja vaikeaastad tulevad meta-failist (config.prepare → applyMeta), kui aruanne avatakse.
+  // Massiive muudetakse kohapeal, sest config.years, vars.*.values/labels ja provisionalYears jagavad neid.
   var YEARS = ["2021", "2022", "2023", "2024", "2025", "2026"];
   var PROVISIONAL = ["2026"];
   var YEAR_LABELS = YEARS.map(function (y) { return PROVISIONAL.indexOf(y) >= 0 ? y + " (pooleli)" : y; });
@@ -28,6 +30,27 @@
   var numberFmt = new Intl.NumberFormat("et-EE");
   function formatCount(v) { return v == null ? "–" : numberFmt.format(v); }
   function isProvisional(y) { return PROVISIONAL.indexOf(y) >= 0; }
+  /** "2026. aasta on pooleli" (mitu: "2026. ja 2027. aasta on pooleli"); tühi, kui pooleliolevat aastat pole. */
+  function provisionalText() { return PROVISIONAL.length ? PROVISIONAL.join(". ja ") + ". aasta on pooleli" : ""; }
+
+  function setIn(target, source) { target.length = 0; source.forEach(function (v) { target.push(v); }); }
+
+  /*
+   * Meta-failist (importskript tuletab need väljavõtte failidest): aastad, pooleliolev aasta (= väljavõtte aasta) ja vaikeaastad
+   * (viimane täisaasta ja sellele eelnev). Nii lisab uus väljavõte aasta ilma koodimuudatuseta ja libisemine (2026 täis, 2027
+   * pooleli) toimub ise. Kutsutakse enne filtrite ja oleku loomist (config.prepare, app.js).
+   */
+  function applyMeta(meta) {
+    var cfg = TAI.getTable("TK-diagnoosid");
+    setIn(YEARS, meta.aastad);
+    setIn(PROVISIONAL, meta.pooleli_aastad || []);
+    setIn(YEAR_LABELS, YEARS.map(function (y) { return isProvisional(y) ? y + " (pooleli)" : y; }));
+    var full = YEARS.filter(function (y) { return !isProvisional(y); });
+    var obs = meta.vaikimisi_vaatlusaasta || full[full.length - 1] || YEARS[YEARS.length - 1];
+    var cmp = meta.vaikimisi_vordlusaasta || (full.length > 1 ? full[full.length - 2] : obs);
+    cfg.vars.Vaatlusaasta.totalValue = obs;
+    cfg.vars.Vordlusaasta.totalValue = cmp;
+  }
   function personWord(n) { return Math.abs(n) === 1 ? "isik" : "isikut"; }
 
   /** Telje ülempiir arvudele: 5 sammu, sammuks ümar arv (nt 61 819 → 75 000). */
@@ -120,7 +143,7 @@
       var current = persons(s.sugu, obs, s.age);
       var delta = sameYear ? null : countDelta(current.vaartus, persons(s.sugu, comp, s.age).vaartus);
       var note = sameYear ? "Vaatlus- ja võrdlusaasta on samad, seega muutust ei arvutata."
-        : anyProvisional ? "2026. aasta on pooleli, seega võrdlus täisaastaga ei ole samaväärne." : null;
+        : anyProvisional ? provisionalText() + ", seega võrdlus täisaastaga ei ole samaväärne." : null;
       return {
         label: s.label, ageLabel: s.age ? s.label : null, color: s.color, valence: "neutral", year: obs, prevYear: sameYear ? null : comp,
         value: current.vaartus, delta: delta, note: current.vaartus == null ? null : note,
@@ -281,7 +304,7 @@
     }
 
     if (isProvisional(obs) || isProvisional(comp)) {
-      sentences.push(obs === comp ? "2026. aasta on pooleli." : "2026. aasta on pooleli, seega võrdlus täisaastaga ei ole samaväärne.");
+      sentences.push(obs === comp ? provisionalText() + "." : provisionalText() + ", seega võrdlus täisaastaga ei ole samaväärne.");
     }
     sentences.push("Isikute arvu muutus võib peegeldada abi otsimist, teenuste kasutust või kodeerimist; see ei ole levimus ega ravimata inimeste osakaal.");
     if (model.hasGaps) sentences.push("Valitud lõike kohta osa väärtusi puudub või on allikas varjatud.");
@@ -331,7 +354,8 @@
         totalValue: "F32F33"
       },
       "Vanuserühm": { label: "Vanuserühm", values: AGE_VALUES, labels: AGE_LABELS, totalValue: "kokku" },
-      // Vaikimisi viimane kinnitatud täisaasta ja sellele eelnev; 2026 on valitav, aga mitte vaikevalik.
+      // Vaikimisi viimane kinnitatud täisaasta ja sellele eelnev; pooleliolev aasta on valitav, aga mitte vaikevalik.
+      // totalValue siin on kohahoidja, applyMeta asendab selle meta-failist.
       Vaatlusaasta: { label: "Vaatlusaasta", values: YEARS, labels: YEAR_LABELS, totalValue: "2025" },
       Vordlusaasta: { label: "Võrdlusaasta", values: YEARS, labels: YEAR_LABELS, totalValue: "2024" },
       Sugu: { label: "Sugu", values: ["0", "1", "2"], labels: ["Kokku", "Mehed", "Naised"], totalValue: "0" }
@@ -342,7 +366,14 @@
     canCompareAges: true,
     views: { trend: true, breakdown: { var: "Vanuserühm" } },
 
-    trendNote: "Katkendjoon ja seest tühi punkt: 2026. aasta on pooleli ega ole täisaastatega samaväärne. Iga aasta on eraldi andmepunkt, aastaid ei liideta.",
+    trendNote: function () {
+      return (PROVISIONAL.length ? "Katkendjoon ja seest tühi punkt: " + provisionalText() + " ega ole täisaastatega samaväärne. " : "") +
+        "Iga aasta on eraldi andmepunkt, aastaid ei liideta.";
+    },
+
+    // Aastad ja vaikeaastad meta-failist enne oleku loomist (app.js ensureReady); ebaõnnestumisel proovitakse uuesti
+    prepare: function () { return TK.loadMeta().then(applyMeta); },
+    applyMeta: applyMeta,
 
     loadData: function () {
       return TK.load().then(function (store) { return { store: store }; });
@@ -360,7 +391,7 @@
           "Aastaid ja diagnoose ei liideta: sama isik võib olla mitmel aastal ja mõlemas diagnoosirühmas.",
         "Arved lähevad aastasse arve lõpetamise järgi ja retseptid väljakirjutamise järgi. " +
           "Retseptide arv ei ole ravimeid saanud inimeste arv ja arvete arv ei ole visiitide arv.",
-        "2026. aasta on pooleli. Allika uuendus " + TK.isoToEt(meta.allika_uuendus) + ", väljavõte " + TK.isoToEt(meta.valjavotte_kuupaev) +
+        (PROVISIONAL.length ? provisionalText() + ". " : "") + "Allika uuendus " + TK.isoToEt(meta.allika_uuendus) + ", väljavõte " + TK.isoToEt(meta.valjavotte_kuupaev) +
           " (Power BI vaade „Üldine statistika“). Andmed on lehel valmis failidena, lehe avamine Tervisekassa aruannet ei päri."
       ];
     }

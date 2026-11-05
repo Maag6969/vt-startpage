@@ -66,7 +66,9 @@
     var series = seriesOfIndicator(config, state);
     var years = config.years;
     var latest = years[years.length - 1];
-    var prev = years.length > 1 ? years[years.length - 2] : null;
+    // eelmine mõõtmine ainult siis, kui tabelil on trend (ühe aasta tabelile, nt ETU43, lisandunud uus aasta ei tekita
+    // „Muutust ei saa arvutada“ märget)
+    var prev = years.length > 1 && config.views.trend ? years[years.length - 2] : null;
 
     function share(reader, sel) { return reader ? TAI.indicatorShare(reader, config, sel) : null; }
 
@@ -317,6 +319,23 @@
     return 25 * TICKS;
   }
 
+  /*
+   * Aastasildid trendigraafiku teljel (05.11.2026, M3 eeskujul): aegrea pikkus on lahtine (uued aastad lisanduvad ise),
+   * seega kui kõik sildid ei mahu, näidatakse iga 2./3. jne aasta; esimene ja viimane on alati nähtaval. Punktid ja
+   * vihjed jäävad kõigile aastatele. labelW = kõige laiema sildi hinnanguline laius pikslites.
+   */
+  function yearLabelStep(labelW, plotInnerW, count) {
+    var gap = plotInnerW / Math.max(1, count - 1);
+    return Math.max(1, Math.ceil(labelW / gap));
+  }
+
+  function yearLabelVisible(i, count, every) {
+    var isLast = i === count - 1;
+    if (i % every !== 0 && !isLast) return false;
+    if (!isLast && every > 1 && count - 1 - i < every) return false;   // ära pane viimase kõrvale kokku
+    return true;
+  }
+
   /** Lihtne reamurdmine SVG-s: kuni 2 rida, hinnanguline tähelaius. */
   function wrapLabel(text, maxWidth, charWidth) {
     var maxChars = Math.max(6, Math.floor(maxWidth / charWidth));
@@ -364,7 +383,9 @@
       svg.appendChild(el("line", { class: g === 0 ? "baseline" : "gridline", x1: padL, x2: W - padR, y1: y(gv), y2: y(gv) }));
       svg.appendChild(el("text", { class: "axis-label", x: padL - 8, y: y(gv) + 4, "text-anchor": "end" }, Math.round(gv) + "%"));
     }
+    var everyYear = yearLabelStep(String(years[0]).length * 6.8 + 8, plotW - 2 * inset, years.length);
     years.forEach(function (yr, i) {
+      if (!yearLabelVisible(i, years.length, everyYear)) return;
       svg.appendChild(el("text", { class: "axis-label", x: x(i), y: H - padB + 22, "text-anchor": "middle" }, yr));
     });
 
@@ -497,7 +518,7 @@
 
   // =====================================================================
   // Uus, üldine andmemudel ja renderdus (config.seriesVar-iga tabelid) —
-  // vt README.md "Kinnitatud API-struktuur"/"Arhitektuuri mõju" ja TASKS.md "2. etapp".
+  // vt README.md "Kinnitatud API-struktuur"/"Arhitektuuri mõju" ja TASKS-ARHIIV.md "2. etapp".
   // Esimene kasutus: Eurostati riikide-võrdluse tabelid (js/tables/eurostat-*.js).
   // =====================================================================
 
@@ -862,7 +883,10 @@
       svg.appendChild(el("text", { class: "axis-label", x: padL - 8, y: y(gv) + 4, "text-anchor": "end" },
         config.formatValue ? fmt(gv) : Math.round(gv) + axisUnit));
     }
+    var widestPiece = Math.max.apply(null, yearLines.map(function (l) { return Math.max.apply(null, l.map(function (s) { return s.length; })); }));
+    var everyYear = yearLabelStep(widestPiece * 6.8 + 8, plotW - 2 * inset, years.length);
     years.forEach(function (yr, i) {
+      if (!yearLabelVisible(i, years.length, everyYear)) return;
       var label = el("text", { class: "axis-label", x: x(i), y: H - padB + 22, "text-anchor": "middle" });
       yearLines[i].forEach(function (line, li) {
         label.appendChild(el("tspan", { x: x(i), dy: li === 0 ? 0 : 14 }, line));

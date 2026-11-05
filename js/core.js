@@ -104,7 +104,7 @@
    *  - uus, üldine: config.seriesVar + config.measureLabel (suvaline väärtusteljega muutuja, nt
    *    hindamisskaala või riik) — vt js/module.js, kus kõik renderdusfunktsioonid harjutavad
    *    kumba kuju kasutada `config.seriesVar` olemasolu järgi. Uut kuju EI kanta ETU-tabelitele üle
-   *    ilma eraldi otsuseta (vt TASKS.md „2. etapp“) — need jäävad vana kujuga muutumatuks.
+   *    ilma eraldi otsuseta (vt TASKS-ARHIIV.md „2. etapp“) — need jäävad vana kujuga muutumatuks.
    */
   function validateConfig(c) {
     var required = ["code", "title", "description", "vars", "years"];
@@ -169,7 +169,12 @@
    *  - eliminatsiooniga muutuja (elimination: true) võib välja jääda → API annab koondväärtuse;
    *  - eliminatsioonita muutuja, mida pole valikus, saab vaikimisi väärtuse (defaultValue, tavaliselt "0"),
    *    sest muidu tagastab API kõik kategooriad (ETU43 Sugu/Vanuserühm).
-   *  - aastamuutuja vaikimisi kõigi aastatega.
+   *  - aastamuutuja vaikimisi KÕIGI API-s olevate aastatega (filter "all", 05.11.2026): uued aastad jõuavad
+   *    näidikulauale ilma koodimuudatuseta (vt TAI.syncYears). Ülevõetud M3-st ja liidetud vana "indicator" loogikaga.
+   *    NB! M3 `TAI.LATEST` (filter "top") jäeti SIIA TAHTLIKULT ÜLE VÕTMATA: PxWeb "top" võtab muutuja esimese väärtuse
+   *    tabeli enda järjekorras ja M2 ETU tabelites on aastad kasvavas järjekorras (ETU42 "top" andis 2006, mitte 2019).
+   *    Viimase aasta jaoks küsi kõik aastad (tabelid on väikesed) ja lase mudelil viimane valida; Eurostatil kasuta
+   *    `lastTimePeriod=1`.
    */
   TAI.buildQuery = function (config, selection) {
     selection = selection || {};
@@ -179,7 +184,12 @@
       var v = config.vars[code];
       var values;
 
-      if (code === config.indicator.var) {
+      if (code === config.yearVar && !(selection[code] && selection[code].length)) {
+        query.push({ code: code, selection: { filter: "all", values: ["*"] } });
+        return;
+      }
+
+      if (config.indicator && code === config.indicator.var) {
         values = v.values.slice();
       } else if (selection[code] && selection[code].length) {
         values = selection[code].slice();
@@ -455,7 +465,64 @@
     }));
     var out = {};
     names.forEach(function (name, i) { out[name] = readers[i]; });
+    TAI.syncYears(config, out.trend || readers[0]);
     return out;
+  };
+
+  /*
+   * Aastad API vastusest (05.11.2026, ülevõetud M3-st): kui vastuses on uuemaid aastaid kui tabeli seadistuses
+   * (config.years), lisatakse need lõppu — uus andmeaasta ilmub näidikulauale ilma koodimuudatuseta. Ainult edasi:
+   * seadistuse algusaasta jääb. Silt võetakse vastusest. Tagastab lisatud aastate arvu (0, kui lugejal pole aastamõõdet,
+   * nt Tervisekassa staatilised failid).
+   */
+  TAI.syncYears = function (config, reader) {
+    var yv = config.vars && config.vars[config.yearVar];
+    var d = reader && reader.dims && reader.dims[config.yearVar];
+    if (!yv || !d || !d.indexMap) return 0;
+    function cmp(a, b) {
+      return /^\d+$/.test(a) && /^\d+$/.test(b) ? Number(a) - Number(b) : (a < b ? -1 : a > b ? 1 : 0);
+    }
+    var last = config.years[config.years.length - 1];
+    var added = Object.keys(d.indexMap)
+      .filter(function (c) { return config.years.indexOf(c) < 0 && cmp(c, last) > 0; })
+      .sort(cmp);
+    added.forEach(function (c) {
+      // years, values ja labels võivad olla sama massiiv (nt years: YEARS, values: YEARS, labels: YEARS)
+      var sameValues = yv.values === config.years, sameLabels = yv.labels === config.years || yv.labels === yv.values;
+      config.years.push(c);
+      if (!sameValues) yv.values.push(c);
+      if (!sameLabels) yv.labels.push((d.label && d.label[c]) || c);
+    });
+    return added.length;
+  };
+
+  /* Aastate loetelu eesti keeles: "2006", "2006 ja 2014", "2006, 2014 ja 2019". */
+  function yearListText(config) {
+    var labels = config.years.map(function (y) { return TAI.labelOf(config, config.yearVar, y); });
+    if (labels.length <= 1) return labels.join("");
+    return labels.slice(0, -1).join(", ") + " ja " + labels[labels.length - 1];
+  }
+
+  /*
+   * Kirjeldus, mis ei vanane uue aasta lisandumisel (05.11.2026). Toetab kahte viisi:
+   *  - kohahoidjad kirjelduses: {aastad} → "2006, 2014 ja 2019"; {aastatel} → "aastal 2019" (üks aasta) või
+   *    "aastatel 2006, 2014 ja 2019" (mitu aastat);
+   *  - viimane vahemik kujul „2011–2023“ asendatakse tegelikuga (M3 viis).
+   */
+  TAI.describe = function (config) {
+    var text = config.description || "";
+    text = text.replace(/\{aastad\}/g, function () { return yearListText(config); })
+      .replace(/\{aastatel\}/g, function () {
+        return config.years.length === 1 ? yearListText(config) + ". aastal" : "aastatel " + yearListText(config);
+      });
+    var re = /\d{4}(?:\/\d{4})?–\d{4}(?:\/\d{4})?/g, m, lastMatch = null;
+    while ((m = re.exec(text))) lastMatch = m;
+    if (lastMatch && config.years.length > 1) {
+      var first = TAI.labelOf(config, config.yearVar, config.years[0]);
+      var last = TAI.labelOf(config, config.yearVar, config.years[config.years.length - 1]);
+      text = text.slice(0, lastMatch.index) + first + "–" + last + text.slice(lastMatch.index + lastMatch[0].length);
+    }
+    return text;
   };
 
   /**

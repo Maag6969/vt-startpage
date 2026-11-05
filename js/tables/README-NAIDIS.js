@@ -27,6 +27,11 @@
  *   code, title, fullTitle, description, eyebrow, group ("Tervise Arengu Instituut" | "Eurostat" | ...; kuvatakse grupipealkirjana, järjekord TAI.GROUP_ORDER), years, yearVar,
  *   vars (kõik API muutujad, sh aasta), filters, views { trend, breakdown }, queries(state), footnotes.
  *
- * MUUTUJA ROLLI OTSUSTAMINE uue tabeli puhul: vt TASKS.md „Muutuja rolli otsustamise protsess".
+ * AASTAD (05.11.2026): kirjuta `years` algseis (nt uusim teadaolev aasta); uus aasta lisandub API-st ise (TAI.syncYears, buildQuery
+ * küsib aastaid vaikimisi "kõik"). Kirjelduses kasuta kohahoidjaid, et tekst ei vananeks: "... {aastatel}." ("aastatel 2006, 2014 ja 2019" /
+ * "2019. aastal"), {aastad}. ÄRA kasuta PxWeb filtrit "top" viimase aasta jaoks (see annab tabeli esimese aasta); lase mudelil viimane valida.
+ * Valikuline `prepare()` (lubadus): aruanne, mille aastad/vaikevalikud tulevad andmefailist (Tervisekassa meta), laeb need enne oleku loomist.
+ *
+ * MUUTUJA ROLLI OTSUSTAMINE uue tabeli puhul: vt TASKS-ARHIIV.md „Muutuja rolli otsustamise protsess".
  * Filtril, millel POLE "Kokku" väärtust, jäta `totalValue` määramata — "Valitud lõige" rida on siis alati nähtav.
  */

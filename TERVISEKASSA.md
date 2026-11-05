@@ -61,7 +61,9 @@ Power BI "Summarized data" xlsx-eksport vaatest "Uldine statistika", allika uuen
    puuduvad", mitte liidetud hinnang. Diagnoosirühmi ei esitata osakaaludena ühisest 100%-st (kattuvad).
 4. Määrasid (100 000 elaniku kohta) ei arvutata: rahvaarvu nimetajad (Statistikaamet RV0240) pole kinnitatud.
    Kuva ainult isikute arv ja selle muutus.
-5. 2026 on pooleli: märgista pooleliolevana, ära kasuta vaikimisi täisaastana. Vaikeaasta 2025, võrdlusaasta
+5. **(Libisev, kasutaja kinnitus 05.11.2026: edaspidi 2026 täis ja 2027 pooleli jne; tuletatakse väljavõtte failidest, mitte koodist:
+   pooleliolev aasta = väljavõtte aasta, vaikimisi vaatlusaasta = viimane täisaasta, võrdlusaasta sellele eelnev.)**
+   2026 on pooleli: märgista pooleliolevana, ära kasuta vaikimisi täisaastana. Vaikeaasta 2025, võrdlusaasta
    2024, trend 2021–2025. 2026 retseptide realiseerimise osakaal ~75% vs 2025 ~86% (viivituse märk), seega
    realiseerimise osakaalu 2026 ei võrrelda täisaastatega.
 6. Eralda null, puuduv, varjatud ja toetamata kombinatsioon (väärtuse staatus JSON-is).
@@ -120,3 +122,15 @@ avaldamis- ja allikaviite tingimused?
   välja filtreeritakse (A1: `Vanusegrupp is not (Blank)`).
 - Allikas on Power BI-s sisse ehitatud märkus: graafikutel puuduvad tulbad, mille väärtus on < 5. TRMH =
   täiendav ravimi- ja meditsiiniseadmehüvitis.
+
+## 8. Uue väljavõtte lisamine (libisevad aastad)
+
+1. Tee uued viis xlsx-väljavõtet (p. 7) ja nimeta need mustri järgi **uue väljavõtte kuupäevaga**; pane need kausta
+   `data/tervisekassa/raw/` (vanad asenda, sest kõik aastad on igas failis).
+2. Käivita importskript, **allika uuendus on kohustuslik** (aruandes nähtav kuupäev; xlsx-is seda pole):
+   `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/import-tervisekassa.ps1 -AllikaUuendus AAAA-KK-PP`
+3. Käivita `scripts/test-tervisekassa.ps1`. **NB:** kontrollarvud on käsitsi kirjutatud praeguse väljavõtte kohta (2021–2026); uue
+   väljavõtte puhul võivad tagantjärele parandused neid muuta, siis tuleb arvud allikast uuesti võtta ja testis uuendada.
+4. Aastad, pooleliolev aasta (= väljavõtte aasta) ja vaikeaastad (viimane täisaasta ja sellele eelnev) uuenevad ise: importskript kirjutab
+   need meta-faili ja leht loeb sealt. Importskript keeldub, kui aastad pole järjestikused, andmetes on väljavõtte aastast hilisem aasta või
+   failide kuupäevad erinevad. Uute aastate Abacuse loendurid tekivad esimese kasutusega ilma halduskoodita.

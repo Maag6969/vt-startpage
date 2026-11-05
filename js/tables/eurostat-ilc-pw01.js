@@ -1,7 +1,7 @@
 /*
  * Eurostat ilc_pw01 — Eluga rahulolu (0–10 hindamisskaala) soo, vanuse ja hariduse lõikes,
  * riikide võrdlusega. Esimene Eurostati andmestik vt-startpage'il (17.09.2026) — vt README.md
- * "Eurostat" jaotist ja TASKS.md piloteerimise etappe.
+ * "Eurostat" jaotist ja TASKS-ARHIIV.md piloteerimise etappe.
  *
  * KUJU: kasutab uut, üldist mudelit (config.seriesVar/measureLabel, mitte vana config.indicator) —
  * vt js/module.js "Uus, üldine andmemudel". Andmeallikas on GET+query-string (mitte PxWeb POST),
@@ -118,13 +118,13 @@
       var cfg = TAI.getTable("ilc_pw01");
       var filters = "sex=" + (state.sex || "T") + "&age=" + (state.age || "Y_GE16") + "&isced11=" + (state.isced11 || "TOTAL");
       var base = TAI.EUROSTAT_BASE + "ilc_pw01?format=JSON&lang=EN&" + filters;
-      var latest = YEARS[YEARS.length - 1];
+      // viimane aasta API-st (Eurostat `lastTimePeriod=1`), mitte kõvasti kirjas aasta: uus aasta ilmub ise (TAI.syncYears)
       function geoParams(codes) { return codes.map(function (c) { return "geo=" + encodeURIComponent(c); }).join("&"); }
       return {
         // Trend: ainult Eesti + EL-27 (viimane KPI-võrdluseks, vt kpiReference), kõik aastad.
         trend: base + "&" + geoParams(["EE", "EU27_2020"]),
         // Breakdown: kõik riigid (sh EL-27 katkendjoone jaoks), ainult uusim aasta.
-        breakdown: base + "&" + geoParams(cfg.vars.geo.values) + "&time=" + latest
+        breakdown: base + "&" + geoParams(cfg.vars.geo.values) + "&lastTimePeriod=1"
       };
     },
 

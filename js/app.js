@@ -34,7 +34,7 @@
         '<button type="button" class="dataset__button" aria-controls="content" ' +
             'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
-          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(t.description) + "</span>" +
+          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(TAI.describe(t)) + "</span>" +
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +
@@ -58,18 +58,37 @@
         g.items.map(datasetRow).join("") + "</ul>";
     }).join("");
 
-    listEl.addEventListener("click", function (evt) {
-      var btn = evt.target.closest(".dataset__button");
-      if (!btn) return;
-      var config = TAI.getTable(btn.closest(".dataset").getAttribute("data-code"));
-      var target = hashFor(config);
-      if (location.hash === target) {
-        select(config.code, { scroll: true }); // sama vaade uuesti → laadi uuesti
-      } else {
-        pendingScroll = true;
-        location.hash = target;                // hashchange → select()
-      }
-    });
+    listSignature = listSignatureNow();
+    // loend joonistatakse vajadusel uuesti (uus aasta muudab kirjeldust/järjekorda): klikikäsitleja seotakse ainult üks kord
+    if (!listEl._clickBound) {
+      listEl._clickBound = true;
+      listEl.addEventListener("click", function (evt) {
+        var btn = evt.target.closest(".dataset__button");
+        if (!btn) return;
+        var config = TAI.getTable(btn.closest(".dataset").getAttribute("data-code"));
+        var target = hashFor(config);
+        if (location.hash === target) {
+          select(config.code, { scroll: true }); // sama vaade uuesti → laadi uuesti
+        } else {
+          pendingScroll = true;
+          location.hash = target;                // hashchange → select()
+        }
+      });
+    }
+  }
+
+  /* Loendi sisu allkiri (tabelite järjekord ja kirjeldused): kui API-st tuli uus aasta, muutub kirjeldus (TAI.describe) ja
+     vahel ka järjekord (uusima aasta järgi); siis joonistatakse loend uuesti, aktiivne rida ja vaatamiste arvud säilivad. */
+  var listSignature = "";
+  var rowCounts = {};
+  function listSignatureNow() {
+    return TAI.getTables().map(function (t) { return t.code + "|" + TAI.describe(t); }).join("\n");
+  }
+  function refreshListIfChanged() {
+    if (listSignatureNow() === listSignature) return;
+    renderList();
+    setActiveRow(current);
+    Object.keys(rowCounts).forEach(function (code) { showRowCount(code, rowCounts[code]); });
   }
 
   // ---- aadress: #KOOD?taustatunnus=3&vanus=2&sugu=vordlus ------------
@@ -263,7 +282,7 @@
       '<header class="module__head">' +
         statusLineHtml(config, "error") +
         '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
-        '<p class="module__subtitle">' + esc(config.description) + "</p>" +
+        '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
       "</header>" +
       '<div class="error-box" role="alert">' +
         "<h3>" + esc(info.title) + "</h3>" +
@@ -390,7 +409,7 @@
         '<header class="module__head">' +
           statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data)) +
           '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
-          '<p class="module__subtitle">' + esc(config.description) + "</p>" +
+          '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
           (meta.length ? '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" : "") +
         "</header>" +
         renderFilters(config, state) +
@@ -431,6 +450,7 @@
     var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
     var unitTxt = config.seriesVar ? TAI.unitText(config) : "%";
     var yearOf = function (y) { return config.seriesVar ? TAI.yearLabel(config, y) : y; };
+    var trendNote = typeof config.trendNote === "function" ? config.trendNote() : config.trendNote;   // võib sõltuda andmetest
 
     if (model.trend) {
       html += '<section class="chart-section" aria-labelledby="h-trend">' +
@@ -440,7 +460,7 @@
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-trend" role="group" aria-label="Trendijoonis"></svg>' +
         '<div class="tooltip" aria-hidden="true"></div></div>' +
-        (config.trendNote ? '<p class="chart-note chart-note--after">' + esc(config.trendNote) + "</p>" : "") +
+        (trendNote ? '<p class="chart-note chart-note--after">' + esc(trendNote) + "</p>" : "") +
         "</section>";
     }
     if (model.breakdown) {
@@ -565,6 +585,7 @@
       setRowStatus(config.code, null);
       renderBody();
       setStatus(config, "loaded", tableUpdatedText(data));
+      refreshListIfChanged();
     } catch (err) {
       if (myRequest !== requestId) return;
       console.error(err);
@@ -584,6 +605,16 @@
 
   // ---- valimine -------------------------------------------------------
 
+  /*
+   * config.prepare() (valikuline, tagastab lubaduse): aruanne, mille aastad ja vaikevalikud tulevad andmefailidest
+   * (Tervisekassa meta-fail), laeb need enne, kui olek ja filtrid luuakse. Tulemus jäetakse meelde (config._prepared),
+   * ebaõnnestumisel proovitakse järgmisel avamisel uuesti.
+   */
+  function ensureReady(config) {
+    if (!config.prepare || config._prepared) return Promise.resolve();
+    return config.prepare().then(function () { config._prepared = true; });
+  }
+
   async function select(code, opts) {
     opts = opts || {};
     var config = TAI.getTable(code);
@@ -598,10 +629,12 @@
     if (opts.scroll) scrollToContent();
 
     try {
+      await ensureReady(config);   // aruanne, mis vajab enne olekut oma andmete kirjeldust (nt Tervisekassa aastad)
       var data = await TAI.loadTable(config, stateOf(config));
       if (myRequest !== requestId) return;
       setRowStatus(code, null);
       renderModule(config, data, { source: "api" });
+      refreshListIfChanged();
       usage.track(usage.keyDataset(code)).then(function (v) { showRowCount(code, v); });
       if (opts.scroll) { scrollToContent(); focusHeading(); }
     } catch (err) {
@@ -643,6 +676,14 @@
       if (current) { current = null; setActiveRow(null); renderEmpty(); }
       return;
     }
+    // olek luuakse alles pärast prepare()-i (aastad ja vaikevalikud tulevad andmetest); ebaõnnestumisel jätkub tavapäraselt,
+    // select() näitab siis selge veateate
+    if (config.prepare && !config._prepared && !config._prepareSkip) {
+      pendingScroll = scroll;
+      ensureReady(config).then(onHashChange, function () { config._prepareSkip = true; onHashChange(); });
+      return;
+    }
+    config._prepareSkip = false;
     var before = JSON.stringify(states[config.code] || null);
     states[config.code] = stateFromParams(config, parsed.params);
     var filtersChanged = before !== JSON.stringify(states[config.code]);
@@ -683,6 +724,7 @@
   }
 
   function showRowCount(code, value) {
+    if (value != null) rowCounts[code] = value;   // jääb meelde loendi uuesti joonistamiseks (refreshListIfChanged)
     var row = rowOf(code);
     showCount(row && row.querySelector(".dataset__views"), value);
   }

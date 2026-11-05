@@ -1,507 +1,81 @@
 # TAI Vaimse Tervise Näidikulaud — TASKS.md
 
-Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
-teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
+Ainult **praegune seis, kokku lepitud kava ja lahtised otsad**. Iga uus sessioon alustab sellest failist. Kogu varasem ajalugu (otsused,
+intervjuud, avastatud vead) on failis [TASKS-ARHIIV.md](TASKS-ARHIIV.md) ja seda ei kustutata. Ülesehitus: [README.md](README.md),
+kujundus: [disain.md](disain.md), Tervisekassa: [TERVISEKASSA.md](TERVISEKASSA.md).
 
-Viimati uuendatud: 05.11.2026 (Tervisekassa piloot „Diagnoosid raviandmetes“ ehitatud ja lokaalselt kontrollitud, ootab
-kasutaja ülevaatust, vt p. 9 lõpp ja [TERVISEKASSA.md](TERVISEKASSA.md)). Varasem: 21.10.2026 piloteerimise 2. etapp tehtud,
-vt allpool uus jaotis; samm-sammuline juhis [ETAPP2-JUHIS.md](ETAPP2-JUHIS.md).
-Tehnilised töövoo-etapid 1–7 põhiosas lõpetatud — 2 väikest kontrolli seisab veel päris keskkonnas
-(mobiilikerimise animatsioon, päris printimine/SharePointi lingi eelvaade, vt etapid 4 ja 7); leht
-jagatud tagasisideks; etapp 8 SharePoint ootel)
+Viimati uuendatud: 05.11.2026. Avaldatud: https://maag6969.github.io/vt-startpage/ (viimane commit `d33e795`).
 
-## Piloteerimise 2. etapp — tehtud (21.10.2026)
+## Praegune seis
 
-**Ümberraamimine (otsus 0):** algne eesmärk „kaasa ETU41–43 kõik TAI taustaandmed" osutus tühjaks —
-TAI metaandmete GET-kontroll (21.10.2026) näitas, et M2 kasutab ETU41–43 puhul juba **kõiki** API muutujaid
-(ETU41: Aasta, Taustatunnus, Depressioon, Sugu, Vanuserühm; ETU42: Aasta, Distress, Sugu, Vanuserühm;
-ETU43: Aasta (ainult 2019), Piisavus, Sugu, Vanuserühm). Seega sai etapi sisuks M3 tehnilise töö
-ülevaatus + rühmitatud loend + rollide otsustamise protsessi kirjapanek.
+- **Aruanded (vasaku loendi allikarühmad):** Tervise Arengu Instituut: ETU41 depressiooni sümptomid, ETU42 emotsionaalne distress,
+  ETU43 uneaja piisavus. **Tervisekassa (avaandmed):** „Diagnoosid raviandmetes“ (F32/F33, valmis JSON-failid). **Eurostat:** ilc_pw01
+  eluga rahulolu.
+- **Ühine käitumine:** kõik lõiked on rippmenüüd; rippmenüüde all „Võrdlus“ nupud („Mehed vrdl Naised“ kõigil TAI ja Tervisekassa
+  aruannetel, „Vanuserühmad vrdl“ praegu ainult Tervisekassa aruandel); vasak loend on laial ekraanil kleepuv ja uus aruanne avaneb
+  alati algusest; lehe jalus ja avalehe tekst võtavad allikate loetelu loendi gruppidest; lehe avamine ei küsi Tervisekassalt midagi.
+- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 40/40 (kõik tabelid, filtrid, nupud, „uus aasta ilmub ise“ ja
+  värske laadimine päris lehel), `tests/framework-test.html` 25/25, `tests/tervisekassa-test.html` 28/28,
+  `scripts/test-tervisekassa.ps1` 76/76. Tervisekassa andmete uuendamine: `scripts/import-tervisekassa.ps1` (vt TERVISEKASSA.md).
 
-**Otsused:** (0) etapp ümber raamitud — jah; (1) M3 `directionHint`/`yearRangeLabel` M2-sse **ei** tooda
-(vajadust pole; päise plaadid eemaldati 18.09); (2) ETU41–43 **ei viida** üldmudelile selles etapis;
-(3) loendi grupid allika järgi **„Tervise Arengu Instituut" / „Eurostat"** (TAI-grupi pealkiri kirjutati
-hiljem 21.10.2026 kasutaja soovil lühendi asemel täisnimega välja), järjekord Eesti ees, rahvusvaheline
-all, väike hall pealkirjarida rea kohal (intervjuu 21.10.2026).
+## Kava: M3-st ülevõtmine (kokku lepitud 05.11.2026)
 
-**Tehtud:** rühmitatud vasak loend — `config.group`, `TAI.GROUP_ORDER`/`groupTables()`/`getTableGroups()`
-(`core.js`), `datasetRow()` + rühmitatud `renderList()` (`app.js`), `.dataset-group-heading` (`styles.css`),
-`index.html` `<ul>` → `<div>`; ühiktest (nüüd 21/21). Tehniline mõte M3-st, kood ja stiil M2 omad.
-Kontrollitud brauseris (desktop, mobiil). **Teadlikult jäetud tegemata:** M3 SDMX lugeja (M2-s pole SDMX
-allikat), AI-analüüsi nupud (tootefunktsioon + disain, eraldi arutelu), ETU üleviimine üldmudelile.
-M3-st M2 kood **ei erine** muus osas kui siin loetletud (diff funktsioonide nimekirja põhjal).
+Allikas: `../M3_kodutoo_tervishoiu_kvaliteet/M2-SOOVITUSED-M3-parandustest.md` (M3 koodi loetakse ainult lugemiseks, M3 faile siin ei muudeta).
 
-**Muutuja rolli otsustamise protsess (sisend 3. etapile; harjutatud ETU43 peal):**
-1. **Metaandmed:** GET `…/<TABEL>.px` → iga muutuja kood, `elimination` lipp, väärtuste arv ja tekstid.
-   `elimination` määrab, kas `buildQuery` peab koondkategooria ise lisama (ETU43: ei → lisab "0").
-2. **Roll igale muutujale:** *aeg* (`yearVar`), *näitaja* (`indicator.var` vana mudel / `seriesVar` üldmudel),
-   *filter* (kasutaja valib, `filters`), *breakdown-telg* (võrreldakse tulpadel, `views.breakdown`), *konstant*.
-3. **Kas on "Kokku" väärtus (`totalValue`)?** Sellest sõltub, kas "Valitud lõige" rida ilmub vaikimisi (M3 leid:
-   ilma `totalValue`-ta filtril on rida alati nähtaval).
-4. **Mudeli valik:** binaarne osakaal + soo võrdlusrežiim → vana (`indicator`); mitu kategooriat/fikseeritud
-   üksus/mitte-TAI allikas → üldmudel (`seriesVar`, `seriesValues`, `kpiSubject`, `kpiReference`).
-5. **Kood + test:** konfiguratsioon, siis käsitsi kontrollitud arvud API vastu (integratsioonitest), alles siis UI.
-6. **Intervjuu** igale uuele disainiotsusele (grupp, sildid, värvid) selles projektis.
+**Reeglid:** (1) **liita funktsioon-funktsiooni haaval, mitte asendada** faile ega töötavaid asju (M2-s on kaks mudelit kõrvuti, Tervisekassa
+staatilise andmeharu konksud, võrdlusnupud, kleepuv loend); (2) iga etapp lõpeb regressiooni käivitamisega; (3) commit ja push ainult
+kasutaja käsul; (4) kujundusotsused (M3 B-osa, AI-nuppude välimus) alles pärast intervjuud avatud küsimustega; (5) mobiilivaate teemad
+tehakse viimasena, seni jäävad meelde.
 
-ETU43 rollid: *Aasta* — aeg (1 väärtus → trendi ja muutust pole); *Piisavus* — näitaja (binaarne osakaal,
-`indicator`); *Sugu* — filter + võrdlusrežiim (`canCompareSexes`); *Vanuserühm* — **ainult breakdown-telg**
-(`filters` sisaldab vaid Sugu). **Miks mitte üldmudelisse:** soo võrdlusrežiimis peaksid seeriad olema
-Mehed/Naised, tavarežiimis üks koondseeria — üldmudel eeldab fikseeritud `seriesVar` + `seriesValues`
-(config-tasemel), mitte olekust sõltuvat seeriate nimekirja. Viimine nõuaks uut tuge ja riskiks kolme
-töötava tabeliga. Vaata uuesti, kui 3. etapi tabel (nt PKH1 diagnoosiga) vanasse mudelisse ei mahu.
+| # | Etapp | Seis |
+|---|---|---|
+| 1 | **Dokumendid:** `TASKS.md` lühikeseks, kogu vana sisu `TASKS-ARHIIV.md`-s, kava siia | tehtud 05.11.2026 |
+| 2 | **Regressioon (M3 A.8):** `tests/regressioon.html` käib läbi kõik tabelid ja nende nupud/filtrid, kontrollib arve ja vigu | tehtud 05.11.2026, 35/35; käivita iga etapi lõpus (`http://localhost:8080/tests/regressioon.html`, vajab fronditud vahekaarti ja internetti, ~30 s) |
+| 3 | **Aastad:** päring „kõik aastad“, `TAI.syncYears` (uus aasta ilmub ise), `TAI.describe` (kohahoidjad `{aastatel}`), aastasiltide hõrendamine (ka kaherealine „2026 (pooleli)“ sildiga), ETU ja Eurostati päringud; **Tervisekassa:** aastad, pooleliolev aasta (= väljavõtte aasta) ja vaikeaastad (viimane täisaasta ja sellele eelnev) tulevad meta-failist (importskript → `config.prepare()`), importskripti `-AllikaUuendus` on kohustuslik | tehtud 05.11.2026, regressioon 40/40. **M3 `TAI.LATEST` jäeti tahtlikult ülevõtmata:** PxWeb `top` andis ETU42 puhul 2006 (tabeli esimese aasta), mitte uusima; viimase aasta valib mudel, Eurostatil `lastTimePeriod=1`. M3 tabelite aastad võivad olla uuemad ees, seal töötab; soovitame M3-s kontrollida |
+| 4 | **B.1 valitud lõige:** lõige iga graafiku ja tabeli alla, ka vaikevalikuga, vana ülemine rida kaob; võrdlusrežiimis ei nimetata võrreldavat filtrit; intervjuu sõnastuse ja asukoha kohta enne ehitamist | ootab |
+| 5 | **Ülejäänud tehniline M3-st:** A.2 ühik/komakohad funktsioonina, A.4 pikk tulp (ühendada olemasoleva `defaultValues` + „Näita kõiki“ mehhanismiga), A.5 abifunktsioonid (**kontrolli nimekonflikti: `sexVar`/`ageVar` on M2-s juba olemas**), A.6 valikulised väljad. Lisandub ainult juurde; testitakse sünteetilise tabeliga, sest ükski M2 tabel neid veel ei vaja; `README-NAIDIS.js` uuendada | ootab |
+| 6 | **AI-nuppude tööpakett (eraldi):** esmalt **metoodikadokument** (`AI-ANALUUS.md`: eesmärk, sihtgrupp, reeglid iga allika kohta, testiprotokoll), siis `ai-prompt.js` selektorid M2 markupile (`.kpi__label`, `.callout`, `.data-table`, `.module__footnotes p`, `.chart-note--after`), klikikäsitleja (`copyViaTextarea` enne `window.open`), PiP/toast, Abacuse loendurid, SharePointi iframe'i kontroll. **Tervisekassa juhis vajab oma keelde** (vt allpool) | ootab |
+| 7 | **Mobiil:** sujuv kerimine aruande juurde, uued võrdlusnupud ja vanuserühmade vaade, AI-nupud telefonis, printimine | viimane |
+| 8 | **Edasised tööd planeerida:** ETU41–42 vanuserühmade võrdlus (vana mudel on soo-põhine), Tervisekassa järgmised aruanded (maakonnad, retseptid, kulud, esmased diagnoosid), rahvaarvud ja määrad | pärast 1–7 |
 
-## Filtrikonteksti läbivaatus — vale mulje, kui filtreid pole KPI/graafiku juures näha (18.09.2026)
+**Tervisekassa AI-juhise keelud** (TERVISEKASSA.md p. 3): isikute arvu muutust ei nimetata halvenemiseks ega paranemiseks; see ei ole levimus
+ega ravimata inimeste osakaal; diagnoose ja aastaid ei liideta (kattuvad isikud); 2026 ei ole täisaasta; retsepti arv ≠ ravimeid saanud
+inimeste arv, arvete arv ≠ visiitide arv; määrasid ei arvutata. M3 juhise „ütle, kas olukord on paranenud või halvenenud“ ja „võimalikud
+põhjused“ osad ei sobi Tervisekassa andmetele sellisel kujul.
 
-Kasutaja pildi põhjal (ilc_pw01, Vanuserühm=16–24 + Haridustase=Põhiharidus, aga KPI-kaart ütles
-ikka "EESTI KOKKU · 2025"): KPI-silt oli eksitav, väitis "kokku" (koondnäitaja), kuigi tegelik
-väärtus oli kitsa lõike oma. Intervjueerisin kasutajat ("Kuhu peaks filtrite kontekst ilmuma?" /
-"Millal nähtav?") enne muutmist — vastus: **mõlemad** (ühine rida FILTRITE kohal + KPI sildi enda
-parandus), näidatakse **ainult siis, kui vähemalt üks filter erineb vaikeväärtusest**.
+## Lahtised otsad (ei kuulu M3 kavasse)
 
-**Leitud, et probleem oli laiem kui pildil nähtu:**
-- Uue (General) mudeli `kpiLabel` oli staatiline string, ignoreeris filtreid täielikult (otsene viga).
-- Vana (Indicator, ETU) mudeli KPI-silt kajastas juba Sugu filtrit, aga MITTE teist filtrit
-  (nt Vanuserühm) — sama probleemiklass, ainult osaline.
-- Trendi-/jaotusgraafiku pealkirjarida ja andmetabeli caption ei kajastanud filtreid üldse.
-- Ainuke koht, kus filtrikontekst juba korrektselt oli, oli callout-lõigu sissejuhatav lause
-  (`populationSuffix`/`populationSuffixGeneral`) — aga see on üks lause pika teksti sees, kergesti
-  ülelugemiseks, mitte kohe silma jääv.
-- Olemasolev `filterSummary()` (app.js) ehitas juba täpselt õige lause ("Valitud lõige — ..."), aga
-  oli `print-only` klassiga — nähtav AINULT printimisel, ekraanil peidus!
+- **SharePointi Embed** ja **HTML Field Security** (vajab IT/admini): ootel kasutaja otsusel 16.09.2026.
+- **Content-Security-Policy** päis: ootel, vajab hoolikat testimist.
+- **Abacuse loendurid GoatCounterile** üle viia (kosmeetiline risk).
+- **Päris printimine** (Ctrl+P) ja **lingi eelvaade** SharePointis/Teamsis: kontrollida päris keskkonnas; eelvaatel pole pilti (`og:image`).
+- **Tervisekassa andmepäring** Tervisekassale: kasutaja teeb ise, küsimused TERVISEKASSA.md p. 6. Kuni vastuseta pole maakondi, kordumatute
+  isikute koondeid mitmele diagnoosile ega määrasid.
+- **Abacus:** `ds-TK-diagnoosid`, `a-TK-diagnoosid-allikas` ja `f-TK-diagnoosid-sugu-vordlus` tekkisid vaatamisega ilma halduskoodita
+  (teised Tervisekassa loendurid on loodud, halduskoodid `.counter-admin-keys.tsv`-s).
+- **Lingi eelvaate tekstid** (`description`, `og:description`) on staatiline HTML: uue allika lisamisel muuda käsitsi.
 
-**Tehtud:**
-- `js/app.js` `filterSummary()`: ehitab nüüd ainult vaikeväärtusest erinevad filtrid (varem
-  kõik, iga kord — sobis printimiseks, aga ekraanil oleks alati näidanud rida, ka vaikeväärtustega).
-  `print-only` klass eemaldatud — sama `<p class="filter-summary">` toimib nüüd korraga nii ekraanil
-  kui prindil.
-- `css/styles.css`: uus ekraanistiil `.filter-summary` (helesinine taustaplokk, samast perekonnast
-  mis `.callout`, aga visuaalselt eristuv — callout on automaatne tõlgendus, filter-summary kasutaja
-  valik). Prindi-meediareegel täpsustatud (taust/padding tagasi nullitud, et printimisel ei raiskaks
-  tinti).
-- `js/module.js`: uus `config.kpiSubject` (nt "Eesti") asendab vana `config.kpiLabel`-i — silt on
-  kas `subject + " kokku"` (kõik filtrid vaikeväärtusel) või `subject + ", valitud lõige"` (mõni
-  erineb, arvutatud `populationSuffixGeneral()`-ga). "Kokku" ja "valitud lõige" EI esine kunagi koos.
-  Sama loogika lisatud ka vanale Indicator-mudelile (ETU): kui `populationSuffix()` tuvastab
-  vaikeväärtusest erineva filtri, lisatakse kõigi KPI-de sildile ", valitud lõige" (Sugu-põhine osa
-  sildist, nt "MEHED", jääb muutumatuks — see oli juba õige).
-- `js/tables/eurostat-ilc-pw01.js`: `kpiLabel: "Eesti kokku"` → `kpiSubject: "Eesti"`.
-- **Sama muudatus tehtud paralleelselt M3-s** (vt sealne TASKS.md) — sealne avastus oli isegi
-  olulisem: mõnel M3 tabelil (PT01, PT05, ...) pole seda filtrit üldse võimalik "Kokku" olekusse
-  panna (nt "Teenus" — ei saa kaheksat teenust kokku liita), mistõttu `", valitud lõige"` ja
-  filtririba ilmuvad seal PÜSIVALT, ka esmakordsel avamisel — see on õige käitumine, mitte viga,
-  sest neil tabelitel pole kunagi tõelist "üldist" vaadet.
-- **Kontrollitud brauseris (mõlemas projektis, otse JS-i kaudu filtreid muutes ja tulemust
-  kontrollides, mitte ainult visuaalselt):** vaikeväärtustega ei näidata rida ega lisandit; filtri
-  muutmisel ilmuvad kohe õiges kohas (KPI-rida/graafikute/tabeli kohal); tagasi vaikeväärtusele
-  minnes kaovad uuesti; Sugu vrdl Naised (ETU) jääb korrektseks, ei saa üleliigset lisandit.
+## Töövihjed (korduvad lõksud)
 
-**Viga, mis leiti kasutaja palvel M3-d brauseris visuaalselt üle vaadates (18.09.2026, samal
-õhtul) — parandatud mõlemas projektis:** esialgne lahendus KIRJUTAS ", valitud lõige" lisandi
-otse `k.label` väljale (`buildModelIndicator`/`buildModelGeneral`), aga seda sama `k.label`
-väärtust kasutab ka callout-tekst mitme-kategooria "top" lause (nt "...oli enim vastuseid
-kategoorias „Üldiselt rahul, valitud lõige“ (56,6%)..." — lisand lekkis lausesse, kus see ei
-kuulu). **Avastati just M3-s PT01 pealt**, kus see lause (mitme-kategooria "top" haru) tegelikult
-kasutusel on — M2-l endal seda konkreetset teed praegu ükski tabel ei käivita, aga viga oleks
-sama kehtinud, kui mõni tulevane tabel selle tee läbiks. Parandus: uus eraldi `k.cardLabel` väli
-(kasutusel AINULT `renderKpisIndicator`/`renderKpisGeneral`-i sildil), `k.label` ise jääb
-puutumata kõigi teiste (callout, breakdown) tarbijate jaoks. Kontrollitud uuesti mõlemas
-projektis — callout-tekst enam lisandit ei sisalda, KPI-silt aga ikka jah.
+- **Kataloog on `M2_kodutoo_VTstartpage_demo` (`kodutoo`, mitte `kodutoom`):** `Edit` kukub kokku vale teega, kontrolli enne.
+- Pärast JS/CSS muutmist tee brauseris `location.reload()` (hash-navigeerimine laeb vana koodi); kohalik server: `tools/serve.ps1` (port 8080)
+  või `preview_start` nimega `static`.
+- Brauseripaanis tee vahekaart aktiivseks (`tabs_select`) ja pane viewport käsitsi (`resize_window`), muidu sündmused ja animatsioonid ei käitu
+  usaldusväärselt; ühe skripti pikkus alla ~40 s. `file://` lehti näitab paan ainult staatilise tõmmisena: kontrolli Edge'i peitrežiimiga.
+- **GitHub Pages ei käivita ehitust pärast push'i alati ise:** `gh api -X POST repos/Maag6969/vt-startpage/pages/builds`, siis oota
+  `built` (`gh api repos/Maag6969/vt-startpage/pages/builds/latest`).
+- Abacuse `create` annab 429, kui neid teha kiiresti: vähemalt 4 s vahega. Võtmes lubatud ainult tähed, numbrid ja `_ - .`.
+- Dataviz-validaatorit saab käivitada brauseris (Node'i pole): kopeeri skript ajutiselt `tests/` kausta (gitignore) ja `import()`; kustuta pärast.
+- Eesti jutumärgid JS stringides: „avav“ + sulgev “ (U+201C), mitte sirge `"`.
+- Kerimiskinnitus (`overflow-anchor`) lõhub aruande vahetamisel kerimist: peab jääma `html { overflow-anchor: none }`.
+- `tests/`, `tools/` ja `.counter-admin-keys.tsv` on `.gitignore`-s, avalikku repo ei lähe. `data/tervisekassa/raw/` xlsx-failid lähevad (kasutaja otsus).
+- Ära klõpsa testides AI-nuppe (kui need tulevad): need avavad välise saidi.
+- **Tervisekassa uus väljavõte:** vt TERVISEKASSA.md p. 8 (`-AllikaUuendus` kohustuslik; aastad ja pooleliolev aasta tulevad failidest).
+- **Regressioonitestis avatakse aruanded loendi rea klõpsuga, mitte aadressi otse muutes:** `#KOOD` ilma parameetriteta lähtestab selle aruande
+  valikud (nii on tahtlikult), loendi rida hoiab need alles.
+- Intervjueeri kasutajat avatud küsimustega, kui otsus on päriselt lahtine; täpse spetsifikatsiooni korral rakenda otse.
 
-Kasutaja tagasiside pildi põhjal: üldpäises peab jääma ainult näidikulaua pealkiri; iga aruande oma
-"kulm" (nt "Eesti terviseuuring · ETU42") koos "Andmed laaditud..."/veateatega peab olema **iga
-aruande enda pealkirja kohal**, mitte üldpäises — sest allikaid on nüüd mitu (TAI, Eurostat), mitte
-ainult TAI. Kasutaja täpsustas veel: kulmu sisu läheb samale reale viitena; faili üleslaadimise
-kuvamine jäeti (ajutiselt) teemast välja.
+## Dokumentide kihid
 
-**Tehtud:**
-- `index.html`: `.site-header__meta` (vana `#loaded-at` + üldine "TAI tervisestatistika andmebaas ↗"
-  link) eemaldatud täielikult — päises on nüüd ainult `.site-header__title` (H1 + vaatamiste arv).
-- `js/app.js`: uus `statusLineHtml(config, kind)` ("loading"/"loaded"/"error"/muu), mis pannakse
-  otse mooduli `<header class="module__head">` sisse, H2-st kohe üle — nii `renderLoading()`,
-  `renderModule()` kui uuendatud `renderError()` (viimane näitas varem ÜLDSE mitte mooduli
-  konteksti — nüüd näeb kasutaja punase veateatega koos ka, MILLISE aruande laadimine ebaõnnestus).
-  Filtrimuutusel (`reload()`) uuendatakse ainult juba ekraanil olevat staatusrida (`setStatus()`),
-  mitte kogu päist, et fookus/kerimine ei kaoks. Vana globaalne `markLoaded()`/`#loaded-at` element
-  eemaldatud, kuna staatus on nüüd mooduli enda, mitte lehe, olek.
-  Allikalingi klõpsu statistika (`onSourceClick`) laiendatud ka Eurostati linkidele
-  (`ec.europa.eu/eurostat`), kuna see viide asub nüüd nähtavamalt staatusreal, mitte ainult jaluses.
-- `css/styles.css`: uus `.module__status`/`.module__status--error` (punane, nagu `.dataset__status.is-error`
-  eeskujul), vana `.pill--eyebrow`/`.site-header__meta` reeglid eemaldatud (kasutuseta).
-- **Sama muudatus tehtud paralleelselt ka M3 (tervishoiu-kvaliteet) projektis**, kuna sealne
-  varasem implementatsioon oli juba allika-teadlik, aga kirjutas ikka valesse (globaalsesse) kohta —
-  vt M3 oma TASKS.md.
-- **Brauseris kontrollitud (desktop + mobiil, mõlemas projektis):** laadimis-, õnnestumis- ja
-  veaolek nii TAI (ETU42) kui Eurostat (ilc_pw01 / M3 PT05) tabeliga; filtrimuutus uuendab staatusrida
-  kohapeal; päises pole enam vana meta-plokki (kontrollitud `read_page` kaudu, `banner` sisaldab
-  ainult pealkirja).
-
-**Täpsustus sama päeva õhtul (kasutaja pilt mooduli meta-plaatidest):** mooduli pealkirja all olnud
-kolmest pillist ("Uuringuaastad …", mõõdik/ühik, "Tabel uuendatud …") kaks esimest eemaldati täielikult
-(sama info on juba nähtaval trendigraafikul, andmetabelis ja callout-tekstis, seega dubleerimine
-polnud vajalik) ning "Tabel uuendatud …" liigub staatusreale, kohe allikaviite järele: "Andmed
-laaditud otse TAI andmebaasist · [kellaaeg] — [allikaviide] ↗ · Tabel uuendatud [kuupäev]". Uus
-`tableUpdatedText(data)` abifunktsioon arvutab selle nii `renderModule()`-s kui `reload()`-s (viimane
-uuendab staatusrida kohapeal, sama nagu laadimisoleku puhul). Kui `meta`-massiiv jääb tühjaks
-(enamikul juhtudel, v.a faililt laaditud andmed), `<ul class="module__meta">` jäetakse üldse
-renderimata, et tühi rida ei jätaks tarbetut tühikut. Kontrollitud brauseris nii TAI (ETU42) kui
-Eurostat (ilc_pw01) tabeliga — sama muudatus tehtud paralleelselt ka M3-s (vt sealne TASKS.md).
-
-**Veel kolm sõnastuse täpsustust sama õhtu tagasisidest:**
-1. "Andmed laaditud otse [allikas] andmebaasist" → "otse" eemaldatud kui üleliigne, mõlemas projektis.
-2. "Tabel uuendatud …" → "Andmed uuendatud …", mõlemas projektis (`tableUpdatedText()`).
-3. Ilc_pw01 KPI-kaardi silt "EESTI · 2025" → "KOKKU · 2025" — riik on juba lehe kontekstist selge,
-   silt näitas varem eksitavalt riiki, mitte valitud lõiget. Uus `config.kpiLabel` (module.js
-   `buildModelGeneral`) rakendub ainult ühe seeriaga KPI-kaartidele, et tulevastel mitme-riigi
-   võrdlustel jääks tegelik riiginimi ikka nähtavaks. Kuna silt enam riiki ei nimeta, pidi
-   võrdlusrida ("EL-27 keskmine: 7,2 (… kõrgem)") ise selgeks tegema, KELLE tulemus on kõrgem/
-   madalam — uus `config.kpiReference.subjectLabel` ("Eesti tulemus") lisati just selleks.
-   Tulemus: "EL-27 keskmine: 7,2 (Eesti tulemus 0,1 palli kõrgem)". Mehhanism on üldine (mitte
-   ilc_pw01-spetsiifiline kõva kood), aga hetkel kasutab seda ainult see üks tabel — M3-s
-   `config.kpiReference`-mehhanismi veel ei ole (ükski tabel ei vaja praegu), nii et sinna pole
-   midagi laiendada; kui M3-le lisandub sarnane "fikseeritud üksus + võrdlusväärtus" tabel, vt
-   siit eeskuju. Kontrollitud brauseris (ETU42 mõjutamata, ilc_pw01 uus sõnastus õige).
-
-**Sama õhtu jätk — kasutaja täpsustas veel kord, pärast eelmise punkti nägemist:** "KOKKU · 2025"
-oli liiga vähe — lugeja peab IGAS KPI-kaardi/võrdlusrea lauses saama aru, mis üksuse ja mis aasta
-kohta arv käib, ilma et peaks seda tuletama pealkirjast või mujalt. Üldpõhimõte (kehtib mõlemas
-projektis, alati kui lisandub uusi KPI/võrdluskaarte): iga kaardi/rea tekst peab olema iseseisvalt
-loetav — nimetama nii üksuse KUI aasta, mitte eeldama konteksti eelmisest lausest.
-- KPI silt: `kpiLabel` "Kokku" → "Eesti kokku" (renderdub "EESTI KOKKU · 2025" — üksus + lõige +
-  aasta kõik korraga).
-- Võrdlusrida: lisati aasta rea algusesse (`renderKpisGeneral`, `js/module.js`): "2025. a EL-27
-  keskmine: 7,2 (Eesti tulemus 0,1 palli kõrgem)" — varem polnud reas üldse aastat, kuigi
-  lugeja pidi seda ikkagi eeldama sama olevat, mis KPI pealkirjal.
-- Kontrollitud brauseris uuesti — sõnastus täpselt kasutaja soovitud kujul.
-
-## Eurostat: esimene rahvusvahelise võrdluse tabel (17.09.2026)
-
-M3 (tervishoiu-kvaliteet) projektis oli juba tehtud `js/core.js`/`js/module.js` üldistus
-(`config.seriesVar`/`measureLabel`, PxWeb POST kõrval GET-URL tugi Eurostati jaoks) — see toodi siia
-üle **muutmata kujul, kõrvuti vana koodiga** (dispatch `config.seriesVar` olemasolu järgi), nii et
-ETU41–43 (vana `config.indicator` kuju) jäid täiesti puutumata — kõik 20 raamistiku testi ja täpsed
-vanad numbrid (Mehed 8,4%, Naised 13,1%) kontrollitud muutumatuna pärast porti.
-
-**Uus tabel:** `js/tables/eurostat-ilc-pw01.js` — Eurostat `ilc_pw01`, eluga rahulolu (0–10 skaala),
-2013–2025, Eesti + ~36 riigi võrdlus. Kasutaja eesmärk (17.09.2026): "pilt on poliitikakujundajale
-kiirelt haaratav, kuid väikese vaevaga näha ka Eesti-EL keskmise-teiste riikide võrdlust".
-
-**Lahendus (intervjuu + tehniline avastus 17.09.2026):**
-- Algne plaan „Eesti vs EL-27 kaks täisseeriat trendis" ei sobinud mootoriga: sama "geo" muutuja
-  peaks täitma korraga kitsa (trend/KPI) ja laia (36 riigi tulbad) rolli — konflikt, mille lahendasin
-  uue `config.seriesValues` väljaga (piirab, millised `vars[seriesVar]` väärtused saavad "seeriaks",
-  breakdown kasutab ikka täit väärtuste nimekirja) ja uue `config.kpiReference`-mehhanismiga (väike
-  lisarida KPI-kaardil, mitte teine täisseeria).
-- **Tulemus:** trend = ainult Eesti (üks lihtne joon), KPI-kaart näitab Eesti väärtust + väikest rida
-  "EL-27 keskmine: 7,2 (0,1 palli kõrgem)" allpool, tulpdiagramm = riikide võrdlus (vaikimisi Balti +
-  Põhjamaad, "Näita kõiki (36)" nupp avab kõik, Eesti tumesinisena esile tõstetud, EL-27 katkendjoon).
-- **Leitud ja parandatud viga Eurostati API kasutuses:** mitmeväärtuseline `geo=` valik EI tööta
-  komadega ("geo=EE,EU27_2020" → tühi vastus, size=0) — vajab korduvaid parameetreid
-  ("geo=EE&geo=EU27_2020"). Kontrollitud otse API vastu enne ja pärast parandust.
-- **Leitud ja parandatud viga graafikutel:** `niceMax()` astmestik (5/10/20/…) on mõeldud lahtise
-  suurusjärguga arvudele ja venitas 0–10 hindeskaala telje 20-ni. Lisatud `config.axisMax` (fikseeritud
-  ülempiir, 5 ühtlast sammu) — kasutab iga tulevane fikseeritud-skaalaga tabel (nt hinnangud, indeksid).
-- **Brauseris kontrollitud:** koond (Eesti 7,3, ▲0,2 vs 2024; EL-27 7,2), tulpade vaike-/täiskomplekt
-  ("Näita kõiki" nupp ei tee uut API-päringut — andmed juba laaditud), callout, andmetabel, lai- ja
-  mobiilivaade (kerimist pole), loendi rea allikaviide ("Allikas: Eurostat ilc_pw01", mitte "TAI").
-- **Teadlik lihtsustus:** filtri muutmine (sugu/vanus/haridus) laeb andmed API-st uuesti täies mahus
-  (mõlemad päringud, sh kõik 37 riiki) — pole optimeeritud, aga URL/vastus on väike (~400 tähemärki
-  päring, testitud), nii et see pole probleem.
-
-**Loendi järjestus (18.09.2026, üldreegel):** `TAI.getTables()` sordib nüüd automaatselt — uusima
-avaldamisaasta järgi (uusim eespool), sama aasta korral pealkirja tähestikjärjekorras (`localeCompare`
-eesti lokaadiga). Ei sõltu registreerimisjärjekorrast (`<script>` ridade järjekord index.html-is on
-seega vaba). Kontrollitud: "Eluga rahulolu (EL)" (2025) tõusis automaatselt esimeseks, ETU41–43 (kõik
-2019) jäid tähestikku (Depressiooni · Emotsionaalne · Uneaja) — täpselt kasutaja soovitud järjekord,
-ilma et oleks vaja eraldi käsitsi ümber tõsta. Kõik 20 testi läbisid pärast muudatust.
-
-**Taaskasutatavad uued mehhanismid (kasutatavad ka tulevastel Eurostat/muu-allika tabelitel):**
-`TAI.EUROSTAT_BASE`, `TAI.fetchJsonStatUrl(url)`, `TAI.sourceLabel/sourceLongLabel/sourceUrl(config)`,
-`TAI.unitText(config)`, `TAI.formatValue(v, unit)`, `config.seriesValues`, `config.kpiReference`,
-`config.axisMax`, `views.breakdown.defaultValues` + `expandFlag` (kompaktne/täisloend + nupp).
-
-## Piloteerimise etapid (andmeallikate laiendamise kava, kokku lepitud 17.09.2026)
-
-**See jaotus on eraldiseisev allpool olevatest tehnilistest töövoo-etappidest (nummerdatud 1–9)** —
-need kirjeldavad *mis andmeallikad* ja *mis järjekorras* lisanduvad, mitte üksikuid ehitussamme.
-Taustaks: TAI PxWeb tabelid erinevad tugevalt mahult (mõnel 27 aastat trendi, mõnel 1; mõnel
-maakonna lõige, mõnel mitte) ja mõnel tabelil on mitu võimalikku "mida me näitame" kandidaati
-(nt näitaja-muutuja, mis pole binaarne, või kümnete väärtustega diagnoosihierarhia) — vt
-17.09.2026 arutelu. Seetõttu otsustati minna samm-sammult, kinnitades protsessi enne mahu laiendamist.
-
-1. **Piloteerimine (praegu, valmis).** Kolm ETU tabelit (ETU41–43), reaalajas TAI API-st, töötav
-   raamistik. Tõestab, et lähenemine üldiselt töötab. ✅
-2. **Olemasoleva kolme tabeli taustatunnuste laiendus.** Iga juba valitud tabeli (ETU41–43) kõik
-   TAI poolt pakutavad taustaandmed kaasata, mitte ainult praegu valitud alamhulk (kontrollida
-   metaandmete GET-päringuga, kas midagi jäi kasutamata). Eesmärk: katsetada "iga muutuja rolli
-   otsustamise" protsessi (näitaja / filter / breakdown-telg / eraldi kirje) tuttavatel, juba
-   kinnitatud tabelitel, enne kui seda uutele andmetele rakendame.
-   **ALUSTADES:** vaata enne kodeerimist üle, kui kaugele on jõudnud
-   [M3 (tervishoiuteenuste kvaliteet)](../M3_kodutoo_tervishoiu_kvaliteet/README.md) projekt —
-   kasutaja soovitas 17.09.2026 sealt üle võtta, mis sobib. Sealses README-s on juba dokumenteeritud
-   PT05/PT06/PT07/PT01 ja PTU80-82 tabelite kaudu täpselt sama „suvalise taustatelje" üldistusvajadus
-   (vt seal „Arhitektuuri mõju") — kui M3 on selle `js/module.js` üldistuse juba teinud ja testinud,
-   on see otse siia (ja vastupidi) taaskasutatav, mitte kahes kohas eraldi lahendatav.
-   **NB (kasutaja täpsustus 17.09.2026): see puudutab ainult tehnilist koodi/arhitektuuri**
-   (`core.js`-tüüpi loogika, `seriesOf()`-i üldistus, päringute koostamine, veakäsitlus).
-   **Visuaalseid/disainiotsuseid (`css/styles.css`, `disain.md`) ei tohi kunagi vaikimisi teisest
-   projektist üle kanda** — mõlemal näidikulaual on eraldi tellija, kelle maitse võib SoM
-   stiiliraamatu piires siiski erineda, ja iga uus disainiotsus vajab oma intervjuud selles
-   projektis, isegi kui M3 sai oma stiilitokenid siit üks kord kasutaja selgel soovil üle kantud
-   (see oli ühekordne erand, mitte pretsedent).
-3. **Uute TAI andmete lisamine 2. etapi põhimõttel.** Iga uus TAI tabel (nt `02Haigestumus/
-   05Psyyhikahaired` PKH1–PKH8, `06Narkomaaniaravi` NR-tabelid — vt allpool 17.09.2026 uurimistöö)
-   läbib sama protsessi: metaandmete kaardistus → muutujate rollide intervjuu → kood → test.
-   Kõik TAI lingid moodustavad ühise **„TAI" grupi** vasakul loendipaneelil.
-4. **Esimesed kolm Tervisekassa viidet 2. etapi põhimõttel.**
-5. **Tervisekassa andmete laiendus**, moodustades vastava **„Tervisekassa" grupi**.
-6. **Edasi:** muud Eesti avaandmed samas valdkonnas, kui leiame.
-
-**Minu hinnang: plaan on mõistlik ja tehniliselt teostatav**, sequencing on hea — protsess
-kinnitatakse madala riskiga tuttavatel tabelitel (2. etapp) enne uutele andmetele rakendamist
-(3. etapp), ja TAI tehakse enne Tervisekassat lõpuni, mitte paralleelselt. Kaks asja, mida tasub
-teada juba praegu, mitte alles siis, kui neile jõuame:
-
-- **3. etapp nõuab `js/module.js` üldistust enne esimest tabelit, mis ei sobi ETU kujuga.**
-  Praegune `seriesOf()` eeldab, et "Sugu" on põhiline võrdlustelg — PKH1-l oleks loomulikum telg
-  Diagnoos, Sugu jääks tavaliseks filtriks. See tuleb lahti harutada enne PKH1 (või sarnase) lisamist,
-  mitte selle käigus improviseerida.
-- **„TAI" grupi moodustamine (3. etapp) on uus liidesetöö, mitte ainult andmetöö.** Vasak loendipaneel
-  (`js/app.js` `renderList()`) on praegu lame nimekiri; rühmadega pealkirjastatud loendi jaoks on
-  vaja väike, aga päris liidesemuudatus.
-- **4. etapp ei saa tehniliselt korrata 2.–3. etapi "reaalajas API" mustrit sellisel kujul.**
-  17.09.2026 uurimine kinnitas: Tervisekassa vaimse tervise andmed (`tervisekassa.ee/vaimne-tervis-
-  retseptide-ja-arvete-andmed`) on Power BI embedded raport, mitte avalik JSON/CSV-liides — seda ei
-  saa `fetch()`-iga tõmmata ega iframe'iga mujale manustada (`frame-ancestors 'self'`). Nende oma
-  PxWeb-portaal (`statistika.tervisekassa.ee`) ei vasta praegu üldse (DNS ei resolveeru — võib-olla
-  ajutine). **4. etapi käivitudes tuleb enne kokku leppida, milline tehniline muster Tervisekassa
-  andmete jaoks sobib** (nt lihtne välislink-kirje, perioodiline käsitsi andmeeksport meie olemasoleva
-  faili-üleslaadimise mehhanismi kaudu põhiteena, või otseühendus, kui `statistika.tervisekassa.ee`
-  taastub) — see pole blokeerija praegu, aga ei tohi tulla üllatusena 4. etapis.
-
-### 17.09.2026 uurimistulemused (andmeallikate kaardistus — sisend 3./4. etapile)
-
-**TAI PxWeb, kaust `02Haigestumus/05Psyyhikahaired` — „Psüühika- ja käitumishäired"** (avaleht:
-https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__02Haigestumus__05Psyyhikahaired/):
-PKH1 (ambulatoorselt konsulteeritud, diagnoosi/soo/vanuse järgi), PKH2–3 (uued haigusjuhud, sh
-100 000 elaniku kohta), PKH4 (haiglaravilt väljakirjutatud), PKH5 (haiglaravi näitajad, sh tahtest
-olenemata hospitaliseeritud), PKH7 (psühhoaktiivsete ainete tarvitamisest tingitud häired),
-PKH8 (päevaravilt lahkunud). PKH1 metaandmed kontrollitud: Aasta 1999–2025, Diagnoos (RHK-10,
-täielik F-peatükk F00-F98 alamkoodideni), Vanuserühm (0/1/2 = Kokku/0-14/15+), Sugu (0/1/2, sama
-kood mis ETU-tabelites), Konsultatsioonid (Kokku/Uued haigusjuhud). Uuendatud 16.06.2026.
-
-**TAI PxWeb, kaust `02Haigestumus/06Narkomaaniaravi`** (17 NR-tabelit, F10-F19): lisaks soole/vanusele
-ka maakonna, hariduse, rahvuse, majandusliku aktiivsuse lõiked mõnel tabelil.
-
-**Tervisekassa „Vaimne tervis (retseptide ja arvete andmed)"**
-(https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed): kolm vahekaarti (Üldine
-statistika — isikud/arved/summad/Tervisekassa tasutud summa; Esmased diagnoosid — F-koodide kaupa;
-Maakondade statistika). **Tehniliselt Power BI embedded raport**, mitte API — `fetch()`-iga ei saa
-tõmmata, `frame-ancestors 'self'` keelab iframe-manustamise mujal. Nende PxWeb-portaal
-`statistika.tervisekassa.ee` (viidatud otsingumootorites) ei vasta praegu (DNS ei resolveeru).
-Muu leitud: https://tervisekassa.ee/andmeparingud (ühekordsed PDF/HTML raportid, sh 2021 depressiooni
-raviteekonna analüüs — mitte API).
-
-## 1. Andmeallikate API-struktuuri lõplik kontroll
-- [x] ETU41 struktuur ja täpsed kategooriakoodid kinnitatud (töötavas prototüübis)
-- [x] ETU42 täpsed kategooriakoodid kinnitatud 16.09.2026 (GET + POST-proov) — vt README
-      „Kinnitatud API-struktuur“
-- [x] ETU43 täpsed kategooriakoodid kinnitatud 16.09.2026 — NB! `Sugu`/`Vanuserühm` pole
-      eliminatsiooniga, päringus alati kaasa panna (vt README)
-
-## 2. CORS/live-fetch valideerimine päris GitHub Pagesilt
-- [x] Testleht `cors-test.html` valmis (kõik 3 tabelit, GET + POST); kohalikult `file://` (origin `null`)
-      kõik päringud õnnestusid 16.09.2026
-- [x] API CORS-päised kontrollitud: preflight OPTIONS → 200, `Access-Control-Allow-Origin: *`,
-      `Allow-Methods: GET, POST`, `Allow-Headers: Content-Type` — suure tõenäosusega töötab ka GitHub Pagesilt
-- [x] Avalik repo loodud: https://github.com/Maag6969/vt-startpage (PDF on `.gitignore`-s, avalikuks ei läinud)
-- [x] GitHub Pages sisse lülitatud (haru `main`, juurkaust): https://maag6969.github.io/vt-startpage/
-- [x] **Kinnitatud 16.09.2026:** https://maag6969.github.io/vt-startpage/cors-test.html — kõik 6 päringut
-      (3 tabelit × GET + POST) õnnestusid originilt `https://maag6969.github.io`, konsoolis vigu pole
-- [x] Varuvarianti peamiseks teeks pole vaja — live-fetch on põhitee; faili-üleslaadimine jääb ainult varuplaaniks
-
-**Blokeerija lahendatud** — edasine plaan (live-fetch GitHub Pagesilt) kehtib.
-
-## 3. Korduvkasutatava raamistiku disain ja kirjutamine
-- [x] Ühine tuummoodul `js/core.js` (json-stat2 lugeja, päringu koostamine, veatüübid, üleslaadimise
-      varuplaan, tooltip, vormindus) — vt README „Failistruktuur ja raamistiku liides“
-- [x] Tabelipõhised konfiguratsioonid `js/tables/etu41.js`, `etu42.js`, `etu43.js` (renderdus tuleb etappides 5–6)
-- [x] Testid `tests/framework-test.html`: 13 ühiktesti + 6 integratsioonitesti päris API vastu —
-      kõik 19 läbisid 16.09.2026 (etapis 6 lisandus 1 → 20/20; käivitamine: `tools/serve.ps1` →
-      http://localhost:8080/tests/framework-test.html)
-- [x] `TAI.attachTooltip` kontrollitud etapis 5 päris graafikuga
-
-## 4. Master-lehe infoarhitektuur
-- [x] Stiiliotsused intervjuuga (päis, loendi rida, tühi olek, mobiil, jalus, paneelide eristus) — disain.md p. 2
-- [x] `index.html` + `css/styles.css` + `js/app.js`: päis („Vaimse tervise näidikulaud“, TAI link, laadimise aeg),
-      vasak loend (kogu rida nupp, allika link eraldi), tühi olek, laadimise skelett, veaolek
-      („Proovi uuesti“ + faili üleslaadimine), mooduli karkass (eyebrow, pealkiri, meta-sildid koos tabeli
-      uuenduskuupäevaga, jalus), lehe jalus, valik aadressis (`#ETU42`, tagasi-nupp töötab)
-- [x] Brauseris kontrollitud 16.09.2026: kõigi 3 tabeli laadimine, veaolek (simuleeritud võrgutõrge),
-      uuesti proovimine, faili üleslaadimine päris API JSON-iga, brauseri tagasi-nupp, laia ja mobiilivaate
-      paigutus, horisontaalset kerimist pole
-- [ ] Mobiilis sujuv automaatne kerimine mooduli juurde — loogika kontrollitud, kuid animatsiooni ei saanud
-      arenduspaneelis näha (paneel ei joonistanud kaadreid); kontrollida päris telefonis/brauseris
-- Mooduli ajutine märge asendatud etapis 5 päris sisuga
-
-## 5. Esimese mooduli (ETU41) integreerimine
-- [x] Kujundusotsused intervjuuga (filtrid, soo lüliti, KPI sisu ja stiil, trendi sildid, tulpade rühmitus,
-      võrdlusrežiim, callout, andmetabel, järjekord) — disain.md p. 3.1
-- [x] `js/module.js`: andmemudel, KPI-kaardid, automaatne callout, trendijoonis, rühmitatud tulpdiagramm
-      („Kokku“ võrdlusjoonena, paaristulbad võrdlusel), andmetabel; `js/app.js`: filtrid + kohene uuestilaadimine,
-      filtrivalikud säilivad tabelite vahel, graafikud joonistuvad laiuse muutumisel ümber
-- [x] Üleslaaditud faili tee: filtrid arvutatakse failist ilma API-päringuta
-- [x] Brauseris kontrollitud 16.09.2026: koond (10,9%, ▲ 2,6 pp), taustatunnuse filter + esiletõstetud tulp,
-      mehed vs naised (KPI-d, 2 joont, paaristulbad, 2 võrdlusjoont), puuduvad väärtused (API `..`, nt 75+ kõrgharidus
-      → „Andmed puuduvad“, callout märgib), lai + mobiilivaade (ilma horisontaalse kerimiseta), tooltip hiire ja fookusega
-- [x] `TAI.attachTooltip` kontrollitud päris graafikuga
-- NB! Puuduvaid väärtusi (`..`) ei tuletata „100 − teine kategooria“ kaudu — TAI on need teadlikult avaldamata jätnud
-
-## 6. Teise ja kolmanda mooduli lisamine
-- [x] Intervjuu 16.09.2026: ETU42 vanuserühm jääb nii filtrisse kui tulpadesse; metoodikamärkus trendi all +
-      callout-lause „15–24“ puhul; ETU43 KPI-l soovitusliku uneaja rida; ETU43 soo vaikevalik „Kokku“ — disain.md p. 5
-- [x] ETU42 moodul: trend + vanuserühmade tulbad, `trendNote`, `calloutCaveats`; kontrollitud koond (13,6%, ▲ 3,8 pp),
-      15–24 võrdlus (naised 22,9%, mehed 9,5%, meeste 2014 puudub → „Muutust ei saa arvutada“, joonel tühik)
-- [x] ETU43 moodul: ainult tulbad, KPI ilma muutuseta + `kpiNote`; kontrollitud koond 26,2%, võrdlus 24,7/27,4%
-- [x] Faili üleslaadimine mõlemale: täisfail annab samad numbrid mis API; osaline fail lükatakse tagasi selge
-      veateatega (puuduvad muutujad)
-- [x] **Parandatud viga:** kui andmetes puudus dimensioon (nt osaline fail), näidati iga vanuserühma kohta vaikselt
-      koondväärtust. Nüüd `indicatorShare` tagastab `null` ja `readUploadedFile` nõuab kõiki muutujaid (+ ühiktest, 20/20)
-- [x] Mobiilivaade (375px): mõlemal tabelil horisontaalset kerimist pole
-
-## 7. Viimistlus
-- [x] Ülevaatus 16.09.2026: tekstikontrast AA (automaatkontroll, 0 probleemi), pealkirjade järjekord, maamärgid,
-      vormisildid — korras
-- [x] Parandatud ilma otsuseta: lehe `<title>` valitud tabeli järgi; kõigil uues aknas avanevatel linkidel
-      ekraanilugeja märge (`TAI.externalLink`); kerimine arvestab „vähenda liikumist“ seadistust
-- [x] Intervjuu: oranž → `#d4621a` (graafikukontrast ≥ 3:1); favicon (sinine ring + „V“); printimise stiil
-      (valitud lõige tekstina, andmetabel avatud); Open Graph lingi eelvaade; filtrid aadressis
-- [x] Kontrollitud: otselink filtritega, filtri muutus uuendab aadressi ilma uue ajaloo kirjeta, tabelite vahel
-      liikudes filtrid säilivad aadressis, vigased parameetrid ignoreeritakse, brauseri „tagasi“, printvaate simulatsioon
-- [x] Responsiivsus (paneelide virnastumine) ja veakäsitlus kõigi kolme tabeli jaoks — kontrollitud etappides 4–6
-- [x] Avalik repo koristatud: testid, tööriistad, CORS-test ja vana prototüüp ainult kohalikus arvutis (`.gitignore`);
-      git'i ajaloos on vanad versioonid endiselt nähtavad
-- [ ] Päris printimine (Ctrl+P) ja lingi eelvaade SharePointis/Teamsis — kontrollida päris keskkonnas
-- NB! Lingi eelvaatel pole pilti (`og:image`) — vajaks eraldi PNG-pilti
-
-## 8. Avaldamine ja SharePointi integratsioon
-- [x] GitHub Pagesile avaldatud: https://maag6969.github.io/vt-startpage/
-- [ ] SharePointi Embed-veebiosasse lisatud — **ootel** (kasutaja otsus 16.09.2026)
-- [ ] HTML Field Security seadistus kontrollitud/lisatud (vajab IT/admini kaasamist) — **ootel**
-
-## 9. Täiendused pärast jagamist
-- [x] 17.09.2026: soo lüliti tekst „Mehed vs naised“ → „Mehed vrdl Naised“ (ka printimise kokkuvõttes)
-- [x] 17.09.2026: lehe pealkiri 25% suurem (2rem; mobiilis 1,6875rem)
-- [x] 17.09.2026: vaatamiste loendur pealkirja all (intervjuu; Abacus, loeb lehe avamisi, ainult avaldatud lehel +1) —
-      disain.md p. 2 „Päis“
-- [x] 17.09.2026: kasutusstatistika laiendatud (intervjuu) — andmestike avamised (arv loendi real), filtrivalikud,
-      lisategevused; 54 loendurit loodud Abacuses (seis 17.09.2026, ETU41–43 kohta; ilc_pw01 lisandumisega
-      18.09.2026 on tegelik loendurite arv nüüd suurem — `tools/stats.html` loeb need automaatselt
-      `TAI.usage.allKeys()` kaudu, arvu ei ole vaja käsitsi uuendada), halduskoodid `.counter-admin-keys.tsv`
-      (gitignore); kohalik statistikaleht `tools/stats.html`. Kontrollitud simuleeritud avaldatud lehega:
-      õiged loendurid, seansisisesed kordused ei loe, statistikaleht luges siis kõik 54 (päringupiirangu
-      tõttu aeglane, ~40 s)
-- [x] `tools/serve.ps1` parandatud: HEAD-päring ega üksik viga ei peata enam serverit
-- [x] 17.09.2026: turvaküsimus läbi arutatud — kas dashboard kasutab kasutaja tokeneid/mandaate. Vastus: ei,
-      TAI PxWeb API ja Abacus on mõlemad avalikud kontota teenused, päring käib külastaja enda brauserist.
-      Kontrollitud: pole kunagi commit'itud tokenit/võtit (ka git ajaloos), XSS-i teed pidi API andmed lehele
-      ei jõua ilma escape'imata. Läbiv põhimõte kirjas README.md "Põhimõte: ei mingeid isiklikke
-      tokeneid/mandaate lahenduses" ja disain.md-s.
-
-**Ootel (kasutaja otsus 17.09.2026 — mitte praegu, hiljem kui vaja):**
-- [ ] Content-Security-Policy päis (piirab, milliste domeenidega leht tohib suhelda; kaitseks nt Google Fontsi
-      kompromiteerimise puhul) — vajab hoolikat testimist, et fondid/API-d/loendurid jääksid tööle
-- [ ] Abacuse loendurid GoatCounterile üle viia (praegu saab loendurite nimesid teades neid võõras skript
-      suvaliselt suurendada — kosmeetiline risk, statistika täpsus, mitte turvarisk)
-
-**Praegune seis (16.09.2026, aegunud — jäetud ajaloo huvides, vt uuemad jaotised üleval päris
-hetkeseisu jaoks):** leht on jagatud GitHub Pagesi lingina TTÜ koolitajale ja kolleegidele
-tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem, kui vaja.
-Järgmine samm oli siis koolitaja/kolleegide tagasiside läbitöötamine — sellest ajast on lisandunud
-Eurostati tabel, loendi sortimine, päise/staatusrea ümberdisain ja filtrikonteksti läbivaatus
-(17.–18.09.2026, vt jaotised üleval).
-
-### Tervisekassa piloot „Diagnoosid raviandmetes“ (F32/F33), 05.11.2026
-
-Lähteülesanne, kontrollarvud ja reeglid: [TERVISEKASSA.md](TERVISEKASSA.md). **Staatus: lokaalselt valmis ja kontrollitud,
-EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
-
-- [x] Importskript `scripts/import-tervisekassa.ps1` (PowerShell, xlsx loetakse otse ZIP + XML kaudu, Excelit ega
-      lisapaigaldusi pole vaja; R-i, Pythonit ega Node'i arvutis pole). Väljund: `data/tervisekassa/yldstat_detail.json`
-      (1050 kirjet), `yldstat_koond.json` (210 kirjet, aasta kokku = vanuserühmade summa), `yldstat_meta.json` ja
-      sama sisu varufailina `yldstat.js` (vt allpool).
-- [x] Testid `scripts/test-tervisekassa.ps1`: 65/65 (kontrollarvud, kattuvus, deterministlikkus, vigased sisendid,
-      null/puudub/varjatud, `yldstat.js` = JSON-id). Brauseris `tests/tervisekassa-test.html`: 19/19 (adapter ja varuvariant, mudel, callout);
-      `tests/framework-test.html`: 21/21, grupi test uuendatud uue järjekorra järgi.
-- [x] Adapter `js/tables/tervisekassa-adapter.js` (väärtus täpse võtme järgi, toetamata → teade, midagi ei liideta).
-- [x] Moodul `js/tables/tervisekassa-diagnoosid.js`: oma andmemudel ja callout, kuvamine tuleb üldmudeli renderdusest
-      (`js/module.js`); filtrid diagnoos, vanuserühm, vaatlus- ja võrdlusaasta, sugu (sh võrdlusrežiim).
-      Väikesed laiendused ühiskoodis: `config.loadData`, `buildModel`, `calloutText`, `formatValue`,
-      `axisMax` funktsioonina, `provisionalYears`, `openLabel`, `source.staticData` jt.
-- [x] Intervjuu 05.11.2026: 2026 trendil katkendjoon + seest tühi punkt (disain.md p. 5). Loendi järjekord
-      TAI → Tervisekassa → Eurostat (põhimõte 21.10.2026: Eesti ees).
-- [x] Kasutaja otsus 05.11.2026 (pärast ülevaatust): silti „Ava aruanne“ **ei kasutata** (kõik read ühesugused; algne
-      juhis nägi seda ette, kuid see tekitas ebakõla), ja Tervisekassa nimi on kõikjal **„Tervisekassa (avaandmed)“**.
-      Aruande päise rida ütleb selgelt, et andmed pärinevad failist (eksportimise ja allika uuenduse kuupäev).
-- [x] Kasutaja soov 05.11.2026 (ülevaatuse järel), **tehtud lokaalselt, commit'imata**:
-      (1) lehe jalus ja avalehe tekst: „Avaandmed pärinevad järgmistest andmeallikatest: Tervise Arengu Instituut, Tervisekassa,
-      Eurostat“ — loetelu tuleb gruppidest (`TAI.getSources()`), nimede lühendid ja lingid `TAI.GROUP_INFO`-st (core.js);
-      **uue allika lisamisel tuleb lisada rida ainult siia, kui tahta lühikest nime või linki**, muidu lisandub nimi ise;
-      (2) vasak loend kleepuv ja uus aruanne avaneb alati algusest (vt disain.md „Kerimine“). **Viga, mis tuli välja alles
-      avaldatud lehel:** esimene versioon kerib sujuvalt ja brauseri kerimiskinnitus (scroll anchoring) lükkas lehe pärast
-      laadimiskaadrit tagasi vana asukohta (laadimiskaader on lühike, siis sisu kasvab ja brauser hoiab jalust paigal).
-      Parandus: `html { overflow-anchor: none }` ja laial ekraanil kohene (mitte sujuv) kerimine; mobiilis jääb sujuv
-      kerimine endiseks. Kontrollitud 9 aruandevahetusega eri kerimiskõrgustelt (kõik algasid ülevalt) ja lehe ülaosas ei kerita;
-      brauseripaan vajab selleks fronditud vahekaarti (`tabs_select`), muidu ei käitu sündmused usaldusväärselt;
-      (3) Abacuse loendurid Tervisekassa aruandele (29 tk: `ds-`, `f-` ja `a-TK-diagnoosid-…`, ilma `a-…-fail`, sest üleslaadimist
-      pole): 26 loodud (väärtus 0, halduskoodid `.counter-admin-keys.tsv`-s); `ds-TK-diagnoosid`, `a-TK-diagnoosid-allikas` ja
-      `f-TK-diagnoosid-sugu-vordlus` tekkisid enne esimese kasutaja vaatamisega ja halduskoodi neil pole (vaatamine loob loenduri
-      ise). Vanuserühma „65+“ loenduri nimi on `…-vanus-65plus` (Abacus ei luba „+“ märki); olemasolevad võtmed ei muutunud.
-      Abacuse päring `create` annab 429, kui neid teha liiga kiiresti: tee ≥ 4 s vahedega.
-- [x] Kasutaja soov 05.11.2026: **filtrite ühtlustus, tehtud lokaalselt (kontrollitud ETU41–43, Tervisekassa ja Eurostat; commit'imata):**
-      kõik lõiked on rippmenüüd (Sugu ka), rippmenüüde all rida „Võrdlus“ nupuga „Mehed vrdl Naised“ (lüliti, `aria-pressed`);
-      kui võrdlus on sees, näitab Sugu menüü rida „Mehed vrdl Naised“, mõne soo valimine lülitab selle välja. Arvud, aadressid ja
-      Abacuse võtmed jäid samaks. `app.js` `renderFilters()`/`refreshFilters()`, `styles.css` `.compare*`.
-      **Vanuserühmade võrdlus (kasutaja valis 05.11.2026), tehtud lokaalselt ainult Tervisekassa aruandele, commit'imata:** nupp
-      „Vanuserühmad vrdl“, 5 joont (SoM lisavärvid tumendatud, 35–64 lilla `#7c3fbf` kasutaja soovil, läbivalt; validaatoriga
-      kontrollitud, vt disain.md), KPI-kaart iga rühma kohta,
-      tulpdiagramm peidus, callout nimetab suurima muutusega rühmad; soo ja vanuse võrdlus ei saa korraga olla (üks lülitab teise
-      välja). Üldine loogika `app.js` `comparisonsOf()`, TAI aruanded (ETU41–42) saavad nupu hiljem lisades `canCompareAges: true`
-      ja vana mudeli (`module.js` `*Indicator`) laiendust: seal on seeria praegu ainult sugu, KPI/callout on soo-põhised.
-      Abacuse loendur `f-TK-diagnoosid-vanus-vordlus` loodud. Testid 24/24 (Tervisekassa), 21/21 (raamistik).
-- Õppetund: dataviz-validaator (`scripts/validate_palette.js` skillis) ei saa arvutis käivitada ilma Node'ita, aga töötab brauseris
-  (`import()` ajutiselt `tests/` kausta kopeeritud failist, mille kustutasin pärast). SoM tumeroheline `#677c36` jääb oranži kõrval
-  värvipimedusel eristamatuks (protan ΔE 2,2).
-- Pagesi märkus: pärast push'i ei käivitunud ehitus ise; aitas `gh api -X POST repos/Maag6969/vt-startpage/pages/builds`.
-- [x] Brauseris kontrollitud (lai + 375 px, horisontaalset kerimist pole): filtrid uuendavad KPI-d, graafikuid, callout'i,
-      tabelit ja allikakirjeldust; kattuvus 2021 (53 206, mitte 56 639) ja 2025 (61 819, mitte 65 428); F32/F33 + sugu
-      annab teate; 2026 märgistatud; otselink, veaolek + „Proovi uuesti“; aruanded ei sega üksteise filtreid; ETU41–43
-      ja ilc_pw01 arvud muutumatud; päringuid aadressile tervisekassa.ee ei tehta.
-- [x] Kasutaja otsus 05.11.2026: `data/tervisekassa/raw/` xlsx-failid lähevad koos JSON-failidega avalikku reposse.
-- [ ] **Enne avaldamist:** kasutaja vaatab aruande üle; commit ja push ainult kasutaja käsul.
-- [ ] **Avaldamisel:** luua Abacuses uued loendurid (`ds-TK-diagnoosid`, `f-TK-diagnoosid-*`, `a-TK-diagnoosid-*`),
-      vt disain.md „Kasutusstatistika“. Kuni neid pole, loendi real vaatamiste arvu ei kuvata; leht töötab edasi.
-
-**Avastatud probleemid ja piirangud:**
-- Failides pole allika koondridu, seega „vanuserühmade summa = allika koond“ saab importimisel kontrollida ainult
-  `scripts/test-tervisekassa.ps1` käsitsi kirjutatud kontrollarvude vastu. **Uue väljavõtte korral tuleb need arvud allikast
-  uuesti võtta**, muidu test kukub läbi. Allika uuenduskuupäev (`-AllikaUuendus`) ei ole xlsx-is ja antakse skriptile käsitsi.
-- Praegustes failides on kõik väärtused staatusega „olemas“. Kui varjatud väärtus on ekspordis tühi lahter, saab see staatuse
-  „puudub“ (põhjust ei saa lahtrist välja lugeda); „varjatud“ tuleb ainult selge tähisega, nt `<5`. Küsimus Tervisekassale.
-- **Failina avamine (`file://`), parandatud 05.11.2026 kasutaja tagasiside põhjal:** esialgu laadis aruanne andmed
-  `fetch`-iga ja failina avatuna tuli veateade, mis lõhkus README lubaduse „töötab ka failina“. Nüüd kirjutab importskript
-  JSON-ide kõrvale sama sisuga `data/tervisekassa/yldstat.js`; adapter proovib kõigepealt JSON-e ja laeb `yldstat.js` ainult
-  siis, kui need ei õnnestu (serveri ja GitHub Pagesi puhul seda faili alla ei laeta). Vigane JSON-sisu ei lähe varuvariandile.
-  Kontrollitud päris `file://` avamisega (peita Edge), brauseripaan näitab `file://` lehti ainult staatilise tõmmisena.
-  NB: `yldstat.js` on genereeritud fail, ära muuda käsitsi; uue väljavõtte järel käivita importskript uuesti.
-- Parandatud kaasa: Eurostati (`ilc_pw01`) graafiku tooltip näitas väärtust protsendina („6,5%“), nüüd „6,5“. ETU-tabeleid see ei puuduta.
-- Avalehe tekst muudetud: „laaditakse reaalajas“ → „pärinevad“, sest Tervisekassa andmed pole reaalajas.
-- Lingi eelvaate tekstid (`og:description` ja `meta description` `index.html`-is) uuendatud 05.11.2026 kasutaja kinnitatud
-  sõnastusega (avaandmed, kolm allikat, ilma sõnata „reaalajas“ ja ilma sõnadeta „raviandmed“/„retseptid“). **Need on staatiline
-  HTML ega uuene ise**: uue allika või teema lisamisel muuda käsitsi. Lehe jalus ja avalehe tekst uuenevad ise. Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
-  (piloodist väljas, järgmised aruanded).
-
-## Avatud küsimused / blokeerijad
-
-- ~~Visuaalne stiil täpsustamata~~ — **lahendatud 16.09.2026**: allikaks SoM_stiiliraamat_2024.pdf,
-  otsused tehtud kolmes intervjuuringus (vt disain.md p. 1.1–1.2).
-- ~~CORS TAI API-st pole päriselt testitud~~ — **lahendatud 16.09.2026**, töötab GitHub Pagesilt (vt samm 2).
+`README.md` ülesehitus ja failid · `TASKS.md` praegune seis ja kava · `TASKS-ARHIIV.md` kogu ajalugu · `disain.md` kujundus · `TERVISEKASSA.md`
+Tervisekassa allikarühma reeglid ja kontrollarvud · `ETAPP2-JUHIS.md` ajalooline juhis · `js/tables/README-NAIDIS.js` uue tabeli konfiguratsiooni mall.

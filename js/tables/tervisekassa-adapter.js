@@ -93,11 +93,32 @@
     return loading;
   }
 
+  var metaLoading = null;
+
+  /*
+   * Ainult meta-fail (aastad, pooleliolev aasta, vaikeaastad): väike päring, mida aruanne vajab enne oma filtrite ja oleku
+   * loomist. Failina avades (kus JSON-e lugeda ei saa) laeb sama varufaili mis load().
+   */
+  function loadMeta(opts) {
+    if (opts && opts.force) metaLoading = null;
+    if (!metaLoading) {
+      metaLoading = TAI.fetchJson(TAI.tervisekassa.DATA_BASE + "yldstat_meta.json").catch(function (err) {
+        if (err instanceof TAI.DataError) throw err;
+        return loadFallbackScript().then(function (d) { return d.meta; }, function () { throw err; });
+      }).catch(function (err) {
+        metaLoading = null;
+        throw err;
+      });
+    }
+    return metaLoading;
+  }
+
   TAI.tervisekassa = {
     DATA_BASE: "data/tervisekassa/",
     UNSUPPORTED_MESSAGE: UNSUPPORTED_MESSAGE,
     createStore: createStore,
     load: load,
+    loadMeta: loadMeta,
     isoToEt: isoToEt
   };
 })(window.TAI);

@@ -3,12 +3,13 @@
   Lähteülesanne ja reeglid: TERVISEKASSA.md.
 
   Käivitamine (M2 kaustas):
-    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/import-tervisekassa.ps1
+    powershell -NoProfile -ExecutionPolicy Bypass -File scripts/import-tervisekassa.ps1 -AllikaUuendus 2026-11-01
 
   Mida skript teeb:
     1. Kontrollib, et täpselt need viis faili on olemas (vale või puuduv fail = viga).
     2. Loeb xlsx-i otse (xlsx on ZIP-fail XML-iga). Excelit ega lisapaigaldusi pole vaja.
-    3. Võrdleb lahtri A1 filtreid failinimega ning kontrollib päist, ridu, aastaid ja vanuserühmi.
+    3. Võrdleb lahtri A1 filtreid failinimega ning kontrollib päist, ridu, aastaid ja vanuserühmi. Aastad tulevad failidest:
+       pooleliolev aasta on väljavõtte aasta (failinime kuupäev), vaikeaasta viimane täisaasta (meta-faili väljad).
     4. Ümardab eurosummad kahe komakohani ja märgib iga väärtuse staatuse.
     5. Kirjutab detailread ja aasta koondid eraldi JSON-failidesse ning sama sisu ka failiks yldstat.js (varuks
        juhuks, kui leht avatakse failina). Sama sisend annab baidi täpsusega sama väljundi.
@@ -20,11 +21,16 @@
 param(
   [string]$RawDir = "",
   [string]$OutDir = "",
-  [string]$AllikaUuendus = "2026-11-01"   # aruandes nähtav uuenduskuupäev; xlsx-is seda pole
+  [string]$AllikaUuendus = ""   # aruandes nähtav allika uuenduskuupäev (AAAA-KK-PP); xlsx-is seda pole, seega on kohustuslik
 )
 
 $ErrorActionPreference = "Stop"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+# Kuupäev antakse käsitsi igal impordil: vana vaikeväärtus oleks uue väljavõtte korral vaikselt vale allikaseis.
+if ($AllikaUuendus -cnotmatch '^\d{4}-\d{2}-\d{2}$') {
+  throw "VIGA: anna parameeter -AllikaUuendus kujul AAAA-KK-PP (aruandes nähtav allika uuendus, nt 2026-11-01); seda ei saa xlsx-ist lugeda."
+}
 
 # Vaikimisi kaustad skripti asukoha järgi ($PSScriptRoot pole PowerShell 5.1 param-plokis alati täidetud)
 if (-not $RawDir) { $RawDir = Join-Path $PSScriptRoot "..\data\tervisekassa\raw" }
@@ -33,8 +39,6 @@ if (-not $OutDir) { $OutDir = Join-Path $PSScriptRoot "..\data\tervisekassa" }
 $INV = [Globalization.CultureInfo]::InvariantCulture
 
 $ALLIKAVAADE = "Uldine statistika"
-$POOLELI_AASTAD = @("2026")
-$AASTAD = @("2021", "2022", "2023", "2024", "2025", "2026")
 $VANUSERYHMAD = @("0-18", "19-24", "25-34", "35-64", "65+")
 $DIAGNOOSID = [ordered]@{ F32F33 = @("F32", "F33"); F32 = @("F32"); F33 = @("F33") }
 $SOOD = @("kokku", "mehed", "naised")
@@ -190,6 +194,33 @@ foreach ($f in Get-ChildItem -LiteralPath $RawDir -Filter *.xlsx) {
 $puudu = @($TOETATUD | Where-Object { -not $failid.ContainsKey($_) })
 if ($puudu.Count) { throw "VIGA: sisendfail puudub: $($puudu -join ', ') (kaust $RawDir)" }
 
+# ---- aastad tulevad failidest (libisev: uus väljavõte toob uue aasta ise) ----------------------------------------
+# Pooleliolev aasta on väljavõtte aasta (failinimes olev kuupäev), kui see aasta on andmetes; vaikimisi vaatlusaasta on
+# viimane täisaasta ja võrdlusaasta sellele eelnev. Aastad peavad olema järjestikused ega tohi olla väljavõtte aastast hilisemad.
+
+$esimeneFail = $failid[$TOETATUD[0]]
+$esimeneLeht = Read-Sheet $esimeneFail.FullName $esimeneFail.Name
+$aastadAndmetes = @()
+foreach ($nr in @($esimeneLeht.Keys | Where-Object { $_ -ge 4 })) {
+  $a = $esimeneLeht[$nr][0]
+  if ($a -cnotmatch '^\d{4}$') { Stop-Import $esimeneFail.Name "real $nr ei ole aasta: '$a'" }
+  $aastadAndmetes += $a
+}
+$AASTAD = @($aastadAndmetes | Sort-Object -Unique)
+if (-not $AASTAD.Count) { Stop-Import $esimeneFail.Name "andmeridu ei leitud" }
+for ($i = 1; $i -lt $AASTAD.Count; $i++) {
+  if ([int]$AASTAD[$i] - [int]$AASTAD[$i - 1] -ne 1) { Stop-Import $esimeneFail.Name "aastad ei ole järjestikused: $($AASTAD -join ', ')" }
+}
+$valjavotteAasta = $valjavotteKuupaev.Substring(0, 4)
+if ([int]$AASTAD[-1] -gt [int]$valjavotteAasta) {
+  Stop-Import $esimeneFail.Name "andmetes on aasta $($AASTAD[-1]), mis on väljavõtte aastast ($valjavotteAasta, failinime kuupäev) hilisem"
+}
+$POOLELI_AASTAD = @($AASTAD | Where-Object { $_ -eq $valjavotteAasta })
+$TAISAASTAD = @($AASTAD | Where-Object { $POOLELI_AASTAD -notcontains $_ })
+if (-not $TAISAASTAD.Count) { Stop-Import $esimeneFail.Name "andmetes pole ühtegi täisaastat" }
+$VIIMANE_TAISAASTA = $TAISAASTAD[-1]
+$VORDLUSAASTA = if ($TAISAASTAD.Count -gt 1) { $TAISAASTAD[-2] } else { $null }
+
 # ---- lugemine --------------------------------------------------------------
 
 $detail = New-Object System.Collections.Generic.List[object]
@@ -277,6 +308,9 @@ $meta = [ordered]@{
   allika_uuendus = $AllikaUuendus
   aastad = $AASTAD
   pooleli_aastad = $POOLELI_AASTAD
+  viimane_taisaasta = $VIIMANE_TAISAASTA
+  vaikimisi_vaatlusaasta = $VIIMANE_TAISAASTA
+  vaikimisi_vordlusaasta = $VORDLUSAASTA
   vanuseryhmad = $VANUSERYHMAD
   sood = $SOOD
   diagnoosivalikud = @($diagMeta)

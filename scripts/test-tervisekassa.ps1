@@ -97,6 +97,11 @@ $vead = @($detail + $koond | Where-Object { ($_.aasta -eq "2026") -ne ($_.taisaa
 Check "2026 on pooleli, teised täisaastad" ($vead.Count -eq 0) "($($vead.Count) viga)"
 Check "F32F33 kirjel on diagnooside hulk F32 ja F33" ((@($K["F32F33|kokku|2021|isikud"].diagnoosid) -join ",") -eq "F32,F33")
 
+Section "Aastad tulevad failidest (libisev): meta-faili aastad, pooleliolev aasta ja vaikeaastad"
+Check "meta.aastad = 2021–2026 (tuletatud failidest)" ((@($meta.aastad) -join ",") -eq "2021,2022,2023,2024,2025,2026") "(leiti $(@($meta.aastad) -join ','))"
+Check "pooleliolev aasta on väljavõtte aasta 2026" ((@($meta.pooleli_aastad) -join ",") -eq "2026") "(leiti $(@($meta.pooleli_aastad) -join ','))"
+Check "viimane täisaasta 2025, vaikimisi vaatlusaasta 2025 ja võrdlusaasta 2024" ($meta.viimane_taisaasta -eq "2025" -and $meta.vaikimisi_vaatlusaasta -eq "2025" -and $meta.vaikimisi_vordlusaasta -eq "2024") "($($meta.viimane_taisaasta)/$($meta.vaikimisi_vaatlusaasta)/$($meta.vaikimisi_vordlusaasta))"
+
 Section "Eurode ümardamine ja koondi arvutus"
 Check "2221577.68000011 -> 2221577.68" ([decimal]$D["F32F33|kokku|2021|0-18|arvete_summa"].vaartus -eq 2221577.68)
 $liigsed = @($detail + $koond | Where-Object { $_.vaartus -ne $null -and ([decimal]$_.vaartus * 100) -ne [Math]::Truncate([decimal]$_.vaartus * 100) })
@@ -126,9 +131,18 @@ function New-RawCopy([string]$nimi) {
   Get-ChildItem -LiteralPath $rawDir -Filter *.xlsx | Copy-Item -Destination $d
   return $d
 }
-function Invoke-Import([string]$raw, [string]$out) {
-  try { & $import -RawDir $raw -OutDir $out *> $null; return "" }
+function Invoke-Import([string]$raw, [string]$out, [string]$uuendus = "2026-11-01") {
+  try { & $import -RawDir $raw -OutDir $out -AllikaUuendus $uuendus *> $null; return "" }
   catch { return $_.Exception.Message }
+}
+# Sama sisendi koopia, kus failinimede väljavõtte kuupäev on asendatud (libisemise simulatsioon)
+function New-RawCopyDate([string]$nimi, [string]$kuupaev) {
+  $d = Join-Path $tmp $nimi
+  New-Item -ItemType Directory -Path $d | Out-Null
+  Get-ChildItem -LiteralPath $rawDir -Filter *.xlsx | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination (Join-Path $d ($_.Name -replace "2026-11-05", $kuupaev))
+  }
+  return $d
 }
 function Edit-Cell([string]$xlsx, [string]$vana, [string]$uus) {
   $zip = [IO.Compression.ZipFile]::Open($xlsx, [IO.Compression.ZipArchiveMode]::Update)
@@ -183,6 +197,29 @@ try {
   Copy-Item (Join-Path $d "tk_yldstat_F32_sugu-kokku_2026-11-05.xlsx") (Join-Path $d "tk_yldstat_F32_sugu-mehed_2026-11-05.xlsx")
   $v = Invoke-Import $d (Join-Path $tmp "o")
   Check "toetamata kombinatsiooni fail (F32 mehed) lükatakse tagasi" ($v -match "pole piloodis toetatud") $v
+
+  Section "Allika uuendus on kohustuslik ja väljavõtte kuupäev määrab pooleliolevat aastat (libisemine)"
+  try { & $import -RawDir $rawDir -OutDir (Join-Path $tmp "o-ilma") *> $null; $v = "" } catch { $v = $_.Exception.Message }
+  Check "ilma -AllikaUuendus annab veateate" ($v -match "AllikaUuendus") $v
+  $v = Invoke-Import $rawDir (Join-Path $tmp "o-halb") "2026/11/01"
+  Check "vigase kujuga uuenduskuupäev lükatakse tagasi" ($v -match "AAAA-KK-PP") $v
+
+  $d = New-RawCopyDate "kuup-2027" "2027-01-10"
+  $o = Join-Path $tmp "o-2027"
+  $v = Invoke-Import $d $o "2026-12-15"
+  Check "väljavõte 2027. aasta jaanuaris (andmed 2021–2026) õnnestub" ($v -eq "") $v
+  if (-not $v) {
+    $m = Read-Json (Join-Path $o "yldstat_meta.json")
+    Check "2027. aasta jaanuari väljavõttes pole pooleliolevat aastat, 2026 on täisaasta" ((@($m.pooleli_aastad).Count -eq 0) -and $m.viimane_taisaasta -eq "2026") "(pooleli: $(@($m.pooleli_aastad) -join ','), täisaasta: $($m.viimane_taisaasta))"
+    Check "2027. aasta jaanuari väljavõttes on vaikeaastad 2026 ja 2025" ($m.vaikimisi_vaatlusaasta -eq "2026" -and $m.vaikimisi_vordlusaasta -eq "2025")
+    $kirjed = Read-Json (Join-Path $o "yldstat_detail.json")
+    Check "kõik kirjed on täisaasta staatusega" (@($kirjed | Where-Object { $_.taisaasta_staatus -ne "taisaasta" }).Count -eq 0)
+    Check "allika uuendus tuleb parameetrist (2026-12-15), mitte vaikeväärtusest" ($m.allika_uuendus -eq "2026-12-15" -and $m.valjavotte_kuupaev -eq "2027-01-10")
+  }
+
+  $d = New-RawCopyDate "kuup-2025" "2025-11-05"
+  $v = Invoke-Import $d (Join-Path $tmp "o-2025")
+  Check "väljavõte, mille kuupäev on andmete uusimast aastast varasem, lükatakse tagasi" ($v -match "hilisem") $v
 
   Section "Null, puuduv ja varjatud eristuvad"
   $xlsx = "tk_yldstat_F32F33_sugu-kokku_2026-11-05.xlsx"

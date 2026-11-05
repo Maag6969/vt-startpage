@@ -3,7 +3,7 @@
 **Vaata töötavat lehte:** https://maag6969.github.io/vt-startpage/
 (nt otselink vaatele: https://maag6969.github.io/vt-startpage/#ETU41?sugu=vordlus)
 
-Otsused ja hetkeseis: [disain.md](disain.md) (kujundus) · [TASKS.md](TASKS.md) (tööetapid).
+Otsused ja hetkeseis: [disain.md](disain.md) (kujundus) · [TASKS.md](TASKS.md) (seis ja kava) · [TASKS-ARHIIV.md](TASKS-ARHIIV.md) (ajalugu).
 
 ## Eesmärk
 
@@ -112,11 +112,11 @@ js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel.
                             KAKS mudelit kõrvuti (dispatch `config.seriesVar` olemasolu järgi): vana "Indicator"
                             (ETU, binaarne osakaal + soo võrdlusrežiim) ja üldine "General" (suvaline seeriamuutuja,
-                            Eurostat); M3-s on ainult üldmudel — põhjus vt TASKS.md „Piloteerimise 2. etapp"
+                            Eurostat); M3-s on ainult üldmudel — põhjus vt TASKS-ARHIIV.md „Piloteerimise 2. etapp"
 js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
-js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS.md 17.09.2026)
+js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS-ARHIIV.md 17.09.2026)
 js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid, ei mingit live-päringut (TERVISEKASSA.md)
 scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
 data/tervisekassa/          importskripti JSON-failid (+ yldstat.js varuks failina avamisel); raw/ on Power BI väljavõtted (xlsx)
@@ -131,7 +131,7 @@ tools/serve.ps1             kohalik staatiline server arenduseks
 tools/stats.html            kasutusstatistika järjestatult (http://localhost:8080/tools/stats.html)
 .counter-admin-keys.tsv     loendurite halduskoodid (salajane)
 .claude/launch.json         eelvaate serveri seadistus
-cors-test.html              etapi 2 CORS-test (tulemus TASKS.md-s)
+cors-test.html              etapi 2 CORS-test (tulemus TASKS-ARHIIV.md-s)
 tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
 ```
 
@@ -162,7 +162,10 @@ muutuseta KPI-kaardil).
 |---|---|
 | `TAI.buildQuery(config, selection)` | Koostab PxWeb POST-päringu; näitaja kõigi väärtustega, eliminatsioonita muutujatele lisab koondkategooria |
 | `TAI.selectionFromState(config, state, vars, overrides)` | Kasutaja valikutest päringu piirangud |
-| `TAI.loadTable(config, state)` | Laeb kõik `queries(state)` päringud paralleelselt → `{ trend, breakdown }` lugejad |
+| `TAI.loadTable(config, state)` | Laeb kõik `queries(state)` päringud paralleelselt → `{ trend, breakdown }` lugejad ja sünkroonib aastad (`syncYears`) |
+| `TAI.syncYears(config, reader)` | Lisab API vastuse uuemad aastad `config.years`-ile: **uus andmeaasta ilmub ise** (05.11.2026). `buildQuery` küsib aastaid vaikimisi „kõik API-s olevad“ (filter `all`). **NB:** PxWeb `top` ei anna viimast aastat, vaid tabeli esimese; ETU tabelites on aastad kasvavas järjekorras. Viimane aasta valitakse mudelis, Eurostatil `lastTimePeriod=1` |
+| `TAI.describe(config)` | Kirjeldus, mis ei vanane: `{aastatel}` → „aastatel 2006, 2014 ja 2019“ (üks aasta: „2019. aastal“), `{aastad}` → loetelu; viimane „AAAA–AAAA“ vahemik uueneb |
+| `config.prepare()` (valikuline) | Lubadus, mida `app.js` ootab enne filtrite ja oleku loomist (Tervisekassa meta-fail: aastad, pooleliolev aasta, vaikeaastad) |
 | `TAI.readJsonStat2(payload)` | JSON-stat2 lugeja; `get(selection)` keeldub lugemast, kui suurem dimensioon on valimata |
 | `TAI.indicatorShare(reader, config, selection)` | Näitaja osakaal protsentides |
 | `TAI.readUploadedFile(file, config)` | Varuplaan: PxWebist alla laaditud JSON-stat2 fail, kontrollib tabeli vastavust |

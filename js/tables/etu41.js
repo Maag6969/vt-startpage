@@ -8,7 +8,7 @@
     code: "ETU41",
     title: "Depressiooni sümptomid",
     fullTitle: "Depressiooni sümptomite esinemine soo, vanuserühma ja taustatunnuste järgi",
-    description: "Olulise depressiooniga täiskasvanute osakaal aastatel 2006, 2014 ja 2019.",
+    description: "Olulise depressiooniga täiskasvanute osakaal {aastatel}.",
     eyebrow: "Eesti terviseuuring · ETU41",
     group: "Tervise Arengu Instituut",
     years: YEARS,
@@ -64,7 +64,6 @@
       return {
         trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Taustatunnus", "Sugu", "Vanuserühm"], sexOverride)),
         breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], Object.assign({
-          Aasta: [YEARS[YEARS.length - 1]],
           Taustatunnus: cfg.vars.Taustatunnus.values
         }, sexOverride)))
       };
