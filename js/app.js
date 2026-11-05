@@ -28,17 +28,21 @@
   var pendingScroll = false;
 
   function datasetRow(t) {
+    var sourceText = (t.source && t.source.listLabel) || "Allikas: " + (t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + t.code;
     return (
       '<li class="dataset" data-code="' + esc(t.code) + '">' +
         '<button type="button" class="dataset__button" aria-controls="content" ' +
-            'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
+            'aria-labelledby="ds-title-' + esc(t.code) + (t.openLabel ? " ds-open-" + esc(t.code) : "") + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
           '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(t.description) + "</span>" +
-          '<span class="dataset__chevron" aria-hidden="true">›</span>' +
+          // openLabel: nähtav silt rea lõpus (Tervisekassa „Ava aruanne“, intervjuu 05.11.2026); kogu rida jääb nupuks
+          (t.openLabel
+            ? '<span class="dataset__open"><span id="ds-open-' + esc(t.code) + '">' + esc(t.openLabel) + '</span> <span aria-hidden="true">›</span></span>'
+            : '<span class="dataset__chevron" aria-hidden="true">›</span>') +
         "</button>" +
         '<div class="dataset__footer">' +
-          '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">Allikas: ' +
-            esc(t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + esc(t.code) +
+          '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">' +
+            esc(sourceText) +
             ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
           '<span class="dataset__views" hidden></span>' +
           '<span class="dataset__status" role="status"></span>' +
@@ -157,7 +161,7 @@
         '<h2>Vali <span class="only-wide">vasakult</span><span class="only-narrow">ülalt</span> andmestik</h2>' +
         "<p>Näidikulaud koondab Eesti olulisemad vaimse heaolu ja tervise avaandmetena avaldatud näitajad " +
         "erinevatest andmebaasidest.</p>" +
-        "<p>Andmed laaditakse reaalajas järgmistest andmeallikatest:</p>" +
+        "<p>Andmed pärinevad järgmistest andmeallikatest:</p>" +
         // allikate loend tuleb vasaku loendi gruppidest, nii et uus allikas lisandub siia automaatselt
         "<ul>" + TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {
           return "<li>" + esc(g.name) + "</li>";
@@ -176,6 +180,11 @@
     if (kind === "loading") return '<p class="module__status">Laen andmeid — ' + link + "</p>";
     if (kind === "error") return '<p class="module__status module__status--error">Andmeid ei õnnestunud laadida! — ' + link + "</p>";
     if (kind !== "loaded") return '<p class="module__status"></p>';
+    // Valmis väljavõte, mitte päring allikasse: laadimise kellaaeg ei ütleks andmete seisu kohta midagi.
+    if (config.source && config.source.staticData) {
+      return '<p class="module__status">' + esc(config.source.statusText) + " — " + link +
+        (updatedText ? " · " + esc(updatedText) : "") + "</p>";
+    }
     var now = new Date();
     var src = config.seriesVar ? TAI.sourceLabel(config) : "TAI";
     return '<p class="module__status">Andmed laaditud ' + esc(src) + " andmebaasist · " +
@@ -186,6 +195,7 @@
   /* Tabeli enda uuendusaeg (API vastuse "updated" väli) — kuvatakse staatusreal, allikaviite järel. */
   function tableUpdatedText(data) {
     var anyReader = data[Object.keys(data)[0]];
+    if (anyReader && anyReader.statusNote) return anyReader.statusNote; // valmis väljavõte kirjeldab oma seisu ise
     var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
     return updated && !isNaN(updated) ? "Andmed uuendatud " + dateFmt.format(updated) : null;
   }
@@ -315,6 +325,7 @@
 
     var meta = [];
     if (source.source === "file") meta.push("Allikas: fail " + source.fileName);
+    var footnotes = typeof config.footnotes === "function" ? config.footnotes(data) : config.footnotes;
 
     document.title = config.title + " · " + BASE_TITLE;
     contentEl.setAttribute("aria-busy", "false");
@@ -330,9 +341,10 @@
         renderFilters(config, state) +
         '<div class="module__body" aria-live="polite"></div>' +
         '<footer class="module__footnotes">' +
-          config.footnotes.map(function (f) { return "<p>" + esc(f) + "</p>"; }).join("") +
+          footnotes.map(function (f) { return "<p>" + esc(f) + "</p>"; }).join("") +
           "<p>Allikas: " + esc(config.seriesVar ? TAI.sourceLongLabel(config) : "Tervise Arengu Instituut") + ", " +
-            TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config), "tabel " + config.code) + ".</p>" +
+            TAI.externalLink(config.seriesVar ? TAI.sourceUrl(config) : TAI.pxwebUrl(config),
+              (config.source && config.source.linkText) || "tabel " + config.code) + ".</p>" +
         "</footer>" +
       "</article>";
 
@@ -345,10 +357,20 @@
     if (!body) return;
     var config = view.config;
     var model = TAI.buildModel(config, view.data, stateOf(config));
-    var callout = TAI.calloutText(model);
-
     var summary = filterSummary(config, stateOf(config));
-    var html = (summary ? '<p class="filter-summary">' + esc(summary) + "</p>" : "") + TAI.renderKpis(model);
+    var summaryHtml = summary ? '<p class="filter-summary">' + esc(summary) + "</p>" : "";
+
+    // Toetamata filtrikombinatsioon: ainult teade, mitte tühjad kaardid ega liidetud hinnang.
+    if (model.notice) {
+      body.innerHTML = summaryHtml + '<p class="callout">' + esc(model.notice) + "</p>";
+      body.classList.remove("is-loading");
+      body.removeAttribute("aria-busy");
+      body._model = null;
+      return;
+    }
+
+    var callout = TAI.calloutText(model);
+    var html = summaryHtml + TAI.renderKpis(model);
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
     var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
@@ -370,8 +392,8 @@
       var b = model.breakdown;
       html += '<section class="chart-section" aria-labelledby="h-breakdown">' +
         '<h3 id="h-breakdown">' + esc(b.title) + "</h3>" +
-        '<p class="chart-note">' + esc(yearOf(b.year)) + ". aasta, " + esc(measureLabel.toLowerCase()) +
-          (unitTxt ? " (" + unitTxt + ")" : "") + (b.totals ? ". Katkendjoon näitab koondväärtust." : "") + "</p>" +
+        '<p class="chart-note">' + (b.note ? esc(b.note) : esc(yearOf(b.year)) + ". aasta, " + esc(measureLabel.toLowerCase()) +
+          (unitTxt ? " (" + unitTxt + ")" : "") + (b.totals ? ". Katkendjoon näitab koondväärtust." : "")) + "</p>" +
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-breakdown" role="group" aria-label="Tulpdiagramm"></svg>' +
         '<div class="tooltip" aria-hidden="true"></div></div>' +
@@ -380,6 +402,7 @@
         "</section>";
     }
     html += '<details class="data-details"><summary>Näita andmeid tabelina</summary>' + TAI.renderDataTables(model) + "</details>";
+    if (model.sourceNote) html += '<p class="chart-note chart-note--after">' + esc(model.sourceNote) + "</p>";
 
     body.innerHTML = html;
     body.classList.remove("is-loading");
@@ -596,7 +619,7 @@
 
   // TAI allikalingi klõps (loendis või moodulis; ka keskmise nupuga uude kaardi avamine)
   function onSourceClick(evt) {
-    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"], a[href*="ec.europa.eu/eurostat"]');
+    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"], a[href*="ec.europa.eu/eurostat"], a[href*="tervisekassa.ee"]');
     if (!link) return;
     var row = link.closest(".dataset");
     var code = row ? row.getAttribute("data-code") : (contentEl.contains(link) && view ? view.config.code : null);

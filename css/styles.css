@@ -141,6 +141,13 @@ a:hover { text-decoration-thickness: 2px; }
   color: var(--som-tumesinine); font-size: 1.6rem; line-height: 1;
 }
 
+/* Nähtav silt rea lõpus (Tervisekassa „Ava aruanne“); kogu rida on endiselt üks nupp. */
+.dataset__open {
+  grid-column: 1 / -1; justify-self: end;   /* oma real, et kitsas paneelis kirjeldust kokku ei suruks */
+  color: var(--som-tumesinine); font-size: 0.9rem; font-weight: 500; white-space: nowrap;
+}
+.dataset__open > [aria-hidden] { font-size: 1.6rem; line-height: 1; vertical-align: -0.1em; }
+
 .dataset__footer {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px;
   padding: 2px 20px 16px 24px;

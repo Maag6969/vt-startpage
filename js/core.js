@@ -51,7 +51,7 @@
    * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
    * pealkirjata. Grupi sees säilib ette antud järjekord (getTables(): uusim aasta, siis tähestik).
    */
-  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Eurostat"];
+  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Tervisekassa", "Eurostat"];
 
   TAI.groupTables = function (list) {
     var groups = [];
@@ -316,6 +316,14 @@
    * allikaspetsiifilist sõnastust; muidu vaikimisi "TAI andmebaas" (tagasiühilduvus).
    */
   TAI.describeError = function (err, config) {
+    // Lehega samas kohas olevad valmis andmefailid (config.source.staticData): faili üleslaadimist ei pakuta.
+    if (config && config.source && config.source.staticData) {
+      return {
+        title: "Aruande andmefaile ei õnnestunud laadida",
+        text: "Andmed asuvad lehega samas kohas olevates failides. Fail võib puududa või leht on avatud ilma veebiserverita.",
+        offerUpload: false
+      };
+    }
     var srcLabel = (config && config.source && config.source.longLabel) || "TAI andmebaas";
     var srcParen = (config && config.source) ? " (" + config.source.label + ")" : "";
     if (err instanceof TAI.NetworkError) {
@@ -393,6 +401,9 @@
     return TAI.readJsonStat2(json);
   };
 
+  /** GET-päring tavalisele JSON-failile (nt lehega samas kohas olevad Tervisekassa andmefailid). */
+  TAI.fetchJson = function (url) { return doFetch(url, {}); };
+
   /*
    * Tabeli allika-URL/silt: kui config.source on määratud (nt Eurostat-tabelil), kasutatakse seda;
    * muidu vaikimisi TAI PxWeb (tagasiühilduvus olemasolevate ETU-tabelitega, mis config.source-it
@@ -412,8 +423,10 @@
   };
 
   /** Laeb kõik konfiguratsiooni päringud (config.queries(state)) paralleelselt. Tagastab { nimi: lugeja }.
-   *  Iga päring on kas PxWeb query-objekt (POST) või lihtne URL-string (GET, nt Eurostat). */
+   *  Iga päring on kas PxWeb query-objekt (POST) või lihtne URL-string (GET, nt Eurostat).
+   *  Aruanne võib anda oma laadija (config.loadData), nt valmis JSON-failide jaoks. */
   TAI.loadTable = async function (config, state) {
+    if (config.loadData) return config.loadData(state || {});
     var queries = config.queries(state || {});
     var names = Object.keys(queries);
     var readers = await Promise.all(names.map(function (name) {

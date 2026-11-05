@@ -3,8 +3,9 @@
 Hetkeseisu jälgimise fail. Iga uus sessioon (sh Claude Code'is) peaks alustama sellest failist, et
 teada, kus pooleli jäädi — vt README.md tehnilise arhitektuuri ja disain.md visuaalsete otsuste jaoks.
 
-Viimati uuendatud: 21.10.2026 (piloteerimise 2. etapp tehtud, vt allpool uus jaotis; samm-sammuline juhis
-[ETAPP2-JUHIS.md](ETAPP2-JUHIS.md).
+Viimati uuendatud: 05.11.2026 (Tervisekassa piloot „Diagnoosid raviandmetes“ ehitatud ja lokaalselt kontrollitud, ootab
+kasutaja ülevaatust, vt p. 9 lõpp ja [TERVISEKASSA.md](TERVISEKASSA.md)). Varasem: 21.10.2026 piloteerimise 2. etapp tehtud,
+vt allpool uus jaotis; samm-sammuline juhis [ETAPP2-JUHIS.md](ETAPP2-JUHIS.md).
 Tehnilised töövoo-etapid 1–7 põhiosas lõpetatud — 2 väikest kontrolli seisab veel päris keskkonnas
 (mobiilikerimise animatsioon, päris printimine/SharePointi lingi eelvaade, vt etapid 4 ja 7); leht
 jagatud tagasisideks; etapp 8 SharePoint ootel)
@@ -418,6 +419,47 @@ tagasiside saamiseks. SharePointi integratsioon ja embed-juhised tehakse hiljem,
 Järgmine samm oli siis koolitaja/kolleegide tagasiside läbitöötamine — sellest ajast on lisandunud
 Eurostati tabel, loendi sortimine, päise/staatusrea ümberdisain ja filtrikonteksti läbivaatus
 (17.–18.09.2026, vt jaotised üleval).
+
+### Tervisekassa piloot „Diagnoosid raviandmetes“ (F32/F33), 05.11.2026
+
+Lähteülesanne, kontrollarvud ja reeglid: [TERVISEKASSA.md](TERVISEKASSA.md). **Staatus: lokaalselt valmis ja kontrollitud,
+EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
+
+- [x] Importskript `scripts/import-tervisekassa.ps1` (PowerShell, xlsx loetakse otse ZIP + XML kaudu, Excelit ega
+      lisapaigaldusi pole vaja; R-i, Pythonit ega Node'i arvutis pole). Väljund: `data/tervisekassa/yldstat_detail.json`
+      (1050 kirjet), `yldstat_koond.json` (210 kirjet, aasta kokku = vanuserühmade summa), `yldstat_meta.json`.
+- [x] Testid `scripts/test-tervisekassa.ps1`: 60/60 (kontrollarvud, kattuvus, deterministlikkus, vigased sisendid,
+      null/puudub/varjatud). Brauseris `tests/tervisekassa-test.html`: 16/16 (adapter, mudel, callout);
+      `tests/framework-test.html`: 21/21, grupi test uuendatud uue järjekorra järgi.
+- [x] Adapter `js/tables/tervisekassa-adapter.js` (väärtus täpse võtme järgi, toetamata → teade, midagi ei liideta).
+- [x] Moodul `js/tables/tervisekassa-diagnoosid.js`: oma andmemudel ja callout, kuvamine tuleb üldmudeli renderdusest
+      (`js/module.js`); filtrid diagnoos, vanuserühm, vaatlus- ja võrdlusaasta, sugu (sh võrdlusrežiim).
+      Väikesed laiendused ühiskoodis: `config.loadData`, `buildModel`, `calloutText`, `formatValue`,
+      `axisMax` funktsioonina, `provisionalYears`, `openLabel`, `source.staticData` jt.
+- [x] Intervjuu 05.11.2026: „Ava aruanne“ on tekst rea sees, kogu rida jääb nupuks; 2026 trendil katkendjoon + seest
+      tühi punkt (disain.md p. 5). Loendi järjekord TAI → Tervisekassa → Eurostat (põhimõte 21.10.2026: Eesti ees).
+- [x] Brauseris kontrollitud (lai + 375 px, horisontaalset kerimist pole): filtrid uuendavad KPI-d, graafikuid, callout'i,
+      tabelit ja allikakirjeldust; kattuvus 2021 (53 206, mitte 56 639) ja 2025 (61 819, mitte 65 428); F32/F33 + sugu
+      annab teate; 2026 märgistatud; otselink, veaolek + „Proovi uuesti“; aruanded ei sega üksteise filtreid; ETU41–43
+      ja ilc_pw01 arvud muutumatud; päringuid aadressile tervisekassa.ee ei tehta.
+- [x] Kasutaja otsus 05.11.2026: `data/tervisekassa/raw/` xlsx-failid lähevad koos JSON-failidega avalikku reposse.
+- [ ] **Enne avaldamist:** kasutaja vaatab aruande üle; commit ja push ainult kasutaja käsul.
+- [ ] **Avaldamisel:** luua Abacuses uued loendurid (`ds-TK-diagnoosid`, `f-TK-diagnoosid-*`, `a-TK-diagnoosid-*`),
+      vt disain.md „Kasutusstatistika“. Kuni neid pole, loendi real vaatamiste arvu ei kuvata; leht töötab edasi.
+
+**Avastatud probleemid ja piirangud:**
+- Failides pole allika koondridu, seega „vanuserühmade summa = allika koond“ saab importimisel kontrollida ainult
+  `scripts/test-tervisekassa.ps1` käsitsi kirjutatud kontrollarvude vastu. **Uue väljavõtte korral tuleb need arvud allikast
+  uuesti võtta**, muidu test kukub läbi. Allika uuenduskuupäev (`-AllikaUuendus`) ei ole xlsx-is ja antakse skriptile käsitsi.
+- Praegustes failides on kõik väärtused staatusega „olemas“. Kui varjatud väärtus on ekspordis tühi lahter, saab see staatuse
+  „puudub“ (põhjust ei saa lahtrist välja lugeda); „varjatud“ tuleb ainult selge tähisega, nt `<5`. Küsimus Tervisekassale.
+- Tervisekassa aruanne vajab veebiserverit (fetch ei tööta `file://` kaudu, tuleb selge veateade); GitHub Pagesil ja
+  `tools/serve.ps1` kaudu töötab. Teised aruanded töötavad nagu varem.
+- Parandatud kaasa: Eurostati (`ilc_pw01`) graafiku tooltip näitas väärtust protsendina („6,5%“), nüüd „6,5“. ETU-tabeleid see ei puuduta.
+- Avalehe tekst muudetud: „laaditakse reaalajas“ → „pärinevad“, sest Tervisekassa andmed pole reaalajas.
+- Lahtine: lehe üldjalus (`index.html`) ja lingi eelvaate tekstid nimetavad ainult TAI-d (Eurostat juba puudus sealt).
+  Muutmata, sest kasutaja pole seda sõnastust üle vaadanud. Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
+  (piloodist väljas, järgmised aruanded).
 
 ## Avatud küsimused / blokeerijad
 

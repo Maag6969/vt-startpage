@@ -331,8 +331,9 @@
     return lines;
   }
 
-  function markAttrs(label, value) {
-    var v = fmt(value);
+  /** format: tabeli enda väärtuse vormindaja; vaikimisi protsent (vana mudel). */
+  function markAttrs(label, value, format) {
+    var v = (format || fmt)(value);
     return { tabindex: "0", role: "img", "aria-label": label + ": " + v, "data-label": label, "data-value": v, class: "mark" };
   }
 
@@ -502,6 +503,17 @@
 
   TAI.yearLabel = function (config, code) { return TAI.labelOf(config, config.yearVar, code); };
   var yl = TAI.yearLabel;
+
+  /** Väärtuse vormindaja: tabeli oma (config.formatValue, nt täisarvud), muidu ühikuga kümnendarv. */
+  function valueFormat(config) {
+    return config.formatValue || function (v) { return TAI.formatValue(v, config.unit); };
+  }
+
+  /** Telje ülempiir: fikseeritud arv või tabeli oma arvutus (config.axisMax), muidu niceMax. */
+  function axisMaxOf(config, values) {
+    if (typeof config.axisMax === "function") return config.axisMax(values);
+    return config.axisMax || niceMax(values);
+  }
 
   /** Varutoonid seeriale, kui config.vars[seriesVar].colors puudub. */
   var DEFAULT_PALETTE = ["var(--series-1)", "var(--series-2)"];
@@ -742,7 +754,7 @@
 
   function renderKpisGeneral(model) {
     var config = model.config;
-    var fmt = function (v) { return TAI.formatValue(v, config.unit); };
+    var fmt = valueFormat(config);
     return '<div class="kpi-row">' + model.kpis.map(function (k) {
       var deltaHtml = "";
       if (!k.delta && k.prevYear && k.value != null) {
@@ -752,14 +764,15 @@
         var j = judgment(k.delta.direction, k.valence);
         var cls = j === "worse" ? "is-worse" : j === "better" ? "is-better" : "is-flat";
         deltaHtml = '<p class="kpi__delta ' + cls + '">' + esc(k.delta.text) +
-          ' <span class="kpi__delta-ref">võrreldes ' + esc(yl(config, k.prevYear)) + ". aastaga</span></p>";
+          ' <span class="kpi__delta-ref">' + esc(k.deltaRef || "võrreldes " + yl(config, k.prevYear) + ". aastaga") + "</span></p>";
       }
       return '<div class="kpi">' +
         '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(yl(config, k.year)) + "</p>" +
         (k.value == null
-          ? '<p class="kpi__value kpi__value--missing">Andmed puuduvad</p>'
+          ? '<p class="kpi__value kpi__value--missing">' + esc(k.missingText || "Andmed puuduvad") + "</p>"
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
         deltaHtml +
+        (k.note ? '<p class="kpi__note">' + esc(k.note) + "</p>" : "") +
         (!k.delta && config.kpiNote && k.value != null ? '<p class="kpi__note">' + esc(config.kpiNote) + "</p>" : "") +
         (k.reference ? '<p class="kpi__reference">' + esc(yl(config, k.year) + ". a " + k.reference.label) + ": " + fmt(k.reference.value) +
           (k.reference.delta && k.reference.delta.direction !== "flat"
@@ -772,7 +785,7 @@
 
   function renderDataTablesGeneral(model) {
     var config = model.config;
-    var fmt = function (v) { return TAI.formatValue(v, config.unit); };
+    var fmt = valueFormat(config);
     var ut = TAI.unitText(config);
     var unitSuffix = ut ? " (" + ut + ")" : "";
     var html = "";
@@ -791,10 +804,12 @@
     var b = model.breakdown;
     if (b) {
       var varLabel = config.vars[b.varCode].label;
+      // tableTotals: koondrida ainult tabelis, ilma graafiku võrdlusjooneta (nt arvude puhul, kus koond on rühmade summa)
+      var rowTotals = b.totals || b.tableTotals;
       html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(yl(config, b.year)) + unitSuffix + "</caption>" +
         "<thead><tr>" + (b.groups[0].label ? '<th scope="col">Rühm</th>' : "") + '<th scope="col">' + esc(varLabel) + "</th>" + heads + "</tr></thead><tbody>" +
-        (b.totals ? '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">Kokku</th>' +
-          b.totals.map(function (v) { return '<td class="num">' + fmt(v) + "</td>"; }).join("") + "</tr>" : "") +
+        (rowTotals ? '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">Kokku</th>' +
+          rowTotals.map(function (v) { return '<td class="num">' + fmt(v) + "</td>"; }).join("") + "</tr>" : "") +
         b.groups.map(function (g) {
           return g.items.map(function (it, i) {
             return "<tr>" + (g.label ? "<td>" + (i === 0 ? esc(g.label) : "") + "</td>" : "") +
@@ -804,18 +819,24 @@
         }).join("") + "</tbody></table>";
     }
 
-    html += '<p class="data-table__link">' + TAI.externalLink(TAI.sourceUrl(config), "Vaata kogu tabelit " + TAI.sourceLabel(config) + " andmebaasis") + "</p>";
+    html += '<p class="data-table__link">' + TAI.externalLink(TAI.sourceUrl(config),
+      (config.source && config.source.tableLinkText) || "Vaata kogu tabelit " + TAI.sourceLabel(config) + " andmebaasis") + "</p>";
     return html;
   }
 
   function drawTrendChartGeneral(svg, model, width) {
     var config = model.config;
-    var fmt = function (v) { return TAI.formatValue(v, config.unit); };
+    var fmt = valueFormat(config);
     var axisUnit = config.unit != null ? config.unit : "%";
     var years = config.years;
     var narrow = width < 480;
-    var W = Math.max(280, width), H = narrow ? 230 : 260;
-    var padL = 44, padR = 16, padT = 24, padB = 34;
+    // Pooleliolevad aastad (config.provisionalYears): katkendjoon ja seest tühi punkt.
+    function isProvisional(i) { return (config.provisionalYears || []).indexOf(years[i]) >= 0; }
+    // Aasta silt võib olla kaherealine, nt "2026 (pooleli)"; ühesõnalised sildid jäävad endiseks.
+    var yearLines = years.map(function (yr) { return yl(config, yr).split(" "); });
+    var extraLines = Math.max.apply(null, yearLines.map(function (l) { return l.length; })) - 1;
+    var W = Math.max(280, width), H = (narrow ? 230 : 260) + extraLines * 14;
+    var padL = 44, padR = 16, padT = 24, padB = 34 + extraLines * 14;
     var plotW = W - padL - padR, plotH = H - padT - padB;
     var inset = narrow ? 24 : 40;
 
@@ -824,7 +845,7 @@
     // config.axisMax: fikseeritud ülempiiriga skaalade jaoks (nt hindamisskaala 0–10) — niceMax()
     // astmestik (5/10/20/…) on mõeldud lahtise suurusjärguga arvudele (protsendid, suremuskordajad)
     // ja venitab kitsa, teadaoleva vahemikuga skaala teljed ebamõistlikult suureks.
-    var maxV = config.axisMax || niceMax(all);
+    var maxV = axisMaxOf(config, all);
 
     function x(i) { return padL + inset + ((plotW - 2 * inset) * i) / Math.max(1, years.length - 1); }
     function y(v) { return padT + plotH - (plotH * v) / maxV; }
@@ -838,21 +859,33 @@
     for (var g = 0; g <= axisTicks; g++) {
       var gv = (maxV * g) / axisTicks;
       svg.appendChild(el("line", { class: g === 0 ? "baseline" : "gridline", x1: padL, x2: W - padR, y1: y(gv), y2: y(gv) }));
-      svg.appendChild(el("text", { class: "axis-label", x: padL - 8, y: y(gv) + 4, "text-anchor": "end" }, Math.round(gv) + axisUnit));
+      svg.appendChild(el("text", { class: "axis-label", x: padL - 8, y: y(gv) + 4, "text-anchor": "end" },
+        config.formatValue ? fmt(gv) : Math.round(gv) + axisUnit));
     }
     years.forEach(function (yr, i) {
-      svg.appendChild(el("text", { class: "axis-label", x: x(i), y: H - padB + 22, "text-anchor": "middle" }, yl(config, yr)));
+      var label = el("text", { class: "axis-label", x: x(i), y: H - padB + 22, "text-anchor": "middle" });
+      yearLines[i].forEach(function (line, li) {
+        label.appendChild(el("tspan", { x: x(i), dy: li === 0 ? 0 : 14 }, line));
+      });
+      svg.appendChild(label);
     });
 
     model.trend.forEach(function (s) {
       var pts = s.points.map(function (p, i) { return p.value == null ? null : [x(i), y(p.value)]; });
-      var d = "", pen = false;
-      pts.forEach(function (p) {
-        if (!p) { pen = false; return; }
-        d += (pen ? "L" : "M") + p[0] + "," + p[1] + " ";
-        pen = true;
+      var d = "", dashed = "", pen = false, last = null;
+      pts.forEach(function (p, i) {
+        if (!p) { pen = false; last = null; return; }
+        if (isProvisional(i)) {
+          if (last) dashed += "M" + last[0] + "," + last[1] + " L" + p[0] + "," + p[1] + " ";
+          pen = false;
+        } else {
+          d += (pen ? "L" : "M") + p[0] + "," + p[1] + " ";
+          pen = true;
+        }
+        last = p;
       });
       if (d) svg.appendChild(el("path", { class: "line-series", d: d.trim(), stroke: s.color }));
+      if (dashed) svg.appendChild(el("path", { class: "line-series", d: dashed.trim(), stroke: s.color, "stroke-dasharray": "6 5" }));
     });
 
     // Sildid ainult algus-, lõpp- ja tippaastal (pika ajarea puhul muidu loetamatu).
@@ -881,9 +914,10 @@
             class: "mark-label", x: cx, y: below ? cy + 20 : cy - 11, "text-anchor": "middle"
           }, fmt(e.v)));
         }
-        var dot = el("circle", Object.assign(markAttrs(e.s.label + " · " + yl(config, yr), e.v, config.unit), {
+        var dot = el("circle", Object.assign(markAttrs(e.s.label + " · " + yl(config, yr), e.v, fmt), {
           cx: cx, cy: cy, r: 5, fill: e.s.color, class: "mark line-dot"
         }));
+        if (isProvisional(i)) dot.setAttribute("style", "fill: var(--taust); stroke: " + e.s.color);
         svg.appendChild(dot);
       });
     });
@@ -891,7 +925,7 @@
 
   function drawBarChartGeneral(svg, model, width) {
     var config = model.config;
-    var fmt = function (v) { return TAI.formatValue(v, config.unit); };
+    var fmt = valueFormat(config);
     var b = model.breakdown;
     var nSeries = b.series.length;
     var W = Math.max(280, width);
@@ -907,7 +941,7 @@
 
     var all = (b.totals || []).slice();
     b.groups.forEach(function (g) { g.items.forEach(function (it) { all = all.concat(it.values); }); });
-    var maxV = config.axisMax || niceMax(all);
+    var maxV = axisMaxOf(config, all);
     function bx(v) { return barX + (plotW * v) / maxV; }
 
     var charW = narrow ? 6.4 : 6.8;
@@ -956,7 +990,7 @@
             return;
           }
           var fill = nSeries === 1 ? (selected ? COLORS.selected : COLORS.bar) : s.color;
-          rowsLayer.appendChild(el("rect", Object.assign(markAttrs(it.label + (nSeries > 1 ? " · " + s.label : ""), v, config.unit), {
+          rowsLayer.appendChild(el("rect", Object.assign(markAttrs(it.label + (nSeries > 1 ? " · " + s.label : ""), v, fmt), {
             x: barX, y: y0, width: Math.max(2, bx(v) - barX), height: barH, rx: 3, fill: fill, class: "mark bar"
           })));
           rowsLayer.appendChild(el("text", { class: "mark-label", x: bx(v) + 6, y: y0 + barH / 2 + 4 }, fmt(v)));
@@ -985,10 +1019,14 @@
 
   // ---- avalik liides: dispatch config.seriesVar olemasolu järgi --------
 
+  // Aruanne võib anda oma andmemudeli ja callouti (config.buildModel, config.calloutText), nt Tervisekassa:
+  // kuvamine (KPI-d, graafikud, tabel) tuleb ikka ühisest üldmudeli renderdusest.
   TAI.buildModel = function (config, data, state) {
+    if (config.buildModel) return config.buildModel(config, data, state);
     return config.seriesVar ? buildModelGeneral(config, data, state) : buildModelIndicator(config, data, state);
   };
   TAI.calloutText = function (model) {
+    if (model.config.calloutText) return model.config.calloutText(model);
     return model.config.seriesVar ? calloutTextGeneral(model) : calloutTextIndicator(model);
   };
   TAI.renderKpis = function (model) {

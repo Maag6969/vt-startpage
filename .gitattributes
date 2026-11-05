@@ -1,0 +1,2 @@
+# Importskript kirjutab JSON-id LF-reavahetustega; korduskäivituse test võrdleb faile baidi täpsusega.
+data/tervisekassa/*.json text eol=lf

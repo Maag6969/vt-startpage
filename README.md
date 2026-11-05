@@ -117,6 +117,10 @@ js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, fil
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
 js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS.md 17.09.2026)
+js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid, ei mingit live-päringut (TERVISEKASSA.md)
+scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
+data/tervisekassa/          importskripti JSON-failid; raw/ on Power BI väljavõtted (xlsx)
+TERVISEKASSA.md             Tervisekassa piloodi lähteülesanne, kontrollarvud ja reeglid
 js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall (EI laeta lehele; kopeeri <KOOD>.js nime alla).
                             Vasaku loendi grupp tuleb `config.group` väljalt (järjekord `TAI.GROUP_ORDER`, core.js)
 
