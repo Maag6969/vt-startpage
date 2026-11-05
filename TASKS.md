@@ -495,8 +495,9 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
   NB: `yldstat.js` on genereeritud fail, ära muuda käsitsi; uue väljavõtte järel käivita importskript uuesti.
 - Parandatud kaasa: Eurostati (`ilc_pw01`) graafiku tooltip näitas väärtust protsendina („6,5%“), nüüd „6,5“. ETU-tabeleid see ei puuduta.
 - Avalehe tekst muudetud: „laaditakse reaalajas“ → „pärinevad“, sest Tervisekassa andmed pole reaalajas.
-- Lahtine: lingi eelvaate tekstid (`og:description` ja `meta description` `index.html`-is) nimetavad ainult TAI-d. Muutmata, sest
-  sõnastus on kasutaja otsustada. (Lehe jalus on 05.11.2026 parandatud, vt eespool.) Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
+- Lingi eelvaate tekstid (`og:description` ja `meta description` `index.html`-is) uuendatud 05.11.2026 kasutaja kinnitatud
+  sõnastusega (avaandmed, kolm allikat, ilma sõnata „reaalajas“ ja ilma sõnadeta „raviandmed“/„retseptid“). **Need on staatiline
+  HTML ega uuene ise**: uue allika või teema lisamisel muuda käsitsi. Lehe jalus ja avalehe tekst uuenevad ise. Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
   (piloodist väljas, järgmised aruanded).
 
 ## Avatud küsimused / blokeerijad
