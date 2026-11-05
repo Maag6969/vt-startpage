@@ -27,6 +27,10 @@
 
 * { box-sizing: border-box; }
 
+/* Brauseri kerimiskinnitus (scroll anchoring) lükkas pärast aruande valimist lehe tagasi vana asukohta: laadimiskaader on
+   lühike, siis sisu kasvab ja brauser hoiab jalust paigal. Aruande sisu vahetub terviklikult, seega kinnitust pole vaja. */
+html { overflow-anchor: none; }
+
 html, body {
   margin: 0;
   background: var(--taust);

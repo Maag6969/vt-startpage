@@ -446,8 +446,12 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
       (1) lehe jalus ja avalehe tekst: „Avaandmed pärinevad järgmistest andmeallikatest: Tervise Arengu Instituut, Tervisekassa,
       Eurostat“ — loetelu tuleb gruppidest (`TAI.getSources()`), nimede lühendid ja lingid `TAI.GROUP_INFO`-st (core.js);
       **uue allika lisamisel tuleb lisada rida ainult siia, kui tahta lühikest nime või linki**, muidu lisandub nimi ise;
-      (2) vasak loend kleepuv ja uus aruanne avaneb alati algusest (vt disain.md „Kerimine“); sujuva kerimise animatsiooni
-      brauseripaanis ei näe, loogika kontrollitud fronditud vahekaardil;
+      (2) vasak loend kleepuv ja uus aruanne avaneb alati algusest (vt disain.md „Kerimine“). **Viga, mis tuli välja alles
+      avaldatud lehel:** esimene versioon kerib sujuvalt ja brauseri kerimiskinnitus (scroll anchoring) lükkas lehe pärast
+      laadimiskaadrit tagasi vana asukohta (laadimiskaader on lühike, siis sisu kasvab ja brauser hoiab jalust paigal).
+      Parandus: `html { overflow-anchor: none }` ja laial ekraanil kohene (mitte sujuv) kerimine; mobiilis jääb sujuv
+      kerimine endiseks. Kontrollitud 9 aruandevahetusega eri kerimiskõrgustelt (kõik algasid ülevalt) ja lehe ülaosas ei kerita;
+      brauseripaan vajab selleks fronditud vahekaarti (`tabs_select`), muidu ei käitu sündmused usaldusväärselt;
       (3) Abacuse loendurid Tervisekassa aruandele (29 tk: `ds-`, `f-` ja `a-TK-diagnoosid-…`, ilma `a-…-fail`, sest üleslaadimist
       pole): 26 loodud (väärtus 0, halduskoodid `.counter-admin-keys.tsv`-s); `ds-TK-diagnoosid`, `a-TK-diagnoosid-allikas` ja
       `f-TK-diagnoosid-sugu-vordlus` tekkisid enne esimese kasutaja vaatamisega ja halduskoodi neil pole (vaatamine loob loenduri

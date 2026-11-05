@@ -550,8 +550,11 @@
      keritakse alati; laial ekraanil ainult siis, kui leht on kerinud aruande algusest mööda (nt lugenud pikka
      aruannet ja valib kleepuvast loendist teise), muidu algaks uus aruanne keskelt. */
   function scrollToContent() {
-    if (MOBILE_QUERY.matches || contentEl.getBoundingClientRect().top < 0) {
+    if (MOBILE_QUERY.matches) {
       contentEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    } else if (contentEl.getBoundingClientRect().top < 0) {
+      // laial ekraanil kohe (mitte sujuvalt): sisu vahetub ja kasvab kerimise ajal, sujuv kerimine katkeks
+      contentEl.scrollIntoView({ behavior: "instant", block: "start" });
     }
   }
 
