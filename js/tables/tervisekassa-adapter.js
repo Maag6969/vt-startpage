@@ -46,7 +46,7 @@
       meta: meta,
       get: get,
       isSupported: isSupported,
-      statusNote: "Eksporditud " + isoToEt(meta.valjavotte_kuupaev) + " · Allika uuendus " + isoToEt(meta.allika_uuendus)
+      statusNote: "Fail eksporditud " + isoToEt(meta.valjavotte_kuupaev) + " · Allika uuendus " + isoToEt(meta.allika_uuendus)
     };
   }
 

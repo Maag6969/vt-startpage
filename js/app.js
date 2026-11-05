@@ -32,13 +32,10 @@
     return (
       '<li class="dataset" data-code="' + esc(t.code) + '">' +
         '<button type="button" class="dataset__button" aria-controls="content" ' +
-            'aria-labelledby="ds-title-' + esc(t.code) + (t.openLabel ? " ds-open-" + esc(t.code) : "") + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
+            'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
           '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(t.description) + "</span>" +
-          // openLabel: nähtav silt rea lõpus (Tervisekassa „Ava aruanne“, intervjuu 05.11.2026); kogu rida jääb nupuks
-          (t.openLabel
-            ? '<span class="dataset__open"><span id="ds-open-' + esc(t.code) + '">' + esc(t.openLabel) + '</span> <span aria-hidden="true">›</span></span>'
-            : '<span class="dataset__chevron" aria-hidden="true">›</span>') +
+          '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +
           '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">' +

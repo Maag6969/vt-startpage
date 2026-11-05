@@ -51,7 +51,7 @@
    * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
    * pealkirjata. Grupi sees säilib ette antud järjekord (getTables(): uusim aasta, siis tähestik).
    */
-  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Tervisekassa", "Eurostat"];
+  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Tervisekassa (avaandmed)", "Eurostat"];
 
   TAI.groupTables = function (list) {
     var groups = [];

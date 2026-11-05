@@ -16,7 +16,8 @@ kuvatavaid vaimse tervise indikaatoreid (nt TAI depressiooni sümptomid) raviand
 - **Arhitektuur:** väljavõtted (xlsx) -> importskript -> valmis JSON-failid samas repos
   (`data/tervisekassa/`) -> moodul laeb need samast päritolust. Live-fetchi Tervisekassa Power BI-sse ei
   tehta; lehe avamine ei päri Tervisekassat. Kõrvalmõju: CORS-i probleemi pole.
-- Vasaku paneeli Tervisekassa ridadel on nupu silt "Ava aruanne" (mitte "API").
+- Vasaku paneeli Tervisekassa read on ühesugused teiste allikate ridadega. Algne nupusilt "Ava aruanne" jäeti ära
+  (kasutaja otsus 05.11.2026); allika nimi on kõikjal "Tervisekassa (avaandmed)".
 - **Iga aruanne on iseseisev:** oma filtrid, klassifikaatorid, vaikevalikud ja metoodika. Ühine on ainult
   tehniline raam ja esitusstruktuur. Aruannete vahel filtreid ei ühtlustata ega kanta üle.
 

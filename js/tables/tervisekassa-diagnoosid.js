@@ -163,7 +163,7 @@
     var files = meta.sisendfailid.filter(function (f) {
       return f.diagnoos_id === diag && series.some(function (s) { return s.sugu === f.sugu; });
     }).map(function (f) { return f.fail; });
-    model.sourceNote = "Selle vaate allikas: Tervisekassa, vaade „Üldine statistika“ · Diagnoosid: " + diagMeta.allika_nimed.join("; ") +
+    model.sourceNote = "Selle vaate allikas: Tervisekassa (avaandmed), vaade „Üldine statistika“ · Diagnoosid: " + diagMeta.allika_nimed.join("; ") +
       " · Sugu: " + series.map(function (s) { return s.label; }).join(", ") +
       " · Väljavõte " + TK.isoToEt(meta.valjavotte_kuupaev) + ", allika uuendus " + TK.isoToEt(meta.allika_uuendus) +
       " · " + (files.length > 1 ? "Failid: " : "Fail: ") + files.join(", ");
@@ -246,18 +246,17 @@
     code: "TK-diagnoosid",
     title: "Diagnoosid raviandmetes",
     fullTitle: "Diagnoosid raviandmetes: depressioon (F32, F33)",
-    description: "Isikute arv Tervisekassa arvete ja retseptide andmetes: depressioon F32 ja F33.",
-    eyebrow: "Tervisekassa · Üldine statistika",
-    group: "Tervisekassa",
-    openLabel: "Ava aruanne",
+    description: "Isikute arv Tervisekassa avaandmetes (arved ja retseptid): depressioon F32 ja F33.",
+    eyebrow: "Tervisekassa (avaandmed) · Üldine statistika",
+    group: "Tervisekassa (avaandmed)",
 
     source: {
       label: "Tervisekassa",
-      longLabel: "Tervisekassa",
+      longLabel: "Tervisekassa (avaandmed)",
       url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed",
       staticData: true,
-      statusText: "Valmis väljavõte Tervisekassa aruandest",
-      listLabel: "Allikas: Tervisekassa",
+      statusText: "Andmed pärinevad failist (Tervisekassa avaandmed)",
+      listLabel: "Allikas: Tervisekassa (avaandmed)",
       linkText: "aruanne „Vaimne tervis — retseptide ja arvete andmed“",
       tableLinkText: "Vaata algset aruannet Tervisekassa lehel"
     },
@@ -302,7 +301,8 @@
     footnotes: function (data) {
       var meta = data.store.meta;
       return [
-        "Isikute arv näitab Tervisekassa arvete ja retseptide andmetes kajastuvaid isikuid aasta kaupa. See ei ole levimus ega ravimata inimeste osakaal. " +
+        "Tervisekassa avaldab need andmed ise oma aruandes; siin on samad arvud esitatud näidikulauale sobivas ülesehituses.",
+        "Isikute arv näitab Tervisekassa avaandmetes (arved ja retseptid) kajastuvaid isikuid aasta kaupa. See ei ole levimus ega ravimata inimeste osakaal. " +
           "Määra 100 000 elaniku kohta ei arvutata, sest rahvaarvu nimetajad pole kinnitatud.",
         "Vanus on 31.12 seisuga. Väljavõte ei sisalda isikuid, kelle vanus on teadmata. Vanuserühmi võib ühe aasta sees liita. " +
           "Aastaid ja diagnoose ei liideta: sama isik võib olla mitmel aastal ja mõlemas diagnoosirühmas.",

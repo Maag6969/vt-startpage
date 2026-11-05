@@ -436,8 +436,12 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
       (`js/module.js`); filtrid diagnoos, vanuserühm, vaatlus- ja võrdlusaasta, sugu (sh võrdlusrežiim).
       Väikesed laiendused ühiskoodis: `config.loadData`, `buildModel`, `calloutText`, `formatValue`,
       `axisMax` funktsioonina, `provisionalYears`, `openLabel`, `source.staticData` jt.
-- [x] Intervjuu 05.11.2026: „Ava aruanne“ on tekst rea sees, kogu rida jääb nupuks; 2026 trendil katkendjoon + seest
-      tühi punkt (disain.md p. 5). Loendi järjekord TAI → Tervisekassa → Eurostat (põhimõte 21.10.2026: Eesti ees).
+- [x] Intervjuu 05.11.2026: 2026 trendil katkendjoon + seest tühi punkt (disain.md p. 5). Loendi järjekord
+      TAI → Tervisekassa → Eurostat (põhimõte 21.10.2026: Eesti ees).
+- [x] Kasutaja otsus 05.11.2026 (pärast ülevaatust): silti „Ava aruanne“ **ei kasutata** (kõik read ühesugused; algne
+      juhis nägi seda ette, kuid see tekitas ebakõla), ja Tervisekassa nimi on kõikjal **„Tervisekassa (avaandmed)“**.
+      Aruande päise rida ütleb selgelt, et andmed pärinevad failist (eksportimise ja allika uuenduse kuupäev).
+- Pagesi märkus: pärast push'i ei käivitunud ehitus ise; aitas `gh api -X POST repos/Maag6969/vt-startpage/pages/builds`.
 - [x] Brauseris kontrollitud (lai + 375 px, horisontaalset kerimist pole): filtrid uuendavad KPI-d, graafikuid, callout'i,
       tabelit ja allikakirjeldust; kattuvus 2021 (53 206, mitte 56 639) ja 2025 (61 819, mitte 65 428); F32/F33 + sugu
       annab teate; 2026 märgistatud; otselink, veaolek + „Proovi uuesti“; aruanded ei sega üksteise filtreid; ETU41–43
