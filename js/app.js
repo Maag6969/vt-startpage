@@ -178,9 +178,11 @@
     if (kind === "error") return '<p class="module__status module__status--error">Andmeid ei õnnestunud laadida! — ' + link + "</p>";
     if (kind !== "loaded") return '<p class="module__status"></p>';
     // Valmis väljavõte, mitte päring allikasse: laadimise kellaaeg ei ütleks andmete seisu kohta midagi.
+    // Rea sõnastuse koostab aruanne ise (source.statusLine), link tuleb siit.
     if (config.source && config.source.staticData) {
-      return '<p class="module__status">' + esc(config.source.statusText) + " — " + link +
-        (updatedText ? " · " + esc(updatedText) : "") + "</p>";
+      return '<p class="module__status">' + config.source.statusLine(function (text) {
+        return TAI.externalLink(TAI.sourceUrl(config), text);
+      }, updatedText) + "</p>";
     }
     var now = new Date();
     var src = config.seriesVar ? TAI.sourceLabel(config) : "TAI";

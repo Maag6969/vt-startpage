@@ -10,7 +10,8 @@
     2. Loeb xlsx-i otse (xlsx on ZIP-fail XML-iga). Excelit ega lisapaigaldusi pole vaja.
     3. Võrdleb lahtri A1 filtreid failinimega ning kontrollib päist, ridu, aastaid ja vanuserühmi.
     4. Ümardab eurosummad kahe komakohani ja märgib iga väärtuse staatuse.
-    5. Kirjutab detailread ja aasta koondid eraldi failidesse. Sama sisend annab baidi täpsusega sama väljundi.
+    5. Kirjutab detailread ja aasta koondid eraldi JSON-failidesse ning sama sisu ka failiks yldstat.js (varuks
+       juhuks, kui leht avatakse failina). Sama sisend annab baidi täpsusega sama väljundi.
 
   Väärtuse staatus: olemas | null (tegelik 0) | puudub (tühi lahter) | varjatud (nt "<5").
   Staatus "toetamata" tuleb adapterist: sellist kombinatsiooni andmetes lihtsalt pole.
@@ -165,9 +166,9 @@ function Write-Utf8([string]$path, [string]$text) {
   [IO.File]::WriteAllText($path, $text, (New-Object Text.UTF8Encoding($false)))
 }
 
-function Write-Records([string]$path, $kirjed) {
+function Format-Records($kirjed) {
   $read = foreach ($k in $kirjed) { ConvertTo-Json1 $k }
-  Write-Utf8 $path ("[`n" + ($read -join ",`n") + "`n]`n")
+  return "[`n" + ($read -join ",`n") + "`n]`n"
 }
 
 # ---- failide leidmine ja kontroll -----------------------------------------
@@ -285,9 +286,19 @@ $meta = [ordered]@{
 }
 
 if (-not (Test-Path -LiteralPath $OutDir)) { New-Item -ItemType Directory -Path $OutDir | Out-Null }
-Write-Records (Join-Path $OutDir "yldstat_detail.json") $detail
-Write-Records (Join-Path $OutDir "yldstat_koond.json") $koond
-Write-Utf8 (Join-Path $OutDir "yldstat_meta.json") ((ConvertTo-Json1 $meta) + "`n")
+$detailJson = Format-Records $detail
+$koondJson = Format-Records $koond
+$metaJson = (ConvertTo-Json1 $meta) + "`n"
+Write-Utf8 (Join-Path $OutDir "yldstat_detail.json") $detailJson
+Write-Utf8 (Join-Path $OutDir "yldstat_koond.json") $koondJson
+Write-Utf8 (Join-Path $OutDir "yldstat_meta.json") $metaJson
+
+# Sama sisu tavalise skriptifailina. Brauser ei luba lehel, mis on avatud failina (file://), JSON-faile lugeda,
+# aga <script> laadimine töötab. Leht kasutab seda ainult siis, kui JSON-ide lugemine ebaõnnestub.
+$jsText = "/* Genereeritud: scripts/import-tervisekassa.ps1. Ära muuda käsitsi. Sama sisu mis yldstat_*.json failidel. */`n" +
+  "window.TAI_TERVISEKASSA = {`n`"detail`": " + $detailJson.TrimEnd() + ",`n`"koond`": " + $koondJson.TrimEnd() +
+  ",`n`"meta`": " + $metaJson.TrimEnd() + "`n};`n"
+Write-Utf8 (Join-Path $OutDir "yldstat.js") $jsText
 
 $staatused = $detail | Group-Object { $_.staatus } | Sort-Object Name | ForEach-Object { "$($_.Name)=$($_.Count)" }
 Write-Host "Valmis: $($failid.Count) faili, $($detail.Count) detailkirjet, $($koond.Count) koondkirjet (staatused detailis: $($staatused -join ', '))"

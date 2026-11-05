@@ -427,9 +427,10 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
 
 - [x] Importskript `scripts/import-tervisekassa.ps1` (PowerShell, xlsx loetakse otse ZIP + XML kaudu, Excelit ega
       lisapaigaldusi pole vaja; R-i, Pythonit ega Node'i arvutis pole). Väljund: `data/tervisekassa/yldstat_detail.json`
-      (1050 kirjet), `yldstat_koond.json` (210 kirjet, aasta kokku = vanuserühmade summa), `yldstat_meta.json`.
-- [x] Testid `scripts/test-tervisekassa.ps1`: 60/60 (kontrollarvud, kattuvus, deterministlikkus, vigased sisendid,
-      null/puudub/varjatud). Brauseris `tests/tervisekassa-test.html`: 16/16 (adapter, mudel, callout);
+      (1050 kirjet), `yldstat_koond.json` (210 kirjet, aasta kokku = vanuserühmade summa), `yldstat_meta.json` ja
+      sama sisu varufailina `yldstat.js` (vt allpool).
+- [x] Testid `scripts/test-tervisekassa.ps1`: 65/65 (kontrollarvud, kattuvus, deterministlikkus, vigased sisendid,
+      null/puudub/varjatud, `yldstat.js` = JSON-id). Brauseris `tests/tervisekassa-test.html`: 19/19 (adapter ja varuvariant, mudel, callout);
       `tests/framework-test.html`: 21/21, grupi test uuendatud uue järjekorra järgi.
 - [x] Adapter `js/tables/tervisekassa-adapter.js` (väärtus täpse võtme järgi, toetamata → teade, midagi ei liideta).
 - [x] Moodul `js/tables/tervisekassa-diagnoosid.js`: oma andmemudel ja callout, kuvamine tuleb üldmudeli renderdusest
@@ -457,8 +458,12 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
   uuesti võtta**, muidu test kukub läbi. Allika uuenduskuupäev (`-AllikaUuendus`) ei ole xlsx-is ja antakse skriptile käsitsi.
 - Praegustes failides on kõik väärtused staatusega „olemas“. Kui varjatud väärtus on ekspordis tühi lahter, saab see staatuse
   „puudub“ (põhjust ei saa lahtrist välja lugeda); „varjatud“ tuleb ainult selge tähisega, nt `<5`. Küsimus Tervisekassale.
-- Tervisekassa aruanne vajab veebiserverit (fetch ei tööta `file://` kaudu, tuleb selge veateade); GitHub Pagesil ja
-  `tools/serve.ps1` kaudu töötab. Teised aruanded töötavad nagu varem.
+- **Failina avamine (`file://`), parandatud 05.11.2026 kasutaja tagasiside põhjal:** esialgu laadis aruanne andmed
+  `fetch`-iga ja failina avatuna tuli veateade, mis lõhkus README lubaduse „töötab ka failina“. Nüüd kirjutab importskript
+  JSON-ide kõrvale sama sisuga `data/tervisekassa/yldstat.js`; adapter proovib kõigepealt JSON-e ja laeb `yldstat.js` ainult
+  siis, kui need ei õnnestu (serveri ja GitHub Pagesi puhul seda faili alla ei laeta). Vigane JSON-sisu ei lähe varuvariandile.
+  Kontrollitud päris `file://` avamisega (peita Edge), brauseripaan näitab `file://` lehti ainult staatilise tõmmisena.
+  NB: `yldstat.js` on genereeritud fail, ära muuda käsitsi; uue väljavõtte järel käivita importskript uuesti.
 - Parandatud kaasa: Eurostati (`ilc_pw01`) graafiku tooltip näitas väärtust protsendina („6,5%“), nüüd „6,5“. ETU-tabeleid see ei puuduta.
 - Avalehe tekst muudetud: „laaditakse reaalajas“ → „pärinevad“, sest Tervisekassa andmed pole reaalajas.
 - Lahtine: lehe üldjalus (`index.html`) ja lingi eelvaate tekstid nimetavad ainult TAI-d (Eurostat juba puudus sealt).

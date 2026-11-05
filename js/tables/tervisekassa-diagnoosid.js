@@ -255,7 +255,12 @@
       longLabel: "Tervisekassa (avaandmed)",
       url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed",
       staticData: true,
-      statusText: "Andmed pärinevad failist (Tervisekassa avaandmed)",
+      // Päiserida (kasutaja sõnastus 05.11.2026): "Andmed pärinevad failist Üldine statistika · Fail eksporditud
+      // Tervisekassa avaandmetest 05.11.2026 (andmed seisuga 01.11.2026)"; "Tervisekassa avaandmetest" on link.
+      statusLine: function (link, note) {
+        return TAI.escapeHtml("Andmed pärinevad failist Üldine statistika · Fail eksporditud ") +
+          link("Tervisekassa avaandmetest") + (note ? " " + TAI.escapeHtml(note) : "");
+      },
       listLabel: "Allikas: Tervisekassa (avaandmed)",
       linkText: "aruanne „Vaimne tervis — retseptide ja arvete andmed“",
       tableLinkText: "Vaata algset aruannet Tervisekassa lehel"

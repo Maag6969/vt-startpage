@@ -46,21 +46,44 @@
       meta: meta,
       get: get,
       isSupported: isSupported,
-      statusNote: "Fail eksporditud " + isoToEt(meta.valjavotte_kuupaev) + " · Allika uuendus " + isoToEt(meta.allika_uuendus)
+      statusNote: isoToEt(meta.valjavotte_kuupaev) + " (andmed seisuga " + isoToEt(meta.allika_uuendus) + ")"
     };
+  }
+
+  /*
+   * Varuvariant: leht avatud failina (file://), kus brauser ei luba JSON-faile fetch-iga lugeda.
+   * Importskript kirjutab sama sisu ka tavalise skriptifailina (yldstat.js), mille <script> laadimine töötab.
+   * Seda faili ei laeta, kui JSON-ide lugemine õnnestub.
+   */
+  function loadFallbackScript() {
+    return new Promise(function (resolve, reject) {
+      if (window.TAI_TERVISEKASSA) { resolve(window.TAI_TERVISEKASSA); return; }
+      var s = document.createElement("script");
+      s.src = TAI.tervisekassa.DATA_BASE + "yldstat.js";
+      s.onload = function () {
+        window.TAI_TERVISEKASSA ? resolve(window.TAI_TERVISEKASSA) : reject(new Error("yldstat.js ei sisalda andmeid"));
+      };
+      s.onerror = function () { reject(new Error("yldstat.js laadimine ebaõnnestus")); };
+      document.head.appendChild(s);
+    });
   }
 
   var loading = null;
 
-  /** Laeb failid ühe korra; ebaõnnestunud laadimist saab uuesti proovida. */
-  function load() {
+  /** Laeb failid ühe korra; ebaõnnestunud laadimist saab uuesti proovida. opts.force = laadi uuesti. */
+  function load(opts) {
+    if (opts && opts.force) loading = null;
     if (!loading) {
       var base = TAI.tervisekassa.DATA_BASE;
       loading = Promise.all([
         TAI.fetchJson(base + "yldstat_detail.json"),
         TAI.fetchJson(base + "yldstat_koond.json"),
         TAI.fetchJson(base + "yldstat_meta.json")
-      ]).then(function (r) {
+      ]).catch(function (err) {
+        // Ainult võrgu- ja HTTP-vead lähevad varuvariandile; vigane sisu (DataError) on päris viga.
+        if (err instanceof TAI.DataError) throw err;
+        return loadFallbackScript().then(function (d) { return [d.detail, d.koond, d.meta]; }, function () { throw err; });
+      }).then(function (r) {
         return createStore(r[0], r[1], r[2]);
       }).catch(function (err) {
         loading = null;

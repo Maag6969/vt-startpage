@@ -147,11 +147,19 @@ try {
   $o1 = Join-Path $tmp "valjund1"; $o2 = Join-Path $tmp "valjund2"
   $v1 = Invoke-Import $rawDir $o1; $v2 = Invoke-Import $rawDir $o2
   Check "import õnnestus kaks korda" ($v1 -eq "" -and $v2 -eq "") "$v1 $v2"
-  foreach ($f in "yldstat_detail.json", "yldstat_koond.json", "yldstat_meta.json") {
+  foreach ($f in "yldstat_detail.json", "yldstat_koond.json", "yldstat_meta.json", "yldstat.js") {
     $h1 = (Get-FileHash (Join-Path $o1 $f)).Hash; $h2 = (Get-FileHash (Join-Path $o2 $f)).Hash
     $h0 = (Get-FileHash (Join-Path $dataDir $f)).Hash
     Check "$f on identne (ka kaustas data/tervisekassa olevaga)" ($h1 -eq $h2 -and $h1 -eq $h0)
   }
+
+  Section "yldstat.js (varuks failina avamisel) sisaldab täpselt JSON-failide sisu"
+  $js = [IO.File]::ReadAllText((Join-Path $dataDir "yldstat.js"), [Text.Encoding]::UTF8)
+  foreach ($nimi in "detail", "koond", "meta") {
+    $tekst = [IO.File]::ReadAllText((Join-Path $dataDir "yldstat_$nimi.json"), [Text.Encoding]::UTF8).TrimEnd()
+    Check "yldstat.js sisaldab faili yldstat_$nimi.json sisu" ($js.Contains($tekst))
+  }
+  Check "yldstat.js omistab ühe globaalmuutuja window.TAI_TERVISEKASSA" ($js -match '(?m)^window\.TAI_TERVISEKASSA = \{')
 
   Section "Vigased sisendid peatavad impordi"
   $d = New-RawCopy "puudub"

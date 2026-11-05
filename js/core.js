@@ -320,7 +320,7 @@
     if (config && config.source && config.source.staticData) {
       return {
         title: "Aruande andmefaile ei õnnestunud laadida",
-        text: "Andmed asuvad lehega samas kohas olevates failides. Fail võib puududa või leht on avatud ilma veebiserverita.",
+        text: "Andmed asuvad lehega samas kohas olevates failides (kaust data/tervisekassa). Fail võib puududa või olla vigane.",
         offerUpload: false
       };
     }
