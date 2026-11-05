@@ -41,6 +41,10 @@
     return 10 * mag * 5;
   }
 
+  /*
+   * Seeriad: soo võrdlus (mehed, naised), vanuserühmade võrdlus (5 rühma, iga oma värv --age-1…5, valitud soo piires)
+   * või üks seeria. Korraga on sees ainult üks võrdlus (app.js).
+   */
   function seriesOf(state) {
     if (state.compareSexes) {
       return [
@@ -48,14 +52,22 @@
         { code: "2", sugu: "naised", label: "Naised", plural: "naisi", color: "var(--series-2)" }
       ];
     }
+    if (state.compareAges) {
+      return AGE_VALUES.slice(1).map(function (code, i) {
+        return { code: code, sugu: SEX_ID[state.Sugu], age: code, label: AGE_LABELS[i + 1], color: "var(--age-" + (i + 1) + ")" };
+      });
+    }
     var label = TAI.labelOf(TAI.getTable("TK-diagnoosid"), "Sugu", state.Sugu);
     return [{ code: state.Sugu, sugu: SEX_ID[state.Sugu], label: label, color: "var(--series-1)" }];
   }
 
   function cardLabel(state, series) {
+    var config = TAI.getTable("TK-diagnoosid");
     var parts = ["Eesti", DIAGNOSES[state.Diagnoos].short];
-    if (state.compareSexes || state.Sugu !== "0") parts.push(series.label.toLowerCase());
-    if (state["Vanuserühm"] !== "kokku") parts.push(TAI.labelOf(TAI.getTable("TK-diagnoosid"), "Vanuserühm", state["Vanuserühm"]));
+    if (state.compareSexes) parts.push(series.label.toLowerCase());
+    else if (state.Sugu !== "0") parts.push(TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
+    if (series.age) parts.push(series.label);
+    else if (state["Vanuserühm"] !== "kokku") parts.push(TAI.labelOf(config, "Vanuserühm", state["Vanuserühm"]));
     return parts.join(", ");
   }
 
@@ -95,21 +107,22 @@
       return store.get({ diagnoos: diagnoos || diag, sugu: sugu, aasta: aasta, vanuseryhm: vanus || age, naitaja: "isikud" });
     }
 
+    // s.age on ainult vanuserühmade võrdluse seeriatel; muidu kehtib filtri vanuserühm
     model.trend = series.map(function (s) {
       return Object.assign({}, s, {
-        points: YEARS.map(function (y) { return { year: y, value: persons(s.sugu, y).vaartus }; })
+        points: YEARS.map(function (y) { return { year: y, value: persons(s.sugu, y, s.age).vaartus }; })
       });
     });
 
     var sameYear = obs === comp;
     var anyProvisional = isProvisional(obs) || isProvisional(comp);
     model.kpis = series.map(function (s) {
-      var current = persons(s.sugu, obs);
-      var delta = sameYear ? null : countDelta(current.vaartus, persons(s.sugu, comp).vaartus);
+      var current = persons(s.sugu, obs, s.age);
+      var delta = sameYear ? null : countDelta(current.vaartus, persons(s.sugu, comp, s.age).vaartus);
       var note = sameYear ? "Vaatlus- ja võrdlusaasta on samad, seega muutust ei arvutata."
         : anyProvisional ? "2026. aasta on pooleli, seega võrdlus täisaastaga ei ole samaväärne." : null;
       return {
-        label: s.label, color: s.color, valence: "neutral", year: obs, prevYear: sameYear ? null : comp,
+        label: s.label, ageLabel: s.age ? s.label : null, color: s.color, valence: "neutral", year: obs, prevYear: sameYear ? null : comp,
         value: current.vaartus, delta: delta, note: current.vaartus == null ? null : note,
         cardLabel: cardLabel(state, s),
         missingText: missingText(current.staatus),
@@ -117,31 +130,34 @@
       };
     });
 
-    model.breakdown = {
-      title: "Vanuserühmade võrdlus",
-      inPhrase: "vanuserühmades",
-      varCode: "Vanuserühm",
-      year: obs,
-      note: obs + ". aasta" + (isProvisional(obs) ? " (pooleli)" : "") + ", isikute arv. Vanus on 31.12 seisuga.",
-      selected: age !== "kokku" ? age : null,
-      expandable: false,
-      series: series,
-      totals: null, // koond on rühmade summa: võrdlusjoon venitaks telge ja suruks tulbad kokku
-      tableTotals: series.map(function (s) { return persons(s.sugu, obs, "kokku").vaartus; }),
-      groups: [{
-        label: null,
-        items: AGE_VALUES.slice(1).map(function (code) {
-          return {
-            code: code,
-            label: TAI.labelOf(config, "Vanuserühm", code),
-            values: series.map(function (s) { return persons(s.sugu, obs, code).vaartus; })
-          };
-        })
-      }]
-    };
+    // Vanuserühmade võrdluse ajal tulpdiagrammi pole (kasutaja otsus 05.11.2026): sama info on joontel ja KPI-kaartidel.
+    if (!state.compareAges) {
+      model.breakdown = {
+        title: "Vanuserühmade võrdlus",
+        inPhrase: "vanuserühmades",
+        varCode: "Vanuserühm",
+        year: obs,
+        note: obs + ". aasta" + (isProvisional(obs) ? " (pooleli)" : "") + ", isikute arv. Vanus on 31.12 seisuga.",
+        selected: age !== "kokku" ? age : null,
+        expandable: false,
+        series: series,
+        totals: null, // koond on rühmade summa: võrdlusjoon venitaks telge ja suruks tulbad kokku
+        tableTotals: series.map(function (s) { return persons(s.sugu, obs, "kokku").vaartus; }),
+        groups: [{
+          label: null,
+          items: AGE_VALUES.slice(1).map(function (code) {
+            return {
+              code: code,
+              label: TAI.labelOf(config, "Vanuserühm", code),
+              values: series.map(function (s) { return persons(s.sugu, obs, code).vaartus; })
+            };
+          })
+        }]
+      };
+    }
 
     // F32 ja F33 eraldi on olemas ainult soo koondi kohta, seega kattuvust saab näidata ainult siis.
-    if (!state.compareSexes && state.Sugu === "0") {
+    if (!state.compareSexes && !state.compareAges && state.Sugu === "0") {
       model.overlap = {
         f32: persons("kokku", obs, age, "F32").vaartus,
         f33: persons("kokku", obs, age, "F33").vaartus,
@@ -164,11 +180,37 @@
       return f.diagnoos_id === diag && series.some(function (s) { return s.sugu === f.sugu; });
     }).map(function (f) { return f.fail; });
     model.sourceNote = "Selle vaate allikas: Tervisekassa (avaandmed), vaade „Üldine statistika“ · Diagnoosid: " + diagMeta.allika_nimed.join("; ") +
-      " · Sugu: " + series.map(function (s) { return s.label; }).join(", ") +
+      " · Sugu: " + (state.compareSexes ? "Mehed, Naised" : TAI.labelOf(config, "Sugu", state.Sugu)) +
+      (state.compareAges ? " · Vanuserühmad: " + AGE_LABELS.slice(1).join(", ") : "") +
       " · Väljavõte " + TK.isoToEt(meta.valjavotte_kuupaev) + ", allika uuendus " + TK.isoToEt(meta.allika_uuendus) +
       " · " + (files.length > 1 ? "Failid: " : "Fail: ") + files.join(", ");
 
     return model;
+  }
+
+  /* Vanuserühmade võrdluse kirjeldus: väärtused rühmiti ning kus oli muutus suurim (absoluutarvuna ja suhteliselt). */
+  function ageCompareSentences(model) {
+    var state = model.state, comp = model.prev, obs = model.latest;
+    var diag = DIAGNOSES[state.Diagnoos].short;
+    var sexText = state.Sugu === "1" ? " (mehed)" : state.Sugu === "2" ? " (naised)" : "";
+    var who = state.Sugu === "1" ? "mehi" : state.Sugu === "2" ? "naisi" : "isikuid";
+    var obsText = (isProvisional(obs) ? "poolelioleval " : "") + obs + ". aastal";
+    var sentences = [];
+    var valid = model.kpis.filter(function (k) { return k.value != null; });
+    if (valid.length) {
+      sentences.push("Diagnoosivalikuga " + diag + sexText + " oli " + obsText + " " + who + " vanuserühmades " +
+        valid.map(function (k) { return k.ageLabel + " (" + formatCount(k.value) + ")"; }).join(", ") + ".");
+    }
+    var changes = model.kpis.filter(function (k) { return k.delta && k.delta.pct != null && k.delta.direction !== "flat"; });
+    if (changes.length > 1) {
+      var sign = function (k) { return k.delta.direction === "up" ? "+" : "−"; };
+      var byAbs = changes.slice().sort(function (a, b) { return Math.abs(b.delta.diff) - Math.abs(a.delta.diff); })[0];
+      var byPct = changes.slice().sort(function (a, b) { return b.delta.pct - a.delta.pct; })[0];
+      sentences.push("Võrreldes " + comp + ". aastaga oli muutus absoluutarvuna suurim rühmas " + byAbs.ageLabel + " (" + sign(byAbs) +
+        formatCount(Math.abs(byAbs.delta.diff)) + ") ja suhteliselt suurim rühmas " + byPct.ageLabel + " (" + sign(byPct) + TAI.formatPct(byPct.delta.pct) + ").");
+    }
+    sentences.push("Rühmad on eri laiusega, seega arvud ei näita rühmade suhtelist taset.");
+    return sentences;
   }
 
   /* Callout kirjeldab kuvatud numbreid ega hinda neid (TERVISEKASSA.md p. 3, reegel 7). */
@@ -189,7 +231,9 @@
         (k.delta.direction === "up" ? "rohkem" : "vähem") + " kui " + comp + ". aastal";
     }
 
-    if (model.kpis.length === 1 && model.kpis[0].value != null) {
+    if (state.compareAges) {
+      sentences = sentences.concat(ageCompareSentences(model));
+    } else if (model.kpis.length === 1 && model.kpis[0].value != null) {
       var k = model.kpis[0];
       var who = state.Sugu === "1" ? (k.value === 1 ? "mees" : "meest")
         : state.Sugu === "2" ? (k.value === 1 ? "naine" : "naist")
@@ -203,8 +247,10 @@
       if (cm && cw) sentences.push("Naisi oli " + cw + " ja mehi " + cm + ".");
     }
 
-    var items = model.breakdown.groups[0].items;
-    if (model.series.length === 1) {
+    var items = model.breakdown ? model.breakdown.groups[0].items : [];
+    if (!model.breakdown) {
+      // vanuserühmade võrdluses on tulpdiagramm peidus ja kirjeldus on juba eespool
+    } else if (model.series.length === 1) {
       var valid = items.filter(function (it) { return it.values[0] != null; })
         .sort(function (a, b) { return b.values[0] - a.values[0]; });
       if (valid.length > 1) {
@@ -293,6 +339,7 @@
 
     filters: ["Diagnoos", "Vanuserühm", "Vaatlusaasta", "Vordlusaasta", "Sugu"],
     canCompareSexes: true,
+    canCompareAges: true,
     views: { trend: true, breakdown: { var: "Vanuserühm" } },
 
     trendNote: "Katkendjoon ja seest tühi punkt: 2026. aasta on pooleli ega ole täisaastatega samaväärne. Iga aasta on eraldi andmepunkt, aastaid ei liideta.",

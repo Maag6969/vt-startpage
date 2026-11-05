@@ -89,8 +89,28 @@
     return { code: q >= 0 ? raw.slice(0, q) : raw, params: params };
   }
 
+  /*
+   * Rühmasisesed võrdlused (nupud rippmenüüde all): iga võrdlus on oma lipp olekus ja seotud ühe filtriga. Korraga võib
+   * sees olla ainult üks (soo VÕI vanus). Aruanne lubab võrdluse: soo → config.canCompareSexes, vanus → config.canCompareAges.
+   */
+  function comparisonsOf(config) {
+    var filters = config.filters || [];
+    var list = [];
+    if (config.canCompareSexes && filters.indexOf("Sugu") >= 0) {
+      list.push({ flag: "compareSexes", filter: "Sugu", label: "Mehed vrdl Naised", buttonId: "compare-sexes", usageOn: "compare", usageOff: "0" });
+    }
+    if (config.canCompareAges && filters.indexOf("Vanuserühm") >= 0) {
+      list.push({ flag: "compareAges", filter: "Vanuserühm", label: "Vanuserühmad vrdl", buttonId: "compare-ages", usageOn: "vordlus", usageOff: "kokku" });
+    }
+    return list;
+  }
+
+  function comparisonFor(config, filterCode) {
+    return comparisonsOf(config).filter(function (c) { return c.filter === filterCode; })[0] || null;
+  }
+
   function defaultState(config) {
-    var state = { compareSexes: false };
+    var state = { compareSexes: false, compareAges: false };
     (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
     return state;
   }
@@ -102,9 +122,12 @@
       var val = params[PARAM_NAMES[code] || code.toLowerCase()];
       if (val == null) return;
       if (code === "Sugu") {
-        if (val === SEX_PARAM.compare && config.canCompareSexes) { state.compareSexes = true; state.Sugu = "0"; }
+        // soo võrdlus on tähtsam kui vanuse võrdlus, kui aadressis on mõlemad
+        if (val === SEX_PARAM.compare && config.canCompareSexes) { state.compareSexes = true; state.compareAges = false; state.Sugu = "0"; }
         else if (val === SEX_PARAM["1"]) state.Sugu = "1";
         else if (val === SEX_PARAM["2"]) state.Sugu = "2";
+      } else if (code === "Vanuserühm" && val === "vordlus" && config.canCompareAges) {
+        if (!state.compareSexes) { state.compareAges = true; state.Vanuserühm = config.vars[code].totalValue; }
       } else if (config.vars[code].values.indexOf(val) >= 0) {
         state[code] = val;
       }
@@ -120,6 +143,8 @@
       if (code === "Sugu") {
         var key = state.compareSexes ? "compare" : state.Sugu;
         if (SEX_PARAM[key]) parts.push(name + "=" + SEX_PARAM[key]);
+      } else if (code === "Vanuserühm" && state.compareAges) {
+        parts.push(name + "=vordlus");
       } else if (state[code] != null && state[code] !== config.vars[code].totalValue) {
         parts.push(name + "=" + encodeURIComponent(state[code]));
       }
@@ -290,8 +315,9 @@
   function filterSummary(config, state) {
     var parts = (config.filters || []).map(function (code) {
       var v = config.vars[code];
+      var comp = comparisonFor(config, code);
+      if (comp && state[comp.flag]) return v.label + ": " + comp.label;
       if (code === "Sugu") {
-        if (state.compareSexes) return "Sugu: Mehed vrdl Naised";
         return state.Sugu != null && state.Sugu !== v.totalValue ? "Sugu: " + TAI.labelOf(config, "Sugu", state.Sugu) : null;
       }
       return state[code] != null && state[code] !== v.totalValue ? v.label + ": " + TAI.labelOf(config, code, state[code]) : null;
@@ -299,29 +325,52 @@
     return parts.length ? "Valitud lõige — " + parts.join(" · ") : "";
   }
 
+  var SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
+
+  /*
+   * Filtrid (kasutaja otsus 05.11.2026): kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
+   * Rippmenüüde all on eraldi "Võrdlus" nupud rühmasisesteks võrdlusteks (soo ja vanuserühmade võrdlus, korraga üks). Kui
+   * võrdlus on sees, näitab selle filtri menüü võrdluse rida (nt "Mehed vrdl Naised"); mõne väärtuse valimine lülitab võrdluse
+   * välja, nupp ja menüü on alati kooskõlas.
+   */
   function renderFilters(config, state) {
-    var html = '<div class="filters" role="group" aria-label="Filtrid">';
+    var comps = comparisonsOf(config);
+    var html = '<div class="filter-block"><div class="filters" role="group" aria-label="Filtrid">';
     (config.filters || []).forEach(function (code) {
-      if (code === "Sugu") return;
       var v = config.vars[code];
       var id = "filter-" + code;
+      var comp = comparisonFor(config, code);
+      var comparing = !!(comp && state[comp.flag]);
+      var options = code === "Sugu" ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, v.labels[i]]; });
       html += '<div class="field"><label for="' + esc(id) + '">' + esc(v.label) + "</label>" +
         '<select id="' + esc(id) + '" data-filter="' + esc(code) + '">' +
-        v.values.map(function (val, i) {
-          return '<option value="' + esc(val) + '"' + (state[code] === val ? " selected" : "") + ">" + esc(v.labels[i]) + "</option>";
-        }).join("") + "</select></div>";
-    });
-    if ((config.filters || []).indexOf("Sugu") >= 0) {
-      var current = state.compareSexes ? "compare" : state.Sugu;
-      var options = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
-      if (config.canCompareSexes) options.push(["compare", "Mehed vrdl Naised"]);
-      html += '<fieldset class="field segmented"><legend>Sugu</legend><div class="segmented__options">' +
         options.map(function (o) {
-          return '<label><input type="radio" name="filter-sex" value="' + o[0] + '"' + (current === o[0] ? " checked" : "") + ">" +
-            "<span>" + esc(o[1]) + "</span></label>";
-        }).join("") + "</div></fieldset>";
+          return '<option value="' + esc(o[0]) + '"' + (!comparing && state[code] === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>";
+        }).join("") +
+        (comparing ? '<option value="compare" selected disabled>' + esc(comp.label) + "</option>" : "") +
+        "</select></div>";
+    });
+    html += "</div>";
+    if (comps.length) {
+      html += '<div class="compare" role="group" aria-labelledby="compare-label"><span class="compare__label" id="compare-label">Võrdlus</span>' +
+        '<div class="compare__options">' + comps.map(function (c) {
+          return '<button type="button" class="compare-btn" id="' + c.buttonId + '" data-action="toggle-compare" data-compare="' + c.flag +
+            '" aria-pressed="' + (state[c.flag] ? "true" : "false") + '">' + esc(c.label) + "</button>";
+        }).join("") + "</div></div>";
     }
     return html + "</div>";
+  }
+
+  /* Filtriploki uuesti joonistamine kohapeal (nupp ja Sugu menüü peavad olema kooskõlas); fookus jääb samale elemendile. */
+  function refreshFilters() {
+    var block = contentEl.querySelector(".filter-block");
+    if (!block || !view) return;
+    var activeId = block.contains(document.activeElement) ? document.activeElement.id : "";
+    block.outerHTML = renderFilters(view.config, stateOf(view.config));
+    if (activeId) {
+      var el = document.getElementById(activeId);
+      if (el) el.focus({ preventScroll: true });
+    }
   }
 
   /* Mooduli karkass (disain.md p. 3): eyebrow, pealkiri, alapealkiri, meta, filtrid, sisu, jalus. */
@@ -454,10 +503,12 @@
     if (t.matches("select[data-filter]")) {
       state[t.getAttribute("data-filter")] = t.value;
       usage.track(usage.keyFilter(view.config.code, t.getAttribute("data-filter"), t.value));
-    } else if (t.matches('input[name="filter-sex"]')) {
-      state.compareSexes = t.value === "compare";
-      state.Sugu = state.compareSexes ? "0" : t.value;
-      usage.track(usage.keyFilter(view.config.code, "Sugu", t.value));
+      // väärtuse valimine menüüst lülitab selle filtri võrdluse välja; menüü kaotab seejärel võrdluse rea
+      var comp = comparisonFor(view.config, t.getAttribute("data-filter"));
+      if (comp && state[comp.flag]) {
+        state[comp.flag] = false;
+        refreshFilters();
+      }
     } else {
       return;
     }
@@ -476,6 +527,25 @@
     var state = stateOf(view.config);
     state[flag] = !state[flag];
     renderBody();
+  });
+
+  // "Võrdlus" nupud: võrdlus sisse/välja. Sisse: selle filtri väärtus läheb koondile ja teine võrdlus lülitub välja (üks korraga);
+  // välja: filter tagasi koondile ("Kokku").
+  contentEl.addEventListener("click", function (evt) {
+    var btn = evt.target.closest('[data-action="toggle-compare"]');
+    if (!btn || !view) return;
+    var config = view.config;
+    var state = stateOf(config);
+    var comp = comparisonsOf(config).filter(function (c) { return c.flag === btn.getAttribute("data-compare"); })[0];
+    if (!comp) return;
+    var turnOn = !state[comp.flag];
+    comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
+    state[comp.flag] = turnOn;
+    state[comp.filter] = config.vars[comp.filter].totalValue;
+    usage.track(usage.keyFilter(config.code, comp.filter, turnOn ? comp.usageOn : comp.usageOff));
+    history.replaceState(null, "", hashFor(config));
+    refreshFilters();
+    reload();
   });
 
   async function reload() {

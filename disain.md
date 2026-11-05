@@ -172,8 +172,29 @@ trendijoonis → tulpdiagramm → andmetabel → jalus.
 **Filtrid:**
 - Rida kohe meta-siltide all; rippmenüüd (nt Taustatunnus, Vanuserühm). Muutmine laadib andmed kohe,
   eraldi „Rakenda“ nuppu pole.
-- **Sugu = ümar lüliti:** Kokku | Mehed | Naised | Mehed vrdl Naised (sõnastus muudetud 17.09.2026). Aktiivne valik tumesinine `#181E54`
-  taust + valge kiri (15:1); mitteaktiivsed valge taust, helehall piirjoon, tumesinine kiri.
+- **Kõik lõiked, sh Sugu, on rippmenüüd** (kasutaja otsus 05.11.2026, varasem ümar soo lüliti asendati); igal aruandel on oma
+  lõiked `config.filters` järjekorras. Sugu menüü: Kokku | Mehed | Naised.
+- **„Võrdlus“ nupud rippmenüüde all:** eraldi rida sildiga „Võrdlus“ ja nuppudega rühmasisesteks võrdlusteks. Praegu on üks nupp,
+  **Mehed vrdl Naised** (ETU41–43, Tervisekassa). Aktiivne nupp tumesinine `#181E54` taust + valge kiri (15:1), mitteaktiivne valge
+  taust, helehall piirjoon, tumesinine kiri; nupp on lüliti (`aria-pressed`). Kui võrdlus on sees, näitab Sugu menüü rida
+  „Mehed vrdl Naised“; mõne soo valimine menüüst lülitab võrdluse välja. Aadress ja kasutusstatistika võtmed (`sugu=vordlus`,
+  `f-<KOOD>-sugu-vordlus`) jäid samaks. Eurostati aruandel soo võrdlust pole, seega nuppu seal pole.
+- **Vanuserühmade võrdlus** (nupp „Vanuserühmad vrdl“ samal real; kasutaja otsused 05.11.2026): praegu **ainult Tervisekassa aruandes**
+  (ETU41–42 hiljem, kui disain sobib; ETU43-l pole aastatrendi, Eurostatil on riigipõhine mudel). **Üks võrdlus korraga:** soo
+  nupp lülitab vanuse nupu välja ja vastupidi. Vanuse menüü näitab võrdluse ajal rida „Vanuserühmad vrdl“; valitud sugu piirab
+  (nt mehed), aadress `vanus=vordlus`, statistika `f-TK-diagnoosid-vanus-vordlus`. Trendigraafikul iga vanuserühm oma joon,
+  KPI-kaart iga rühma kohta, **vanuserühmade tulpdiagramm peidetakse** (sama info on joontel ja kaartidel), joonte punktisildid
+  jäetakse ära (üle kahe seeria kattuvad), väärtused on tooltipis, kaartidel ja tabelis. Callout nimetab rühmade väärtused ning
+  rühmad, kus muutus oli absoluutarvuna ja suhteliselt suurim (hinnanguta).
+- **Vanuserühmade värvid** (SoM lisavärvid tumendatud, kasutaja valik 05.11.2026; tokenid `--age-1…5` failis `css/styles.css`):
+  0–18 oranž `#d4621a`, 19–24 helesinine `#2a8fd1`, 25–34 kollane `#b88a00`, 35–64 **lilla `#7c3fbf`**, 65+ heleroheline
+  `#4e9a3a`. **Lilla on kasutaja soov 05.11.2026** (alguses oli 35–64 keskmine sinine `#4B7DFF`, aga kaks sinist oleks olnud
+  eristamatud); SoM paletis lillat pole, see on teadlik erand ja kehtib läbivalt kõigis aruannetes, kus vanuserühmi võrreldakse.
+  Kontrollitud dataviz-validaatoriga valgel taustal: kontrast ≥ 3,15:1 (lilla 6,3:1), kõrvuti olevate värvide halvim
+  värvipimeduse ΔE 23,8 ja tavanägemisel 26,6 (nõue ≥ 8 ja ≥ 15); lilla eristub helesinisest värvipimedusel ΔE 12,3 ja
+  tavanägemisel 20,3. **Piirang:** kõigi paaride kontroll ei läbiks (nt kollane ja roheline on protaanipimedusel sarnased),
+  seega värv ei ole ainus eristaja: legend, tooltip, KPI-kaardid (rühm nimes) ja andmetabel on kõik olemas. SoM-i algsed tumeroheline `#677c36` ja tumesinine `#181E54` ei läbinud (liiga madal kroom või lightness). Järjekord
+  on fikseeritud ja värv järgib rühma, mitte järjekorda.
 
 **KPI-kaardid:**
 - Üks kaart seeria kohta (võrdlusel 2): **viimase aasta väärtus + muutus eelmise mõõtmisega** protsendipunktides

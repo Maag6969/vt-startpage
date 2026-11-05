@@ -457,6 +457,20 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
       `f-TK-diagnoosid-sugu-vordlus` tekkisid enne esimese kasutaja vaatamisega ja halduskoodi neil pole (vaatamine loob loenduri
       ise). Vanuserühma „65+“ loenduri nimi on `…-vanus-65plus` (Abacus ei luba „+“ märki); olemasolevad võtmed ei muutunud.
       Abacuse päring `create` annab 429, kui neid teha liiga kiiresti: tee ≥ 4 s vahedega.
+- [x] Kasutaja soov 05.11.2026: **filtrite ühtlustus, tehtud lokaalselt (kontrollitud ETU41–43, Tervisekassa ja Eurostat; commit'imata):**
+      kõik lõiked on rippmenüüd (Sugu ka), rippmenüüde all rida „Võrdlus“ nupuga „Mehed vrdl Naised“ (lüliti, `aria-pressed`);
+      kui võrdlus on sees, näitab Sugu menüü rida „Mehed vrdl Naised“, mõne soo valimine lülitab selle välja. Arvud, aadressid ja
+      Abacuse võtmed jäid samaks. `app.js` `renderFilters()`/`refreshFilters()`, `styles.css` `.compare*`.
+      **Vanuserühmade võrdlus (kasutaja valis 05.11.2026), tehtud lokaalselt ainult Tervisekassa aruandele, commit'imata:** nupp
+      „Vanuserühmad vrdl“, 5 joont (SoM lisavärvid tumendatud, 35–64 lilla `#7c3fbf` kasutaja soovil, läbivalt; validaatoriga
+      kontrollitud, vt disain.md), KPI-kaart iga rühma kohta,
+      tulpdiagramm peidus, callout nimetab suurima muutusega rühmad; soo ja vanuse võrdlus ei saa korraga olla (üks lülitab teise
+      välja). Üldine loogika `app.js` `comparisonsOf()`, TAI aruanded (ETU41–42) saavad nupu hiljem lisades `canCompareAges: true`
+      ja vana mudeli (`module.js` `*Indicator`) laiendust: seal on seeria praegu ainult sugu, KPI/callout on soo-põhised.
+      Abacuse loendur `f-TK-diagnoosid-vanus-vordlus` loodud. Testid 24/24 (Tervisekassa), 21/21 (raamistik).
+- Õppetund: dataviz-validaator (`scripts/validate_palette.js` skillis) ei saa arvutis käivitada ilma Node'ita, aga töötab brauseris
+  (`import()` ajutiselt `tests/` kausta kopeeritud failist, mille kustutasin pärast). SoM tumeroheline `#677c36` jääb oranži kõrval
+  värvipimedusel eristamatuks (protan ΔE 2,2).
 - Pagesi märkus: pärast push'i ei käivitunud ehitus ise; aitas `gh api -X POST repos/Maag6969/vt-startpage/pages/builds`.
 - [x] Brauseris kontrollitud (lai + 375 px, horisontaalset kerimist pole): filtrid uuendavad KPI-d, graafikuid, callout'i,
       tabelit ja allikakirjeldust; kattuvus 2021 (53 206, mitte 56 639) ja 2025 (61 819, mitte 65 428); F32/F33 + sugu

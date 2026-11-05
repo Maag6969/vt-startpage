@@ -901,6 +901,10 @@
       return idx;
     });
 
+    // Üle kahe seeria on punktisildid loetamatud (kattuvad), seega neid ei joonistata: väärtused on KPI-kaartidel,
+    // hõljutamisel (tooltip) ja andmetabelis.
+    var showLabels = model.trend.length <= 2;
+
     years.forEach(function (yr, i) {
       var entries = model.trend
         .map(function (s, si) { return { s: s, si: si, v: s.points[i].value }; })
@@ -909,7 +913,7 @@
       entries.forEach(function (e, rank) {
         var cx = x(i), cy = y(e.v);
         var below = entries.length > 1 && rank === entries.length - 1;
-        if (labelYears[e.si][i]) {
+        if (showLabels && labelYears[e.si][i]) {
           svg.appendChild(el("text", {
             class: "mark-label", x: cx, y: below ? cy + 20 : cy - 11, "text-anchor": "middle"
           }, fmt(e.v)));
