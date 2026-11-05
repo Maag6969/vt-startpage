@@ -108,25 +108,9 @@
     return { code: q >= 0 ? raw.slice(0, q) : raw, params: params };
   }
 
-  /*
-   * Rühmasisesed võrdlused (nupud rippmenüüde all): iga võrdlus on oma lipp olekus ja seotud ühe filtriga. Korraga võib
-   * sees olla ainult üks (soo VÕI vanus). Aruanne lubab võrdluse: soo → config.canCompareSexes, vanus → config.canCompareAges.
-   */
-  function comparisonsOf(config) {
-    var filters = config.filters || [];
-    var list = [];
-    if (config.canCompareSexes && filters.indexOf("Sugu") >= 0) {
-      list.push({ flag: "compareSexes", filter: "Sugu", label: "Mehed vrdl Naised", buttonId: "compare-sexes", usageOn: "compare", usageOff: "0" });
-    }
-    if (config.canCompareAges && filters.indexOf("Vanuserühm") >= 0) {
-      list.push({ flag: "compareAges", filter: "Vanuserühm", label: "Vanuserühmad vrdl", buttonId: "compare-ages", usageOn: "vordlus", usageOff: "kokku" });
-    }
-    return list;
-  }
-
-  function comparisonFor(config, filterCode) {
-    return comparisonsOf(config).filter(function (c) { return c.filter === filterCode; })[0] || null;
-  }
+  // Rühmasisesed võrdlused (soo, vanuse): ühised abifunktsioonid on core.js-is (TAI.comparisonsOf), sest valitud lõige (module.js) vajab neid samuti.
+  var comparisonsOf = TAI.comparisonsOf;
+  var comparisonFor = TAI.comparisonFor;
 
   function defaultState(config) {
     var state = { compareSexes: false, compareAges: false };
@@ -326,25 +310,11 @@
   }
 
   /*
-   * Valitud lõige, kui vähemalt üks filter erineb vaikeväärtusest (nt "Kokku") — kinnitatud
-   * kasutajaga 18.09.2026: KPI-rea, graafikute ja tabeli kohal peab olema alati selge, milline
-   * valik neid numbreid kujundab, mitte ainult callout-tekstis. Vaikefiltritega tabelivaates
-   * jääb rida näitamata, et esmavaade ei koormaks üleliigse infoga (vt renderBody()).
+   * Valitud lõige (kasutaja otsus 05.11.2026, asendab 18.09.2026 reegli „näita ainult siis, kui filter erineb vaikeväärtusest“):
+   * KPI kastis ning iga joonise ja andmetabeli pealkirja all on alati näha, milliste valikute (ka vaikevalik) alusel numbrid
+   * kuvatakse. Selle koostavad TAI.sliceParts/trendSlice/breakdownSlice (module.js); vana ülemine rida „Valitud lõige — …“ kadus.
    */
-  function filterSummary(config, state) {
-    var parts = (config.filters || []).map(function (code) {
-      var v = config.vars[code];
-      var comp = comparisonFor(config, code);
-      if (comp && state[comp.flag]) return v.label + ": " + comp.label;
-      if (code === "Sugu") {
-        return state.Sugu != null && state.Sugu !== v.totalValue ? "Sugu: " + TAI.labelOf(config, "Sugu", state.Sugu) : null;
-      }
-      return state[code] != null && state[code] !== v.totalValue ? v.label + ": " + TAI.labelOf(config, code, state[code]) : null;
-    }).filter(function (p) { return p != null; });
-    return parts.length ? "Valitud lõige — " + parts.join(" · ") : "";
-  }
-
-  var SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
+  var SEX_OPTIONS = TAI.SEX_OPTIONS;
 
   /*
    * Filtrid (kasutaja otsus 05.11.2026): kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
@@ -431,12 +401,9 @@
     if (!body) return;
     var config = view.config;
     var model = TAI.buildModel(config, view.data, stateOf(config));
-    var summary = filterSummary(config, stateOf(config));
-    var summaryHtml = summary ? '<p class="filter-summary">' + esc(summary) + "</p>" : "";
-
-    // Toetamata filtrikombinatsioon: ainult teade, mitte tühjad kaardid ega liidetud hinnang.
+    // Toetamata filtrikombinatsioon: ainult teade, mitte tühjad kaardid ega liidetud hinnang (lõige näitab, mida valiti).
     if (model.notice) {
-      body.innerHTML = summaryHtml + '<p class="callout">' + esc(model.notice) + "</p>";
+      body.innerHTML = TAI.sliceHtml(TAI.sliceParts(config, stateOf(config)).join(" · ")) + '<p class="callout">' + esc(model.notice) + "</p>";
       body.classList.remove("is-loading");
       body.removeAttribute("aria-busy");
       body._model = null;
@@ -444,7 +411,7 @@
     }
 
     var callout = TAI.calloutText(model);
-    var html = summaryHtml + TAI.renderKpis(model);
+    var html = TAI.renderKpis(model);   // valitud lõige on KPI kastis (module.js)
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
     var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
@@ -454,7 +421,7 @@
 
     if (model.trend) {
       html += '<section class="chart-section" aria-labelledby="h-trend">' +
-        '<h3 id="h-trend">Trend aastate lõikes</h3>' +
+        '<h3 id="h-trend">Trend aastate lõikes</h3>' + TAI.sliceHtml(TAI.trendSlice(model)) +
         '<p class="chart-note">' + esc(measureLabel) + (unitTxt ? " (" + unitTxt + ")" : "") + ", " +
           esc(config.years.map(yearOf).join(", ")) + "</p>" +
         TAI.renderLegend(model.series) +
@@ -466,8 +433,9 @@
     if (model.breakdown) {
       var b = model.breakdown;
       html += '<section class="chart-section" aria-labelledby="h-breakdown">' +
-        '<h3 id="h-breakdown">' + esc(b.title) + "</h3>" +
-        '<p class="chart-note">' + (b.note ? esc(b.note) : esc(yearOf(b.year)) + ". aasta, " + esc(measureLabel.toLowerCase()) +
+        '<h3 id="h-breakdown">' + esc(b.title) + "</h3>" + TAI.sliceHtml(TAI.breakdownSlice(model)) +
+        // aasta ja lõige on juba lõike real; siin ainult mõõdik ja ühik (või aruande oma märkus)
+        '<p class="chart-note">' + (b.note ? esc(b.note) : esc(measureLabel) +
           (unitTxt ? " (" + unitTxt + ")" : "") + (b.totals ? ". Katkendjoon näitab koondväärtust." : "")) + "</p>" +
         TAI.renderLegend(model.series) +
         '<div class="chart-holder"><svg class="chart" id="chart-breakdown" role="group" aria-label="Tulpdiagramm"></svg>' +

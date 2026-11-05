@@ -117,6 +117,15 @@ kontota; ainult koguarvud, ajalugu pole). Kood: `js/usage.js`.
 - Aktiivne rida: keskmise sinise `#4B7DFF` vasakriba + taust `--sinine-15`; `aria-current="true"`.
 - Rea olekud: laadimisel spinner + „Laadin…“; vea korral punane tekst „Laadimine ebaõnnestus“.
 
+**Valitud lõige (kasutaja otsus 05.11.2026, ülevõetud M3-st; asendab 18.09.2026 reegli „näita ainult siis, kui filter erineb vaikeväärtusest“):**
+KPI kastis ning iga joonise ja andmetabeli pealkirja all on **alati** (ka vaikevalikuga, nt „Sugu: Kokku“) näha, milliste valikute alusel
+numbrid kuvatakse. Kuju „Filtri nimi: väärtus · Filtri nimi: väärtus“, väiksem paks kiri (0,8 rem, 700, sekundaarne tekst). Üks KPI-kaart:
+rida kaardi sees sildi all; mitu kaarti: üks rida ühise kasti ülaosas. Võrdlusrežiimis on võrreldav filter nimetatud võrdlusena
+(„Sugu: Mehed vrdl Naised“, „Vanuserühm: Vanuserühmad vrdl“), sest see on selle graafiku valik. Tulpdiagrammil on rida „2025. aasta,
+vanuserühmades · …“, tulpade enda võrdlustelje filter on välja jäetud (tulpades on kõik rühmad) ja valitud rühm on „esile tõstetud: …“.
+Tervisekassa aruandes on aastafiltrid lõikest välja jäetud (`sliceSkip`), sest aasta on juba KPI sildil, muutuse reas ja tulpdiagrammi lõikes;
+KPI silt on seal ainult „Eesti“ + see, mis kaarte eristab. Vana ülemine rida „Valitud lõige — …“ kadus.
+
 **Kerimine (laial ekraanil, kasutaja soov 05.11.2026):** leht kerib tervikuna (mitte kaks eraldi kerivat akent: parem printimisel,
 klaviatuuriga, iframe'is ja mobiilis). Vasak loend on **kleepuv** (`position: sticky`, kõrgus kuni ekraani kõrguseni, vajadusel
 kerib ise), nii et aruande lugemise ajal on teised aruanded kohe valitavad. Uue aruande valimisel keritakse leht selle algusesse,

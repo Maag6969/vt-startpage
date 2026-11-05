@@ -83,6 +83,30 @@
     "Eurostat": { url: "https://ec.europa.eu/eurostat" }
   };
 
+  /* Sugu rippmenüü ja lõike väärtused (Kokku | Mehed | Naised); ühine, et menüü ja valitud lõige ütleksid sama. */
+  TAI.SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
+
+  /*
+   * Rühmasisesed võrdlused (nupud rippmenüüde all): iga võrdlus on oma lipp olekus ja seotud ühe filtriga. Korraga võib sees olla
+   * ainult üks (soo VÕI vanus). Aruanne lubab võrdluse: soo → config.canCompareSexes, vanus → config.canCompareAges. Kasutavad
+   * app.js (nupud, menüü) ja module.js (valitud lõige).
+   */
+  TAI.comparisonsOf = function (config) {
+    var filters = config.filters || [];
+    var list = [];
+    if (config.canCompareSexes && filters.indexOf("Sugu") >= 0) {
+      list.push({ flag: "compareSexes", filter: "Sugu", label: "Mehed vrdl Naised", buttonId: "compare-sexes", usageOn: "compare", usageOff: "0" });
+    }
+    if (config.canCompareAges && filters.indexOf("Vanuserühm") >= 0) {
+      list.push({ flag: "compareAges", filter: "Vanuserühm", label: "Vanuserühmad vrdl", buttonId: "compare-ages", usageOn: "vordlus", usageOff: "kokku" });
+    }
+    return list;
+  };
+
+  TAI.comparisonFor = function (config, filterCode) {
+    return TAI.comparisonsOf(config).filter(function (c) { return c.filter === filterCode; })[0] || null;
+  };
+
   /** [{ name, url|null }] samas järjekorras kui vasak loend; grupita tabelid loetellu ei kuulu. */
   TAI.getSources = function () {
     return TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {

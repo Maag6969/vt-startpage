@@ -84,13 +84,12 @@
     return [{ code: state.Sugu, sugu: SEX_ID[state.Sugu], label: label, color: "var(--series-1)" }];
   }
 
+  /* KPI sildil on ainult üksus ja see, mis kaarte eristab (sugu või vanuserühm võrdlusel); diagnoos, sugu ja vanuserühm on
+     valitud lõike real kaardi sees või kaardirea kasti ülaosas (kasutaja otsus 05.11.2026, module.js TAI.sliceParts). */
   function cardLabel(state, series) {
-    var config = TAI.getTable("TK-diagnoosid");
-    var parts = ["Eesti", DIAGNOSES[state.Diagnoos].short];
+    var parts = ["Eesti"];
     if (state.compareSexes) parts.push(series.label.toLowerCase());
-    else if (state.Sugu !== "0") parts.push(TAI.labelOf(config, "Sugu", state.Sugu).toLowerCase());
     if (series.age) parts.push(series.label);
-    else if (state["Vanuserühm"] !== "kokku") parts.push(TAI.labelOf(config, "Vanuserühm", state["Vanuserühm"]));
     return parts.join(", ");
   }
 
@@ -160,7 +159,7 @@
         inPhrase: "vanuserühmades",
         varCode: "Vanuserühm",
         year: obs,
-        note: obs + ". aasta" + (isProvisional(obs) ? " (pooleli)" : "") + ", isikute arv. Vanus on 31.12 seisuga.",
+        note: "Isikute arv. Vanus on 31.12 seisuga.",   // aasta on valitud lõike real (module.js TAI.breakdownSlice)
         selected: age !== "kokku" ? age : null,
         expandable: false,
         series: series,
@@ -362,6 +361,8 @@
     },
 
     filters: ["Diagnoos", "Vanuserühm", "Vaatlusaasta", "Vordlusaasta", "Sugu"],
+    // Aastad on juba KPI sildil („· 2025“), muutuse reas („võrreldes 2024. aastaga“) ja tulpdiagrammi lõikes; lõikes neid ei korrata
+    sliceSkip: ["Vaatlusaasta", "Vordlusaasta"],
     canCompareSexes: true,
     canCompareAges: true,
     views: { trend: true, breakdown: { var: "Vanuserühm" } },

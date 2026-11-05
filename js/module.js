@@ -231,10 +231,69 @@
 
   function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 
+  // ---- valitud lõige (filtrilause) ---------------------------------------
+  /*
+   * Kasutaja otsus 05.11.2026 (ülevõetud M3-st, M2 kuju järgi; asendab 18.09.2026 reegli „vaikevalikul lõiget ei näidata“):
+   * KPI kastis ning iga joonise ja andmetabeli pealkirja all on väiksemas, paksus kirjas alati näha, milliste valikute (ka
+   * vaikevalik, nt „Sugu: Kokku“) alusel numbrid kuvatakse. Kuju „Filtri nimi: väärtus · Filtri nimi: väärtus“. Võrdlusrežiimis
+   * on võrreldav filter nimetatud võrdlusena („Sugu: Mehed vrdl Naised“), sest see ON selle graafiku valik.
+   * `config.sliceSkip` = filtrid, mida lõikes ei korrata, sest aeg on juba KPI sildil ja graafiku lõikes (nt Tervisekassa aastad).
+   * Tulbale ei kehti tema enda võrdlustelje filter (tulbas on kõik rühmad), seepärast oma lause (TAI.breakdownSlice).
+   */
+  function sliceValueLabel(config, code, val) {
+    if (code === "Sugu") {
+      var o = TAI.SEX_OPTIONS.filter(function (x) { return x[0] === val; })[0];
+      if (o) return o[1];
+    }
+    return TAI.labelOf(config, code, val);
+  }
+
+  TAI.sliceParts = function (config, state, exclude) {
+    var skip = config.sliceSkip || [];
+    return (config.filters || []).filter(function (code) { return code !== exclude && skip.indexOf(code) < 0; }).map(function (code) {
+      var v = config.vars[code];
+      var comp = TAI.comparisonFor(config, code);
+      if (comp && state[comp.flag]) return v.label + ": " + comp.label;
+      var val = state[code] != null ? state[code] : v.defaultValue != null ? v.defaultValue : v.totalValue;
+      return v.label + ": " + sliceValueLabel(config, code, val);
+    });
+  };
+
+  TAI.trendSlice = function (model) {
+    return TAI.sliceParts(model.config, model.state).join(" · ");
+  };
+
+  function sliceYearText(config, y) {
+    var label = config.seriesVar ? TAI.yearLabel(config, y) : y;
+    return /^\d{4}$/.test(label) ? label + ". aasta" : label;   // „2019. aasta“, aga „2026 (pooleli)“
+  }
+
+  TAI.breakdownSlice = function (model) {
+    var config = model.config, b = model.breakdown, state = model.state;
+    var codes = [];
+    b.groups.forEach(function (g) { g.items.forEach(function (it) { codes.push(it.code); }); });
+    var own = state[b.varCode];
+    var ownInBars = own == null || own === config.vars[b.varCode].totalValue || codes.indexOf(own) >= 0;
+    var parts = [sliceYearText(config, b.year) + (b.inPhrase ? ", " + b.inPhrase : "")]
+      .concat(TAI.sliceParts(config, state, ownInBars ? b.varCode : null));
+    if (b.selected && codes.indexOf(b.selected) >= 0) parts.push("esile tõstetud: " + TAI.labelOf(config, b.varCode, b.selected));
+    return parts.join(" · ");
+  };
+
+  /** Lõike rida joonise või andmetabeli pealkirja alla (tühi, kui lõiget pole). */
+  TAI.sliceHtml = function (text, cls) {
+    return text ? '<p class="slice ' + (cls || "chart-slice") + '">' + esc(text) + "</p>" : "";
+  };
+
+  function captionSlice(text) {
+    return text ? '<span class="slice data-table__slice"><span class="visually-hidden"> — </span>' + esc(text) + "</span>" : "";
+  }
+
   // ---- HTML-osad -----------------------------------------------------
 
-  function renderKpisIndicator(model) {
+  function renderKpisIndicator(model, slice) {
     var higherIsWorse = model.config.indicator.higherIsWorse;
+    var single = model.kpis.length === 1;
     return '<div class="kpi-row">' + model.kpis.map(function (k) {
       var deltaHtml = "";
       if (!k.delta && k.prevYear && k.value != null) {
@@ -248,6 +307,7 @@
       }
       return '<div class="kpi">' +
         '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(k.year) + "</p>" +
+        (single && slice ? '<p class="slice kpi__slice">' + esc(slice) + "</p>" : "") +
         (k.value == null
           ? '<p class="kpi__value kpi__value--missing">Andmed puuduvad</p>'
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
@@ -270,7 +330,7 @@
     var heads = model.series.map(function (s) { return '<th scope="col" class="num">' + esc(s.label) + "</th>"; }).join("");
 
     if (model.trend) {
-      html += '<table class="data-table"><caption>' + esc(config.indicator.label) + " (%) aastate kaupa</caption>" +
+      html += '<table class="data-table"><caption>' + esc(config.indicator.label) + " (%) aastate kaupa" + captionSlice(TAI.trendSlice(model)) + "</caption>" +
         '<thead><tr><th scope="col">Aasta</th>' + heads + "</tr></thead><tbody>" +
         config.years.map(function (y, i) {
           return '<tr><th scope="row">' + esc(y) + "</th>" + model.trend.map(function (s) {
@@ -282,7 +342,7 @@
     var b = model.breakdown;
     if (b) {
       var varLabel = config.vars[b.varCode].label;
-      html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(b.year) + " (%)</caption>" +
+      html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(b.year) + " (%)" + captionSlice(TAI.breakdownSlice(model)) + "</caption>" +
         "<thead><tr>" + (b.groups[0].label ? '<th scope="col">Rühm</th>' : "") + '<th scope="col">' + esc(varLabel) + "</th>" + heads + "</tr></thead><tbody>" +
         '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">Kokku</th>' +
           b.totals.map(function (v) { return '<td class="num">' + fmt(v) + "</td>"; }).join("") + "</tr>" +
@@ -773,9 +833,10 @@
     return sentences.join(" ");
   }
 
-  function renderKpisGeneral(model) {
+  function renderKpisGeneral(model, slice) {
     var config = model.config;
     var fmt = valueFormat(config);
+    var single = model.kpis.length === 1;
     return '<div class="kpi-row">' + model.kpis.map(function (k) {
       var deltaHtml = "";
       if (!k.delta && k.prevYear && k.value != null) {
@@ -789,6 +850,7 @@
       }
       return '<div class="kpi">' +
         '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(yl(config, k.year)) + "</p>" +
+        (single && slice ? '<p class="slice kpi__slice">' + esc(slice) + "</p>" : "") +
         (k.value == null
           ? '<p class="kpi__value kpi__value--missing">' + esc(k.missingText || "Andmed puuduvad") + "</p>"
           : '<p class="kpi__value">' + fmt(k.value) + "</p>") +
@@ -813,7 +875,7 @@
     var heads = model.series.map(function (s) { return '<th scope="col" class="num">' + esc(s.label) + "</th>"; }).join("");
 
     if (model.trend) {
-      html += '<table class="data-table"><caption>' + esc(config.measureLabel) + unitSuffix + " aastate kaupa</caption>" +
+      html += '<table class="data-table"><caption>' + esc(config.measureLabel) + unitSuffix + " aastate kaupa" + captionSlice(TAI.trendSlice(model)) + "</caption>" +
         '<thead><tr><th scope="col">Aasta</th>' + heads + "</tr></thead><tbody>" +
         config.years.map(function (y, i) {
           return '<tr><th scope="row">' + esc(yl(config, y)) + "</th>" + model.trend.map(function (s) {
@@ -827,7 +889,7 @@
       var varLabel = config.vars[b.varCode].label;
       // tableTotals: koondrida ainult tabelis, ilma graafiku võrdlusjooneta (nt arvude puhul, kus koond on rühmade summa)
       var rowTotals = b.totals || b.tableTotals;
-      html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(yl(config, b.year)) + unitSuffix + "</caption>" +
+      html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(yl(config, b.year)) + unitSuffix + captionSlice(TAI.breakdownSlice(model)) + "</caption>" +
         "<thead><tr>" + (b.groups[0].label ? '<th scope="col">Rühm</th>' : "") + '<th scope="col">' + esc(varLabel) + "</th>" + heads + "</tr></thead><tbody>" +
         (rowTotals ? '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">Kokku</th>' +
           rowTotals.map(function (v) { return '<td class="num">' + fmt(v) + "</td>"; }).join("") + "</tr>" : "") +
@@ -1057,8 +1119,12 @@
     if (model.config.calloutText) return model.config.calloutText(model);
     return model.config.seriesVar ? calloutTextGeneral(model) : calloutTextIndicator(model);
   };
+  // Valitud lõige KPI kastis: ühe kaardi puhul kaardi sees sildi all, mitme kaardi puhul üks kord kogu rea kasti ülaosas.
   TAI.renderKpis = function (model) {
-    return model.config.seriesVar ? renderKpisGeneral(model) : renderKpisIndicator(model);
+    var slice = TAI.sliceParts(model.config, model.state).join(" · ");
+    var row = model.config.seriesVar ? renderKpisGeneral(model, slice) : renderKpisIndicator(model, slice);
+    if (model.kpis.length === 1 || !slice) return row;
+    return '<div class="kpi-block"><p class="slice kpi-block__slice">' + esc(slice) + "</p>" + row + "</div>";
   };
   TAI.renderDataTables = function (model) {
     return model.config.seriesVar ? renderDataTablesGeneral(model) : renderDataTablesIndicator(model);
