@@ -67,6 +67,8 @@
     keyFilter: function (code, varCode, value) {
       var name = PARAM_NAMES[varCode] || varCode.toLowerCase();
       var val = varCode === "Sugu" ? SEX_VALUES[value] : value;
+      // Abacuse võtmes on lubatud ainult tähed, numbrid ning _ - . (nt vanuserühm "65+" → "65plus")
+      val = String(val).replace(/\+/g, "plus").replace(/[^A-Za-z0-9_.-]/g, "-");
       return "f-" + code + "-" + name + "-" + val;
     },
 

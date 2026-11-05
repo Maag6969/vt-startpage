@@ -87,12 +87,16 @@ a:hover { text-decoration-thickness: 2px; }
   min-height: calc(100vh - 160px);
 }
 
+/* Laial ekraanil on loend kleepuv: leht kerib tervikuna (hea printimisel ja iframe'is), aga loend jääb ekraanile
+   ja kerib vajadusel ise. Eraldusjoon on sisupaneelil, et see jookseks kogu kõrguse ulatuses. */
 .panel-list {
-  border-right: 1px solid var(--joon);
   padding: 8px 0;
+  position: sticky; top: 0; align-self: start;
+  max-height: 100vh; overflow-y: auto;
 }
 
 .panel-content {
+  border-left: 1px solid var(--joon);
   padding: 24px 32px 48px;
   min-width: 0;
 }
@@ -370,10 +374,10 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   .site-header { padding: 16px; }
   .site-header h1 { font-size: 1.6875rem; }  /* 1.35rem × 1,25 */
   .layout { grid-template-columns: 1fr; min-height: 0; }
-  .panel-list { border-right: none; border-bottom: 1px solid var(--joon); padding: 0; }
+  .panel-list { position: static; max-height: none; overflow-y: visible; border-bottom: 1px solid var(--joon); padding: 0; }
   .dataset__button { padding: 14px 16px 4px 20px; }
   .dataset__footer { padding: 2px 16px 14px 20px; }
-  .panel-content { padding: 20px 16px 40px; }
+  .panel-content { border-left: none; padding: 20px 16px 40px; }
   .back-link { display: inline-block; }
   .site-footer { padding: 16px; }
 }
@@ -392,7 +396,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 
   .site-header { padding: 0 0 8px; }
   .layout { display: block; min-height: 0; }
-  .panel-content { padding: 12px 0 0; }
+  .panel-content { border-left: none; padding: 12px 0 0; }
   .site-footer { padding: 8px 0 0; }
 
   /* taustavärvid (callout, sildid) ka printides */

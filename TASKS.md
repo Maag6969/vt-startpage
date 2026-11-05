@@ -442,6 +442,17 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
 - [x] Kasutaja otsus 05.11.2026 (pärast ülevaatust): silti „Ava aruanne“ **ei kasutata** (kõik read ühesugused; algne
       juhis nägi seda ette, kuid see tekitas ebakõla), ja Tervisekassa nimi on kõikjal **„Tervisekassa (avaandmed)“**.
       Aruande päise rida ütleb selgelt, et andmed pärinevad failist (eksportimise ja allika uuenduse kuupäev).
+- [x] Kasutaja soov 05.11.2026 (ülevaatuse järel), **tehtud lokaalselt, commit'imata**:
+      (1) lehe jalus ja avalehe tekst: „Avaandmed pärinevad järgmistest andmeallikatest: Tervise Arengu Instituut, Tervisekassa,
+      Eurostat“ — loetelu tuleb gruppidest (`TAI.getSources()`), nimede lühendid ja lingid `TAI.GROUP_INFO`-st (core.js);
+      **uue allika lisamisel tuleb lisada rida ainult siia, kui tahta lühikest nime või linki**, muidu lisandub nimi ise;
+      (2) vasak loend kleepuv ja uus aruanne avaneb alati algusest (vt disain.md „Kerimine“); sujuva kerimise animatsiooni
+      brauseripaanis ei näe, loogika kontrollitud fronditud vahekaardil;
+      (3) Abacuse loendurid Tervisekassa aruandele (29 tk: `ds-`, `f-` ja `a-TK-diagnoosid-…`, ilma `a-…-fail`, sest üleslaadimist
+      pole): 26 loodud (väärtus 0, halduskoodid `.counter-admin-keys.tsv`-s); `ds-TK-diagnoosid`, `a-TK-diagnoosid-allikas` ja
+      `f-TK-diagnoosid-sugu-vordlus` tekkisid enne esimese kasutaja vaatamisega ja halduskoodi neil pole (vaatamine loob loenduri
+      ise). Vanuserühma „65+“ loenduri nimi on `…-vanus-65plus` (Abacus ei luba „+“ märki); olemasolevad võtmed ei muutunud.
+      Abacuse päring `create` annab 429, kui neid teha liiga kiiresti: tee ≥ 4 s vahedega.
 - Pagesi märkus: pärast push'i ei käivitunud ehitus ise; aitas `gh api -X POST repos/Maag6969/vt-startpage/pages/builds`.
 - [x] Brauseris kontrollitud (lai + 375 px, horisontaalset kerimist pole): filtrid uuendavad KPI-d, graafikuid, callout'i,
       tabelit ja allikakirjeldust; kattuvus 2021 (53 206, mitte 56 639) ja 2025 (61 819, mitte 65 428); F32/F33 + sugu
@@ -466,8 +477,8 @@ EI OLE commit'itud ega avaldatud; ootab kasutaja ülevaatust.**
   NB: `yldstat.js` on genereeritud fail, ära muuda käsitsi; uue väljavõtte järel käivita importskript uuesti.
 - Parandatud kaasa: Eurostati (`ilc_pw01`) graafiku tooltip näitas väärtust protsendina („6,5%“), nüüd „6,5“. ETU-tabeleid see ei puuduta.
 - Avalehe tekst muudetud: „laaditakse reaalajas“ → „pärinevad“, sest Tervisekassa andmed pole reaalajas.
-- Lahtine: lehe üldjalus (`index.html`) ja lingi eelvaate tekstid nimetavad ainult TAI-d (Eurostat juba puudus sealt).
-  Muutmata, sest kasutaja pole seda sõnastust üle vaadanud. Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
+- Lahtine: lingi eelvaate tekstid (`og:description` ja `meta description` `index.html`-is) nimetavad ainult TAI-d. Muutmata, sest
+  sõnastus on kasutaja otsustada. (Lehe jalus on 05.11.2026 parandatud, vt eespool.) Arved, retseptid ja kulud on JSON-is, aga kasutajaliideses mitte
   (piloodist väljas, järgmised aruanded).
 
 ## Avatud küsimused / blokeerijad

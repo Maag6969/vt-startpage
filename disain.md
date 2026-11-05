@@ -117,6 +117,11 @@ kontota; ainult koguarvud, ajalugu pole). Kood: `js/usage.js`.
 - Aktiivne rida: keskmise sinise `#4B7DFF` vasakriba + taust `--sinine-15`; `aria-current="true"`.
 - Rea olekud: laadimisel spinner + „Laadin…“; vea korral punane tekst „Laadimine ebaõnnestus“.
 
+**Kerimine (laial ekraanil, kasutaja soov 05.11.2026):** leht kerib tervikuna (mitte kaks eraldi kerivat akent: parem printimisel,
+klaviatuuriga, iframe'is ja mobiilis). Vasak loend on **kleepuv** (`position: sticky`, kõrgus kuni ekraani kõrguseni, vajadusel
+kerib ise), nii et aruande lugemise ajal on teised aruanded kohe valitavad. Uue aruande valimisel keritakse leht selle algusesse,
+kui eelmise aruande lugemine on selle algusest mööda kerinud.
+
 ### Parem kuvamisala
 - **Tühi olek:** juhis „Vali vasakult andmestik“ + 2–3 lauset, mida näidikulaud näitab ja et andmed
   laaditakse reaalajas TAI andmebaasist.
@@ -129,7 +134,9 @@ Paneelid virnas, loend üleval. Rea valimisel keritakse automaatselt mooduli alg
 link „↑ Tagasi andmestike juurde“.
 
 ### Lehe üldjalus
-Ainult andmeallikas: „Andmed: Tervise Arengu Instituut, Eesti terviseuuring“ + link TAI andmebaasi.
+„Avaandmed pärinevad järgmistest andmeallikatest: Tervise Arengu Instituut, Tervisekassa, Eurostat“ (kasutaja sõnastus
+05.11.2026). Loetelu tuleb vasaku loendi gruppidest (`TAI.getSources()`, sama allikas mis avalehe tekst), seega uus allikas
+lisandub jaluses ja avalehel ise. Allika nimi on jaluses link allika avalehele; lühike nimi ja link tulevad `TAI.GROUP_INFO`-st.
 
 ### Aadress
 Valitud tabel **ja filtrid** kajastuvad aadressis (nt `#ETU41?taustatunnus=3&vanus=2&sugu=vordlus`) —

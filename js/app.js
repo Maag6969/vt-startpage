@@ -158,12 +158,19 @@
         '<h2>Vali <span class="only-wide">vasakult</span><span class="only-narrow">ülalt</span> andmestik</h2>' +
         "<p>Näidikulaud koondab Eesti olulisemad vaimse heaolu ja tervise avaandmetena avaldatud näitajad " +
         "erinevatest andmebaasidest.</p>" +
-        "<p>Andmed pärinevad järgmistest andmeallikatest:</p>" +
+        "<p>Avaandmed pärinevad järgmistest andmeallikatest:</p>" +
         // allikate loend tuleb vasaku loendi gruppidest, nii et uus allikas lisandub siia automaatselt
-        "<ul>" + TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {
-          return "<li>" + esc(g.name) + "</li>";
-        }).join("") + "</ul>" +
+        "<ul>" + TAI.getSources().map(function (s) { return "<li>" + esc(s.name) + "</li>"; }).join("") + "</ul>" +
       "</div>";
+  }
+
+  /* Lehe jalus: sama allikate loetelu mis avalehel (TAI.getSources), nimed lingitud allika avalehele. */
+  function renderFooter() {
+    var footer = document.getElementById("site-footer");
+    if (!footer) return;
+    footer.innerHTML = "Avaandmed pärinevad järgmistest andmeallikatest: " + TAI.getSources().map(function (s) {
+      return s.url ? TAI.externalLink(s.url, s.name) : esc(s.name);
+    }).join(", ");
   }
 
   function backLink() {
@@ -539,8 +546,13 @@
 
   function scrollBehavior() { return REDUCED_MOTION.matches ? "auto" : "smooth"; }
 
+  /* Uue aruande avamisel algab see ülevalt (kasutaja soov 05.11.2026). Kitsas ekraanil on loend aruande kohal, seega
+     keritakse alati; laial ekraanil ainult siis, kui leht on kerinud aruande algusest mööda (nt lugenud pikka
+     aruannet ja valib kleepuvast loendist teise), muidu algaks uus aruanne keskelt. */
   function scrollToContent() {
-    if (MOBILE_QUERY.matches) contentEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    if (MOBILE_QUERY.matches || contentEl.getBoundingClientRect().top < 0) {
+      contentEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    }
   }
 
   function focusHeading() {
@@ -640,6 +652,7 @@
   });
 
   renderList();
+  renderFooter();
   loadViewCount();
   window.addEventListener("hashchange", onHashChange);
   if (TAI.getTable(parseHash().code)) {

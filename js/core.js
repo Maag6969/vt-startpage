@@ -71,6 +71,26 @@
 
   TAI.getTableGroups = function () { return TAI.groupTables(TAI.getTables()); };
 
+  /*
+   * Allikate loetelu avalehe tekstis ja lehe jaluses (kokku lepitud kasutajaga 05.11.2026): iga grupp on üks
+   * allikas, seega uus allikas (uus `config.group`) lisandub mõlemasse ise. Valikuline lisainfo siin:
+   *  - short: lühike nimi loetelus, kui grupi pealkiri on pikem (nt "Tervisekassa (avaandmed)" → "Tervisekassa");
+   *  - url: allika avaleht, millele jaluses nimi lingitakse (puudumisel on nimi lihtsalt tekst).
+   */
+  TAI.GROUP_INFO = {
+    "Tervise Arengu Instituut": { url: "https://statistika.tai.ee/pxweb/et/Andmebaas/" },
+    "Tervisekassa (avaandmed)": { short: "Tervisekassa", url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed" },
+    "Eurostat": { url: "https://ec.europa.eu/eurostat" }
+  };
+
+  /** [{ name, url|null }] samas järjekorras kui vasak loend; grupita tabelid loetellu ei kuulu. */
+  TAI.getSources = function () {
+    return TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {
+      var info = TAI.GROUP_INFO[g.name] || {};
+      return { name: info.short || g.name, url: info.url || null };
+    });
+  };
+
   TAI.getTable = function (code) {
     for (var i = 0; i < tables.length; i++) {
       if (tables[i].code === code) return tables[i];

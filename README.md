@@ -121,6 +121,7 @@ js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid,
 scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
 data/tervisekassa/          importskripti JSON-failid (+ yldstat.js varuks failina avamisel); raw/ on Power BI väljavõtted (xlsx)
 TERVISEKASSA.md             Tervisekassa piloodi lähteülesanne, kontrollarvud ja reeglid
+                            Lehe jalus ja avalehe allikate loetelu tulevad samast kohast (`TAI.getSources()`, core.js)
 js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall (EI laeta lehele; kopeeri <KOOD>.js nime alla).
                             Vasaku loendi grupp tuleb `config.group` väljalt (järjekord `TAI.GROUP_ORDER`, core.js)
 
