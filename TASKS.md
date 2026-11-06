@@ -14,7 +14,7 @@ Viimati uuendatud: 06.11.2026. Avaldatud: https://maag6969.github.io/vt-startpag
 - **Ühine käitumine:** kõik lõiked on rippmenüüd; rippmenüüde all „Võrdlus“ nupud („Mehed vrdl Naised“ kõigil TAI ja Tervisekassa
   aruannetel, „Vanuserühmad vrdl“ praegu ainult Tervisekassa aruandel); vasak loend on laial ekraanil kleepuv ja uus aruanne avaneb
   alati algusest; lehe jalus ja avalehe tekst võtavad allikate loetelu loendi gruppidest; lehe avamine ei küsi Tervisekassalt midagi.
-- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 69/69 (kõik tabelid, filtrid, nupud, lõige, AI-nupud, sünteetiline tabel valikuliste seadetega, „uus aasta ilmub ise“ ja
+- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 70/70 (kõik tabelid, filtrid, nupud, lõige, AI-nupud, sünteetiline tabel valikuliste seadetega, „uus aasta ilmub ise“ ja
   värske laadimine päris lehel), `tests/framework-test.html` 25/25, `tests/tervisekassa-test.html` 32/32,
   `scripts/test-tervisekassa.ps1` 76/76. Tervisekassa andmete uuendamine: `scripts/import-tervisekassa.ps1` (vt TERVISEKASSA.md).
 

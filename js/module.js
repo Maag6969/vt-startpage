@@ -869,7 +869,8 @@
           : ", mis on " + d0.text.replace(/^[▲▼→]\s*/, "") + " " +
             (d0.direction === "up" ? "rohkem" : "vähem") + " kui " + TAI.inYear(config, only.prevYear);
         var j0 = judgment(d0.direction, only.valence);
-        if (j0) s0 += " — see näitab olukorra " + (j0 === "better" ? "paranemist" : "halvenemist");
+        // Hinnang käib näitaja, mitte inimeste olukorra kohta (kasutaja otsus 06.11.2026, sama reegel mis AI-juhises)
+        if (j0) s0 += " — see on näitaja järgi " + (j0 === "better" ? "paranemine" : "halvenemine");
       }
       sentences.push(s0 + ".");
     } else if (valid.length > 1) {
@@ -882,7 +883,7 @@
           : ", mis on " + d.text.replace(/^[▲▼→]\s*/, "") + " " +
             (d.direction === "up" ? "rohkem" : "vähem") + " kui " + TAI.inYear(config, top.prevYear);
         var j = judgment(d.direction, top.valence);
-        if (j) s += " — see näitab olukorra " + (j === "better" ? "paranemist" : "halvenemist");
+        if (j) s += " — see on näitaja järgi " + (j === "better" ? "paranemine" : "halvenemine");
       }
       sentences.push(s + ".");
     }
