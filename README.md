@@ -39,6 +39,13 @@ GitHub Pagesil, ilma serveripoolse loogikata. Kui edaspidi lisandub allikas, mis
 (API-võti, konto), tuleb see **enne kasutuselevõttu** kasutajaga eraldi läbi arutada, sest see rikuks seda
 põhimõtet.
 
+## Ühised reeglid
+
+Sotsiaalministeeriumi ja sellega seotud veebilehtede ühised reeglid ja funktsioonide ülevaade on keskses kataloogis
+`Documents\Veebilehed\DB\SOM_pakett` (väljaspool seda repot): `README.md` on kaart, `POHIMOTTED.md` reeglid ja
+`FUNKTSIONAALSUSED.md` ülevaade, mis on kummas projektis. Koodi paketist veel võtta ei saa, sest ühist mootorit pole; M3 parandused
+on siia liidetud funktsioonide kaupa.
+
 ## Andmeallikad (I versioon — 3 tabelit)
 
 Kõik pärinevad samast TAI PxWeb kaustast: `Andmebaas/05Uuringud/01ETeU/04VaimneTervis/`

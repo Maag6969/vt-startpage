@@ -20,11 +20,11 @@ Viimati uuendatud: 06.11.2026. Avaldatud: https://maag6969.github.io/vt-startpag
 
 ## Kava: M3-st ülevõtmine (kokku lepitud 05.11.2026)
 
-Allikas: `../M3_kodutoo_tervishoiu_kvaliteet/M2-SOOVITUSED-M3-parandustest.md` (M3 koodi loetakse ainult lugemiseks, M3 faile siin ei muudeta).
+Etapid 1–7 on tehtud. Allikas: `Documents\Veebilehed\DB\SOM_pakett\M3_Tervishoiu_kvaliteet_HSPA\M2-SOOVITUSED-M3-parandustest.md` (M3 koodi loetakse ainult lugemiseks, M3 faile siin ei muudeta). M3 töötab alates 06.11.2026 selles kaustas; vana `Vibekoodimine_TTUsept2026\M3_kodutoo_tervishoiu_kvaliteet` on vananenud koopia.
 
 **Reeglid:** (1) **liita funktsioon-funktsiooni haaval, mitte asendada** faile ega töötavaid asju (M2-s on kaks mudelit kõrvuti, Tervisekassa
-staatilise andmeharu konksud, võrdlusnupud, kleepuv loend); (2) iga etapp lõpeb regressiooni käivitamisega; (3) valmis ja testitud töö
-läheb kohe GitHubi (kasutaja 06.11.2026); (4) kujundusotsused (M3 B-osa, AI-nuppude välimus) alles pärast intervjuud avatud küsimustega; (5) mobiilivaate teemad
+staatilise andmeharu konksud, võrdlusnupud, kleepuv loend); (2) iga etapp lõpeb regressiooni käivitamisega; (3) commit ja push ainult
+kasutaja palvel, iga kord eraldi (kasutaja kinnitas 06.11.2026: üksik erand reeglit ei muuda); (4) kujundusotsused (M3 B-osa, AI-nuppude välimus) alles pärast intervjuud avatud küsimustega; (5) mobiilivaate teemad
 tehakse viimasena, seni jäävad meelde.
 
 | # | Etapp | Seis |
@@ -36,7 +36,18 @@ tehakse viimasena, seni jäävad meelde.
 | 5 | **Ülejäänud tehniline M3-st:** A.2 ühik, komakohad ja muutuse sõna funktsioonina; A.3 protsenditelje lagi, suuremad telje sammud arvudele, `showTotal`, perioodi järgi sorteerimine; A.4 `limit` (sama „Näita kõiki“ nupp mis `defaultValues`-il); A.5 `countyVar` (M2 `sexVar`/`ageVar` jäid muutmata, need on M3-ga samad); A.6 `taiPath`, `connectGaps`, `periodYears`, `calloutExtra`, `optionLabels`, `responseOnly`, `groups` funktsioonina, `sort: "desc"`. Lisand M3-le: `connectGaps` korral on ka tulbad ja võrdlusrida viimasest olemasolevast aastast; `calloutUnit: false` hoiab Eurostati lause endisena. Juhend `README-NAIDIS.js`-is | tehtud 06.11.2026, regressioon 69/69 (6 uut kontrolli sünteetilise tabeliga). **Tahtlikult üle võtmata:** `reference` joon (M2-l on kasutaja valitud `kpiReference`, 17.09.2026), `siblings`/`familyTitle` (loendi kujundus, vajab intervjuud), `staleLabel` (märgiks ETU tabelid „uuring lõppenud“, sisuline otsus), `TAI.silc` ja `sdmx` (pole veel tabelit, mis vajaks). Vt etapp 8 |
 | 6 | **AI-nuppude tööpakett (eraldi):** metoodika [AI-ANALUUS.md](AI-ANALUUS.md) kinnitatud; `js/ai-prompt.js` (ühine juhis, profiilid `etu`/`tervisekassa`/`eurostat`, aastate märkused andmetest), nupud ja klikikäsitleja `js/app.js`-is, tumesinine nupp, loendurid `a-<KOOD>-ai-*`. Regressioonis 18 AI kontrolli | avaldatud 06.11.2026, regressioon 63/63. **Veel lahti:** kolleegid proovivad päris teenustega (AI-ANALUUS.md p. 8; ükski päris AI-vastus pole veel kontrollitud); SharePointi iframe'i kontroll koos SharePointi Embedi otsusega |
 | 7 | **Mobiil:** kontrollitud 375 ja 320 px kõigil aruannetel ja võrdlustes. Parandatud: AI- ja võrdlusnupud vähemalt 40 px, tabel 320 px laiusel keritav (oli ära lõigatud). AI-nupud jäävad telefoni (kasutaja otsus): puuteekraanil teade „Kleebi“ (mitte Ctrl+V), teenus avaneb ilma akna mõõtudeta, kopeerimine iOS-i jaoks täiendatud. Sujuv kerimine töötab, printimine kontrollitud Edge'i PDF-iga (4 vaadet; tabel jääb pealkirjaga samale lehele) | tehtud 06.11.2026, regressioon 74/74. **Päris telefonis ja Ctrl+P dialoogiga pole proovitud** (kolleegide test, vt lahtised otsad) |
-| 8 | **Edasised tööd planeerida:** ETU41–42 vanuserühmade võrdlus (vana mudel on soo-põhine), Tervisekassa järgmised aruanded (maakonnad, retseptid, kulud, esmased diagnoosid), rahvaarvud ja määrad; vajadusel etapist 5 üle võtmata jäänud M3 osad | pärast 1–7 |
+| 8 | **Edasised tööd planeerida** | kava allpool, 06.11.2026 |
+
+## Järgmised tööd (kokku lepitud 06.11.2026)
+
+**Keskne allikas:** `Documents\Veebilehed\DB\SOM_pakett`: kaart `README.md`, reeglid `POHIMOTTED.md`, funktsioonid `FUNKTSIONAALSUSED.md`. Universaalsed M2 muudatused suunatakse sinna järk-järgult; ühine mootor `naidikulaud/` tuleb alles pärast M3 kujundust. Olulisemad reeglid: **A2** andmete päritolu (ka väljavõtted ja kohalikud andmestikud), **A8/A9** kujundus algab intervjuuga ja **disaini muutes küsi alati, kas teha see ka teistes projektides, nimetades need ükshaaval** (praegu M3), **A10** commit palvel, **A11** hoiata enne, kui muudatus võib teist sessiooni kahjustada.
+
+1. **Väike:** Eurostati silt „Kokku“ (vt lahtised otsad).
+2. **Tervisekassa „Retseptid ja kulud“** (kasutaja valik): arvud on `data/tervisekassa/` failides juba olemas (`arved`, `arvete_summa`, `retseptid`, `realiseeritud_retseptid`, `realiseeritud_kogusumma`, `tk_tasutud_summa_ilma_trmh`), uut väljavõtet pole vaja. Enne: intervjuu (üks aruanne või kaks, filtrid), `config.ai` juhise täiendus; 2026 realiseerimist täisaastatega ei võrrelda (TERVISEKASSA.md p. 3).
+3. **Hiljem, järjekord lahtine:** ETU41–43 vanuserühmade võrdlus (vana mudel on soo-põhine); uued TAI tabelid: PKH1–3 (sh TAI enda määr 100 000 elaniku kohta), ETU423–427 ja ETU417 (distress ja depressioon hariduse, sissetuleku jm järgi); etapist 5 üle võtmata M3 osad vajaduse korral.
+4. **Sõltub Tervisekassa vastusest või uutest väljavõtetest:** maakonnad, esmased diagnoosid, rahvaarvud ja määrad; hiljem enesekahjustamine.
+
+**Meeldetuletus umbes 06.12.2026 (kasutaja palve):** küsi uuesti (a) Tervisekassa andmepäringu mustandi ja (b) kolleegide AI-testi kohta (päris teenused ja telefon, AI-ANALUUS.md p. 8). 06.11.2026 mõlema vastus oli „ei“.
 
 ## Lahtised otsad (ei kuulu M3 kavasse)
 
@@ -53,7 +64,7 @@ tehakse viimasena, seni jäävad meelde.
 
 ## Töövihjed (korduvad lõksud)
 
-- **Kataloog on `M2_kodutoo_VTstartpage_demo` (`kodutoo`, mitte `kodutoom`):** `Edit` kukub kokku vale teega, kontrolli enne.
+- **Kataloog on `Documents\Veebilehed\DB\SOM_pakett\M2_Vaimne_tervis_VT` (kopeeritud 06.11.2026):** vana `Vibekoodimine_TTUsept2026\M2_kodutoo_VTstartpage_demo` on vananenud koopia, kuhu ei kirjutata ega push'ita; `Edit` kukub kokku vale teega, kontrolli enne. **Abacuse halduskoodid** (`.counter-admin-keys.tsv`) on seni ainult vanas kaustas: uude ei kopeeritud, sest pakett ei hoia võtmeid.
 - Pärast JS/CSS muutmist tee brauseris `location.reload()` (hash-navigeerimine laeb vana koodi); kohalik server: `tools/serve.ps1` (port 8080)
   või `preview_start` nimega `static`.
 - Brauseripaanis tee vahekaart aktiivseks (`tabs_select`) ja pane viewport käsitsi (`resize_window`), muidu sündmused ja animatsioonid ei käitu
@@ -77,5 +88,5 @@ tehakse viimasena, seni jäävad meelde.
 
 ## Dokumentide kihid
 
-`README.md` ülesehitus ja failid · `TASKS.md` praegune seis ja kava · `TASKS-ARHIIV.md` kogu ajalugu · `disain.md` kujundus · `TERVISEKASSA.md`
+`SOM_pakett` (väljaspool repot) ühised reeglid ja funktsioonid · `README.md` ülesehitus ja failid · `TASKS.md` praegune seis ja kava · `TASKS-ARHIIV.md` kogu ajalugu · `disain.md` kujundus · `TERVISEKASSA.md`
 Tervisekassa allikarühma reeglid ja kontrollarvud · `AI-ANALUUS.md` AI-nuppude metoodika · `ETAPP2-JUHIS.md` ajalooline juhis · `js/tables/README-NAIDIS.js` uue tabeli konfiguratsiooni mall.
