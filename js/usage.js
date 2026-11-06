@@ -81,11 +81,12 @@
       TAI.getTables().forEach(function (t) {
         (t.filters || []).forEach(function (varCode) {
           var v = t.vars[varCode];
-          var comp = TAI.comparisonFor(t, varCode);
+          var comps = TAI.comparisonsFor(t, varCode);
           var values = varCode === "Sugu" ? Object.keys(SEX_VALUES).filter(function (k) { return k !== "compare"; }) : v.values.slice();
-          if (comp) values.push(comp.usageOn);   // võrdlusnupp
+          comps.forEach(function (c) { values.push(c.usageOn); });   // võrdlusnupud
           values.forEach(function (val) {
-            var label = comp && val === comp.usageOn ? comp.label : TAI.labelOf(t, varCode, val);
+            var comp = comps.filter(function (c) { return c.usageOn === val; })[0];
+            var label = comp ? comp.label : TAI.labelOf(t, varCode, val);
             list.push({ key: usage.keyFilter(t.code, varCode, val), group: "Filtrid", table: t.code, label: t.code + " · " + v.label + ": " + label });
           });
         });

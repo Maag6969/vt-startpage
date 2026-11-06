@@ -27,7 +27,7 @@
 
   // ---- andmemudel (vana, indicator-põhine) ---------------------------
 
-  /** Seeriad olekust: soo võrdlusel mehed + naised, vanuserühmade võrdlusel iga rühm (valitud soo piires), muidu valitud sugu. */
+  /** Seeriad olekust: soo võrdlusel mehed + naised, muu võrdlusel iga rühm (valitud soo piires), muidu valitud sugu. */
   function seriesOfIndicator(config, state) {
     if (state.compareSexes) {
       return [
@@ -37,10 +37,10 @@
     }
     var code = state.Sugu || "0";
     var kes = code === "1" ? "meeste" : code === "2" ? "naiste" : "inimeste";
-    if (state.compareAges) {
-      var cmp = TAI.comparisonFor(config, "Vanuserühm");
-      return cmp.values.map(function (age, i) {
-        return { code: code, age: age, label: TAI.labelOf(config, "Vanuserühm", age), kes: kes, color: cmp.colors[i] };
+    var cmp = TAI.activeComparison(config, state);
+    if (cmp) {
+      return cmp.values.map(function (val, i) {
+        return { code: code, cmpVar: cmp.filter, cmpCode: val, label: TAI.labelOf(config, cmp.filter, val), kes: kes, color: cmp.colors[i] };
       });
     }
     return [{ code: code, label: TAI.labelOf(config, "Sugu", code), kes: kes, color: COLORS.series1 }];
@@ -61,7 +61,7 @@
       sel[code] = state[code] != null ? state[code] : v.totalValue;
     });
     sel.Sugu = s.code;
-    if (s.age) sel["Vanuserühm"] = s.age;
+    if (s.cmpVar) sel[s.cmpVar] = s.cmpCode;
     return sel;
   }
 
@@ -113,8 +113,8 @@
     kpis.forEach(function (k) { k.cardLabel = k.label + (narrowedIndicator ? ", valitud lõige" : ""); });
 
     var breakdown = null;
-    // Vanuserühmade võrdlusel tulpa ei näidata: rühmade info on joontel ja kaartidel, 7 tulpa rea kohta oleks loetamatu
-    var bd = state.compareAges ? null : config.views.breakdown;
+    // Rühmade võrdlusel (v.a sugu) tulpa ei näidata: see võrdleks sama asja mis jooned või tuleks rea kohta liiga palju tulpi
+    var bd = series[0].cmpVar ? null : config.views.breakdown;
     if (bd && data.breakdown) {
       var bVar = config.vars[bd.var];
       var groups = bd.groups || [{
@@ -189,7 +189,10 @@
     var k = model.kpis;
 
     var intro = model.latest + ". aastal" + suffix + " oli ";
-    if (k.length === 1 && k[0].value != null) {
+    if (model.series[0].cmpVar) {
+      var extremes = compareExtremes(k, fmt, "");
+      if (extremes) sentences.push(intro + phrase(config, model.series[0].kes) + " " + extremes + ".");
+    } else if (k.length === 1 && k[0].value != null) {
       var s = intro + phrase(config, model.series[0].kes) + " " + fmt(k[0].value);
       if (k[0].delta) {
         var d = k[0].delta;
@@ -202,9 +205,6 @@
     } else if (k.length === 2 && k[0].value != null && k[1].value != null) {
       sentences.push(intro + phrase(config, "naiste") + " " + fmt(k[1].value) +
         " ja meeste osakaal " + fmt(k[0].value) + ".");
-    } else if (k.length > 2) {
-      var extremes = compareExtremes(k, fmt, "");
-      if (extremes) sentences.push(intro + phrase(config, model.series[0].kes) + " " + extremes + ".");
     }
 
     var b = model.breakdown;
@@ -274,8 +274,8 @@
     var skip = config.sliceSkip || [];
     return (config.filters || []).filter(function (code) { return code !== exclude && skip.indexOf(code) < 0; }).map(function (code) {
       var v = config.vars[code];
-      var comp = TAI.comparisonFor(config, code);
-      if (comp && state[comp.flag]) return v.label + ": " + comp.label;
+      var comp = TAI.activeComparisonFor(config, state, code);
+      if (comp) return v.label + ": " + comp.label;
       var val = state[code] != null ? state[code] : v.defaultValue != null ? v.defaultValue : v.totalValue;
       return v.label + ": " + sliceValueLabel(config, code, val);
     });

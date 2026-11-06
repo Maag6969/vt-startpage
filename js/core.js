@@ -90,38 +90,59 @@
    * Rühmasisesed võrdlused (nupp oma rippmenüü all; kasutaja otsus 06.11.2026): iga võrdlus on oma lipp olekus ja seotud ühe
    * filtriga, korraga on sees üks. Aruanne lubab võrdluse seadistusega config.compare = { filtriKood: "sugu" | "vanus" | "haridus" }
    * või { filtriKood: { kind, values, colors } }, kui rühmad või värvid vajavad täpsustamist (vaikimisi kõik väärtused peale koondi).
+   * Mitu rühmitust ühes filtris (nt ETU41 Taustatunnus): väärtuseks massiiv, iga rühmitus saab oma nupu; aadressis „vordlus-<liik>“.
    * Kasutavad app.js (nupud, menüü) ja module.js (seeriad, valitud lõige). `buttonLabel` = nupu tekst, `label` = menüü rida ja lõige.
    */
   var COMPARE_KINDS = {
     sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
             usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
-    vanus: { flag: "compareAges", label: "Vanuserühmad vrdl", buttonLabel: "Vanuserühmade võrdlus", buttonId: "compare-ages", usageOn: "vordlus" },
-    haridus: { flag: "compareEdu", label: "Haridustasemed vrdl", buttonLabel: "Haridustasemete võrdlus", buttonId: "compare-edu", usageOn: "vordlus" }
+    vanus: { flag: "compareAges", label: "Vanuserühmad vrdl", buttonLabel: "Vanuserühmade võrdlus", buttonId: "compare-ages" },
+    haridus: { flag: "compareEdu", label: "Haridustasemed vrdl", buttonLabel: "Haridustasemete võrdlus", buttonId: "compare-edu" },
+    rahvus: { flag: "compareNat", label: "Rahvused vrdl", buttonLabel: "Rahvuste võrdlus", buttonId: "compare-nat" },
+    kooselu: { flag: "compareCoh", label: "Kooselu vrdl", buttonLabel: "Kooselu võrdlus", buttonId: "compare-coh" },
+    aktiivsus: { flag: "compareEco", label: "Majanduslik aktiivsus vrdl", buttonLabel: "Majandusliku aktiivsuse võrdlus", buttonId: "compare-eco" },
+    sissetulek: { flag: "compareInc", label: "Kvintiilid vrdl", buttonLabel: "Sissetulekurühmade võrdlus", buttonId: "compare-inc" }   // M2-s praegu kasutuseta, liigid samad mis M3-s ja skeletis
   };
   var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
 
   TAI.comparisonsOf = function (config) {
     var map = config.compare || {};
-    return (config.filters || []).filter(function (code) { return map[code]; }).map(function (code) {
-      var spec = typeof map[code] === "string" ? { kind: map[code] } : map[code];
-      var kind = COMPARE_KINDS[spec.kind], v = config.vars[code];
-      return Object.assign({}, kind, {
-        kind: spec.kind,
-        filter: code,
-        values: spec.values || v.values.filter(function (x) { return x !== v.totalValue; }),
-        colors: spec.colors || kind.colors || GROUP_COLORS,
-        usageOff: v.totalValue
+    var list = [];
+    (config.filters || []).forEach(function (code) {
+      if (!map[code]) return;
+      var specs = Array.isArray(map[code]) ? map[code] : [map[code]];
+      specs.forEach(function (raw) {
+        var spec = typeof raw === "string" ? { kind: raw } : raw;
+        var kind = COMPARE_KINDS[spec.kind], v = config.vars[code];
+        var param = specs.length > 1 ? "vordlus-" + spec.kind : "vordlus";
+        list.push(Object.assign({}, kind, {
+          kind: spec.kind,
+          filter: code,
+          param: param,
+          values: spec.values || v.values.filter(function (x) { return x !== v.totalValue; }),
+          colors: spec.colors || kind.colors || GROUP_COLORS,
+          usageOn: kind.usageOn || param,
+          usageOff: v.totalValue
+        }));
       });
     });
+    return list;
   };
 
-  TAI.comparisonFor = function (config, filterCode) {
-    return TAI.comparisonsOf(config).filter(function (c) { return c.filter === filterCode; })[0] || null;
+  /** Ühe filtri võrdlused (nupud selle all). */
+  TAI.comparisonsFor = function (config, filterCode) {
+    return TAI.comparisonsOf(config).filter(function (c) { return c.filter === filterCode; });
   };
 
   /** Praegu sisse lülitatud võrdlus või null. */
   TAI.activeComparison = function (config, state) {
     return TAI.comparisonsOf(config).filter(function (c) { return state[c.flag]; })[0] || null;
+  };
+
+  /** Selle filtri praegu sisse lülitatud võrdlus või null. */
+  TAI.activeComparisonFor = function (config, state, filterCode) {
+    var active = TAI.activeComparison(config, state);
+    return active && active.filter === filterCode ? active : null;
   };
 
   /** [{ name, url|null }] samas järjekorras kui vasak loend; grupita tabelid loetellu ei kuulu. */

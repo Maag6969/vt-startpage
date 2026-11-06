@@ -110,10 +110,10 @@
 
   // Rühmasisesed võrdlused (soo, vanuse): ühised abifunktsioonid on core.js-is (TAI.comparisonsOf), sest valitud lõige (module.js) vajab neid samuti.
   var comparisonsOf = TAI.comparisonsOf;
-  var comparisonFor = TAI.comparisonFor;
 
   function defaultState(config) {
-    var state = { compareSexes: false, compareAges: false, compareEdu: false };
+    var state = {};
+    comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
     (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
     return state;
   }
@@ -124,8 +124,8 @@
     (config.filters || []).forEach(function (code) {
       var val = params[PARAM_NAMES[code] || code.toLowerCase()];
       if (val == null) return;
-      var comp = comparisonFor(config, code);
-      if (comp && val === "vordlus") {
+      var comp = TAI.comparisonsFor(config, code).filter(function (c) { return c.param === val; })[0];
+      if (comp) {
         // korraga üks võrdlus; soo võrdlus on tähtsam, kui aadressis on mitu
         if (comp.kind === "sugu" || !TAI.activeComparison(config, state)) {
           comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
@@ -147,9 +147,9 @@
     var parts = [];
     (config.filters || []).forEach(function (code) {
       var name = PARAM_NAMES[code] || code.toLowerCase();
-      var comp = comparisonFor(config, code);
-      if (comp && state[comp.flag]) {
-        parts.push(name + "=vordlus");
+      var comp = TAI.activeComparisonFor(config, state, code);
+      if (comp) {
+        parts.push(name + "=" + comp.param);
       } else if (code === "Sugu") {
         if (SEX_PARAM[state.Sugu]) parts.push(name + "=" + SEX_PARAM[state.Sugu]);
       } else if (state[code] != null && state[code] !== config.vars[code].totalValue) {
@@ -339,8 +339,8 @@
 
   /*
    * Filtrid (kasutaja otsus 05.11.2026): kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
-   * Kaks rida (kasutaja otsus 06.11.2026): pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp (nt Sugu all "Sooline
-   * võrdlus"), kui aruanne seda võrdlust toetab; korraga on sees üks võrdlus. Kui võrdlus on sees, näitab selle filtri menüü
+   * Kaks rida (kasutaja otsus 06.11.2026): pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp või -nupud (nt Sugu all
+   * "Sooline võrdlus"), kui aruanne seda võrdlust toetab; korraga on sees üks võrdlus. Kui võrdlus on sees, näitab selle filtri menüü
    * võrdluse rida (nt "Mehed vrdl Naised"); mõne väärtuse valimine lülitab võrdluse välja, nupp ja menüü on alati kooskõlas.
    */
   function renderFilters(config, state) {
@@ -348,8 +348,8 @@
     (config.filters || []).forEach(function (code) {
       var v = config.vars[code];
       var id = "filter-" + code;
-      var comp = comparisonFor(config, code);
-      var comparing = !!(comp && state[comp.flag]);
+      var active = TAI.activeComparisonFor(config, state, code);
+      var comparing = !!active;
       // optionLabels (valikuline): rippmenüü sildid hierarhia-taandega (nt „– Kardioloog“); mujal kasutatakse puhtaid labels'eid
       var optionLabels = v.optionLabels || v.labels;
       var options = code === "Sugu" ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, optionLabels[i]]; });
@@ -358,10 +358,12 @@
         options.map(function (o) {
           return '<option value="' + esc(o[0]) + '"' + (!comparing && state[code] === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>";
         }).join("") +
-        (comparing ? '<option value="compare" selected disabled>' + esc(comp.label) + "</option>" : "") +
+        (comparing ? '<option value="compare" selected disabled>' + esc(active.label) + "</option>" : "") +
         "</select>" +
-        (comp ? '<button type="button" class="compare-btn" id="' + comp.buttonId + '" data-action="toggle-compare" data-compare="' + comp.flag +
-          '" aria-pressed="' + (comparing ? "true" : "false") + '">' + esc(comp.buttonLabel) + "</button>" : "") +
+        TAI.comparisonsFor(config, code).map(function (c) {
+          return '<button type="button" class="compare-btn" id="' + c.buttonId + '" data-action="toggle-compare" data-compare="' + c.flag +
+            '" aria-pressed="' + (state[c.flag] ? "true" : "false") + '">' + esc(c.buttonLabel) + "</button>";
+        }).join("") +
         "</div>";
     });
     return html + "</div></div>";
@@ -519,8 +521,8 @@
       state[t.getAttribute("data-filter")] = t.value;
       usage.track(usage.keyFilter(view.config.code, t.getAttribute("data-filter"), t.value));
       // väärtuse valimine menüüst lülitab selle filtri võrdluse välja; menüü kaotab seejärel võrdluse rea
-      var comp = comparisonFor(view.config, t.getAttribute("data-filter"));
-      if (comp && state[comp.flag]) {
+      var comp = TAI.activeComparisonFor(view.config, state, t.getAttribute("data-filter"));
+      if (comp) {
         state[comp.flag] = false;
         refreshFilters();
       }

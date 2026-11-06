@@ -36,7 +36,17 @@
 
     // Kasutaja valitavad filtrid (järjekord = kuvamise järjekord)
     filters: ["Taustatunnus", "Vanuserühm", "Sugu"],
-    compare: { "Vanuserühm": "vanus", Sugu: "sugu" },
+    // Taustatunnus koondab nelja eri rühmitust (vt views.breakdown.groups), seega iga rühmitus saab oma nupu; 9 joont segamini oleks mõttetu.
+    compare: {
+      Taustatunnus: [
+        { kind: "rahvus", values: ["1", "2"] },
+        { kind: "haridus", values: ["5", "4", "3"] },   // madalamast kõrgemani, värvid samad mis teistes aruannetes
+        { kind: "kooselu", values: ["6", "7"] },
+        { kind: "aktiivsus", values: ["8", "9"] }
+      ],
+      "Vanuserühm": "vanus",
+      Sugu: "sugu"
+    },
 
     views: {
       trend: true,
