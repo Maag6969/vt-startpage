@@ -3,7 +3,7 @@
 **Vaata töötavat lehte:** https://maag6969.github.io/vt-startpage/
 (nt otselink vaatele: https://maag6969.github.io/vt-startpage/#ETU41?sugu=vordlus)
 
-Otsused ja hetkeseis: [disain.md](disain.md) (kujundus) · [TASKS.md](TASKS.md) (seis ja kava) · [TASKS-ARHIIV.md](TASKS-ARHIIV.md) (ajalugu).
+Kujundus-, töö- ja metoodikadokumendid (otsused, seis, ajalugu) on autori kohalikes tööfailides ja ei ole selles repos; repos on ainult leht ja selle andmed.
 
 ## Eesmärk
 
@@ -41,10 +41,8 @@ põhimõtet.
 
 ## Ühised reeglid
 
-Sotsiaalministeeriumi ja sellega seotud veebilehtede ühised reeglid ja funktsioonide ülevaade on keskses kataloogis
-`Documents\Veebilehed\DB\SOM_pakett` (väljaspool seda repot): `README.md` on kaart, `POHIMOTTED.md` reeglid ja
-`FUNKTSIONAALSUSED.md` ülevaade, mis on kummas projektis. Koodi paketist veel võtta ei saa, sest ühist mootorit pole; M3 parandused
-on siia liidetud funktsioonide kaupa.
+Sotsiaalministeeriumi ja sellega seotud veebilehtede ühised reeglid, metoodika ja mallid on autori kohalikus disainipaketis, mis ei ole
+GitHubis. Selle repo kood on sellest paketist sõltumatu ja töötab ilma selleta.
 
 ## Andmeallikad (I versioon — 3 tabelit)
 
@@ -114,26 +112,27 @@ siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 pär
 ```
 index.html                  master-leht (etapp 4)
 favicon.svg                 vahekaardi ikoon
-css/styles.css              stiilid, disainitokenid ja printimise stiil (disain.md p. 1–2)
+css/styles.css              stiilid, disainitokenid ja printimise stiil
 js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel.
                             KAKS mudelit kõrvuti (dispatch `config.seriesVar` olemasolu järgi): vana "Indicator"
                             (ETU, binaarne osakaal + soo võrdlusrežiim) ja üldine "General" (suvaline seeriamuutuja,
-                            Eurostat); M3-s on ainult üldmudel — põhjus vt TASKS-ARHIIV.md „Piloteerimise 2. etapp"
+                            Eurostat); M3-s on ainult üldmudel
 js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
-js/ai-prompt.js             AI-analüüsi juhis (ühine osa + allika profiil + ekraanil nähtav aruanne), vt AI-ANALUUS.md
+js/ai-prompt.js             AI-analüüsi juhis (ühine osa + allika profiil + ekraanil nähtav aruanne)
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
-js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS-ARHIIV.md 17.09.2026)
-js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid, ei mingit live-päringut (TERVISEKASSA.md)
-scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
-data/tervisekassa/          importskripti JSON-failid (+ yldstat.js varuks failina avamisel); raw/ on Power BI väljavõtted (xlsx)
-TERVISEKASSA.md             Tervisekassa piloodi lähteülesanne, kontrollarvud ja reeglid
+js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju
+js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid, ei mingit live-päringut
+data/tervisekassa/          importskripti JSON-failid (+ yldstat.js varuks failina avamisel)
                             Lehe jalus ja avalehe allikate loetelu tulevad samast kohast (`TAI.getSources()`, core.js)
-js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall (EI laeta lehele; kopeeri <KOOD>.js nime alla).
                             Vasaku loendi grupp tuleb `config.group` väljalt (järjekord `TAI.GROUP_ORDER`, core.js)
 
 Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
+scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
+data/tervisekassa/raw/      Power BI väljavõtted (xlsx), importskripti sisend
+js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall
+TASKS.md, TASKS-ARHIIV.md, disain.md, AI-ANALUUS.md, ETAPP2-JUHIS.md, TERVISEKASSA.md, TURVAULEVAATUS.md  töö- ja metoodikadokumendid
 tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
 tools/serve.ps1             kohalik staatiline server arenduseks
 tools/stats.html            kasutusstatistika järjestatult (http://localhost:8080/tools/stats.html)
