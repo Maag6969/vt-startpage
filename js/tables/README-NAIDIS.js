@@ -27,6 +27,9 @@
  *   code, title, fullTitle, description, eyebrow, group ("Tervise Arengu Instituut" | "Eurostat" | ...; kuvatakse grupipealkirjana, järjekord TAI.GROUP_ORDER), years, yearVar,
  *   vars (kõik API muutujad, sh aasta), filters, views { trend, breakdown }, queries(state), footnotes.
  *
+ * AI-NUPUD (05.11.2026): `ai: { profile: "etu" | "tervisekassa" | "eurostat", notes: ["aruande enda reegel"] }`. Ilma selle väljata nuppe ei
+ *   näidata: uue allika jaoks lisa js/ai-prompt.js-i oma profiil (mida number EI tähenda, millised selgitused on lubatud), vt AI-ANALUUS.md.
+ *
  * AASTAD (05.11.2026): kirjuta `years` algseis (nt uusim teadaolev aasta); uus aasta lisandub API-st ise (TAI.syncYears, buildQuery
  * küsib aastaid vaikimisi "kõik"). Kirjelduses kasuta kohahoidjaid, et tekst ei vananeks: "... {aastatel}." ("aastatel 2006, 2014 ja 2019" /
  * "2019. aastal"), {aastad}. ÄRA kasuta PxWeb filtrit "top" viimase aasta jaoks (see annab tabeli esimese aasta); lase mudelil viimane valida.

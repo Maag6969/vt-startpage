@@ -214,6 +214,48 @@ a:hover { text-decoration-thickness: 2px; }
 .module__status:empty { display: none; }
 .module__status a { color: inherit; }
 .module__status--error { color: var(--negatiivne); font-weight: 500; }
+/* Ülemine rida: staatus väiksemas kirjas, AI-nupud samal real paremal (nagu M3). Kui staatusele jääks alla 280 px,
+   läheb nupukast järgmisele reale, et staatus ei muutuks kitsaks mitmerealiseks tulbaks. */
+.module__topbar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 14px; margin: 0 0 4px; }
+.module__topbar .module__status { font-size: 0.78rem; line-height: 1.45; flex: 1 1 280px; min-width: 0; }
+.ai-box { margin: 0 0 0 auto; flex: 0 0 auto; max-width: 100%; }
+.ai-box__row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.ai-box__label { font-size: 0.78rem; color: var(--tekst-2); }
+/* Tumesinine, sest valge kiri keskmisel sinisel (~3,7:1) ei sobi nii väikesele kirjale (AI-ANALUUS.md p. 9.2) */
+.ai-box__btn {
+  font: inherit; font-size: 0.78rem; font-weight: 500; line-height: 1.3; cursor: pointer;
+  padding: 2px 10px; border-radius: var(--pill);
+  color: #fff; background: var(--som-tumesinine); border: 1px solid var(--som-tumesinine);
+}
+.ai-box__btn:hover { filter: brightness(1.6); }
+.ai-box__btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+.ai-box__btn:focus-visible { outline: 2px solid var(--som-keskmine-sinine); outline-offset: 2px; }
+/* Pikk teade ei tohi kasti (ja ülemise rea) laiust määrata: width 0 + min-width 100% = murdub kasti laiusesse */
+.ai-box__msg {
+  width: 0; min-width: 100%; box-sizing: border-box; margin: 6px 0 0; padding: 10px 14px;
+  font-size: 0.875rem; font-weight: 500; color: var(--tekst-1);
+  background: var(--sinine-15); border-left: 4px solid var(--som-keskmine-sinine); border-radius: 4px;
+}
+.ai-box__msg:empty { display: none; }
+.ai-box__text { display: block; width: 0; min-width: 100%; box-sizing: border-box; margin: 6px 0 0; font: inherit; font-size: 0.8125rem; }
+@media (max-width: 700px) { .ai-box { margin-left: 0; } }
+.ai-toast {
+  position: fixed; left: 16px; bottom: 16px; z-index: 50;
+  width: min(380px, 44vw); padding: 14px 16px; box-sizing: border-box;
+  background: var(--sinine-15); color: var(--tekst-1);
+  border: 1px solid var(--som-keskmine-sinine); border-left-width: 6px; border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(24, 30, 84, 0.25);
+}
+.ai-toast[hidden] { display: none; }
+/* 44vw hoiab teate AI-akna (ekraani parem pool) alt väljas; kitsal ekraanil akent kõrvale ei jää */
+@media (max-width: 700px) { .ai-toast { width: calc(100vw - 32px); } }
+.ai-toast__text { margin: 0 0 10px; font-size: 1rem; font-weight: 500; line-height: 1.4; }
+.ai-toast__close {
+  font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  padding: 4px 16px; border-radius: var(--pill); border: 0;
+  color: #fff; background: var(--som-tumesinine);
+}
+.ai-toast__close:focus-visible { outline: 2px solid var(--som-keskmine-sinine); outline-offset: 2px; }
 .module__head h2 {
   color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.6rem; line-height: 1.25;
   margin: 8px 0 4px;
@@ -407,7 +449,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   @page { margin: 15mm; }
   html, body { font-size: 11pt; }
   .skip-link, .panel-list, .back-link, .filters, .compare, .dataset__status, .site-header__views,
-  .module__status, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
+  .module__status, .ai-box, .ai-toast, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
 
   .site-header { padding: 0 0 8px; }

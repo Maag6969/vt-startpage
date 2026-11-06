@@ -240,13 +240,30 @@
     if (el) el.outerHTML = statusLineHtml(config, kind, updatedText);
   }
 
+  /* Ülemine rida (nagu M3): staatusrida ja selle kõrval AI-nupud. Nupud ainult siis, kui andmed on ekraanil ja
+     aruandel on AI-juhise reeglid (config.ai). .module__status peab jääma nuppudest eraldi: setStatus asendab selle. */
+  function topbarHtml(config, statusHtml, withAi) {
+    return '<div class="module__topbar">' + statusHtml + (withAi && TAI.aiAvailable(config) ? aiBoxHtml() : "") + "</div>";
+  }
+
+  function aiBoxHtml() {
+    return '<div class="ai-box">' +
+      '<div class="ai-box__row"><span class="ai-box__label">Analüüsi kuvatud andmeid AI-ga:</span>' +
+        TAI.aiTargets.map(function (t) {
+          return '<button type="button" class="ai-box__btn" data-ai="' + esc(t.id) + '">' + esc(t.label) + "</button>";
+        }).join("") +
+      "</div>" +
+      '<p class="ai-box__msg" role="status" aria-live="polite"></p>' +
+    "</div>";
+  }
+
   function renderLoading(config) {
     view = null;
     contentEl.setAttribute("aria-busy", "true");
     contentEl.innerHTML =
       backLink() +
       '<header class="module__head">' +
-        statusLineHtml(config, "loading") +
+        topbarHtml(config, statusLineHtml(config, "loading")) +
         '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
       "</header>" +
       '<div class="skeleton" aria-label="Laadin andmestikku ' + esc(config.title) + '">' +
@@ -264,7 +281,7 @@
     contentEl.innerHTML =
       backLink() +
       '<header class="module__head">' +
-        statusLineHtml(config, "error") +
+        topbarHtml(config, statusLineHtml(config, "error")) +
         '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
         '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
       "</header>" +
@@ -377,7 +394,7 @@
       backLink() +
       '<article class="module">' +
         '<header class="module__head">' +
-          statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data)) +
+          topbarHtml(config, statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data)), true) +
           '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
           '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
           (meta.length ? '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" : "") +
@@ -399,8 +416,10 @@
     if (!view) return;
     var body = contentEl.querySelector(".module__body");
     if (!body) return;
+    clearAiNotice();   // lõikelaual on nüüd teise lõike andmed: teade ja käsitsi kopeerimise tekst ei kehti enam
     var config = view.config;
     var model = TAI.buildModel(config, view.data, stateOf(config));
+    setAiEnabled(!model.notice);   // numbriteta lõikes pole AI-l midagi analüüsida (ta võiks hakata ise numbreid pakkuma)
     // Toetamata filtrikombinatsioon: ainult teade, mitte tühjad kaardid ega liidetud hinnang (lõige näitab, mida valiti).
     if (model.notice) {
       body.innerHTML = TAI.sliceHtml(TAI.sliceParts(config, stateOf(config)).join(" · ")) + '<p class="callout">' + esc(model.notice) + "</p>";
@@ -675,6 +694,121 @@
     listEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
     var activeBtn = listEl.querySelector(".dataset.is-active .dataset__button");
     if (activeBtn) activeBtn.focus({ preventScroll: true });
+  });
+
+  // ---- AI-analüüsi nupud (AI-ANALUUS.md, juhis: js/ai-prompt.js) -------------
+  // Oma mudelit ega API-kutset pole: tekst läheb lõikelauale ja teenus avaneb külastaja enda kontol.
+
+  // execCommand("copy") ei küsi brauseri lõikelaua-luba (Clipboard API küsib näiteks file:// alt avades)
+  function copyViaTextarea(str) {
+    var ta = document.createElement("textarea");
+    ta.value = str;
+    ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  // Alati ekraani vasakus servas (AI-aken avaneb paremale), et aken seda ei kataks
+  function showAiToast(text) {
+    var el = document.getElementById("ai-toast");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "ai-toast";
+      el.className = "ai-toast";
+      el.setAttribute("role", "status");
+      el.innerHTML = '<p class="ai-toast__text"></p><button type="button" class="ai-toast__close">Selge</button>';
+      el.querySelector("button").addEventListener("click", function () { el.hidden = true; });
+      document.body.appendChild(el);
+    }
+    el.querySelector("p").textContent = text;
+    el.hidden = false;
+  }
+
+  /*
+   * Teise saidi lehele ei saa meie lehelt midagi kuvada. Chrome/Edge „Document Picture-in-Picture“ annab aga
+   * alati peal ujuva väikese akna meie enda HTML-iga, mis jääb AI akna peale. Muudes brauserites (või kui avamine
+   * ebaõnnestub, nt iframe'is) kuvatakse sama teade vasakus alanurgas.
+   */
+  function showAiNotice(text, aiWindow) {
+    var dpip = window.documentPictureInPicture;
+    if (!dpip || !dpip.requestWindow) { showAiToast(text); return; }
+    dpip.requestWindow({ width: 380, height: 200 }).then(function (pip) {
+      var d = pip.document;
+      d.head.innerHTML = '<meta charset="utf-8"><title>Juhis</title><style>' +
+        "body{margin:0;padding:16px;font:500 16px/1.4 Roboto,system-ui,sans-serif;color:#0e0f21;background:#E4ECFF;border-left:6px solid #4B7DFF;box-sizing:border-box;height:100vh}" +
+        "p{margin:0 0 12px}button{font:inherit;font-size:14px;cursor:pointer;padding:5px 18px;border:0;border-radius:999px;background:#181E54;color:#fff}" +
+        "</style>";
+      d.body.innerHTML = '<p></p><button type="button">Sulge</button>';
+      d.body.querySelector("p").textContent = text;
+      d.body.querySelector("button").addEventListener("click", function () {
+        // Sulgemisel läheb fookus näidikulaua aknale ja AI-aken jääks selle taha: toome AI-akna tagasi ette
+        pip.addEventListener("pagehide", function () { try { if (aiWindow && !aiWindow.closed) aiWindow.focus(); } catch (e) { /* teine päritolu */ } });
+        try { if (aiWindow && !aiWindow.closed) aiWindow.focus(); } catch (e) { /* teine päritolu */ }
+        pip.close();
+      });
+    }).catch(function () { showAiToast(text); });
+  }
+
+  function setAiEnabled(on) {
+    contentEl.querySelectorAll("button[data-ai]").forEach(function (b) {
+      b.disabled = !on;
+      if (on) b.removeAttribute("title"); else b.title = "Selles lõikes andmeid ei ole";
+    });
+  }
+
+  function clearAiNotice() {
+    var box = contentEl.querySelector(".ai-box");
+    if (box) {
+      box.querySelector(".ai-box__msg").textContent = "";
+      var ta = box.querySelector(".ai-box__text");
+      if (ta) ta.parentNode.removeChild(ta);
+    }
+    var toast = document.getElementById("ai-toast");
+    if (toast) toast.hidden = true;
+  }
+
+  contentEl.addEventListener("click", function (evt) {
+    var btn = evt.target.closest("button[data-ai]");
+    if (!btn || !view) return;
+    var target = TAI.aiTargets.filter(function (t) { return t.id === btn.getAttribute("data-ai"); })[0];
+    if (!target) return;
+    var box = btn.closest(".ai-box");
+    var msg = box.querySelector(".ai-box__msg");
+    var prompt = TAI.buildAiPrompt(view.config, contentEl);
+
+    // Järjekord on oluline: (1) kopeeri enne uut akent, sest pärast seda pole leht fookuses ja brauser küsiks luba;
+    // (2) ava AI-aken enne teate akent, sest teate akna loomine kulutab kasutaja klõpsu ja brauser blokeeriks avamise.
+    var copied = copyViaTextarea(prompt);
+    btn.focus({ preventScroll: true });
+    var existing = box.querySelector(".ai-box__text");
+    if (copied) {
+      msg.textContent = "Näidikulaua andmed on kopeeritud lõikelauale. Vajuta AI vestlusaknas Ctrl+V, et sisestada need analüüsiks, ja seejärel Enter.";
+      if (existing) existing.parentNode.removeChild(existing);
+    } else {
+      msg.textContent = "Automaatne kopeerimine ei õnnestunud. Kopeeri tekst siit käsitsi (Ctrl+A, Ctrl+C) ja kleebi avanenud vestlusaknasse:";
+      if (!existing) {
+        existing = document.createElement("textarea");
+        existing.className = "ai-box__text";
+        existing.readOnly = true;
+        existing.rows = 8;
+        existing.setAttribute("aria-label", "Analüüsi juhis käsitsi kopeerimiseks");
+        box.appendChild(existing);
+      }
+      existing.value = prompt;
+    }
+
+    var w = Math.round(screen.availWidth * 0.5), h = screen.availHeight - 40;
+    var left = (screen.availLeft || 0) + screen.availWidth - w, top = screen.availTop || 0;
+    var opened = window.open(target.url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
+    if (!opened) opened = window.open(target.url, "_blank");
+    showAiNotice(msg.textContent, opened);
+
+    usage.track(usage.keyAction(view.config.code, "ai-" + target.id));
   });
 
   // ---- kasutusstatistika (js/usage.js, disain.md p. 2) --------------------

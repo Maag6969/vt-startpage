@@ -4,7 +4,7 @@ Ainult **praegune seis, kokku lepitud kava ja lahtised otsad**. Iga uus sessioon
 intervjuud, avastatud vead) on failis [TASKS-ARHIIV.md](TASKS-ARHIIV.md) ja seda ei kustutata. Ülesehitus: [README.md](README.md),
 kujundus: [disain.md](disain.md), Tervisekassa: [TERVISEKASSA.md](TERVISEKASSA.md).
 
-Viimati uuendatud: 05.11.2026. Avaldatud: https://maag6969.github.io/vt-startpage/ (viimane commit `d33e795`).
+Viimati uuendatud: 06.11.2026. Avaldatud: https://maag6969.github.io/vt-startpage/ (vt `git log`).
 
 ## Praegune seis
 
@@ -14,7 +14,7 @@ Viimati uuendatud: 05.11.2026. Avaldatud: https://maag6969.github.io/vt-startpag
 - **Ühine käitumine:** kõik lõiked on rippmenüüd; rippmenüüde all „Võrdlus“ nupud („Mehed vrdl Naised“ kõigil TAI ja Tervisekassa
   aruannetel, „Vanuserühmad vrdl“ praegu ainult Tervisekassa aruandel); vasak loend on laial ekraanil kleepuv ja uus aruanne avaneb
   alati algusest; lehe jalus ja avalehe tekst võtavad allikate loetelu loendi gruppidest; lehe avamine ei küsi Tervisekassalt midagi.
-- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 45/45 (kõik tabelid, filtrid, nupud, lõige, „uus aasta ilmub ise“ ja
+- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 63/63 (kõik tabelid, filtrid, nupud, lõige, AI-nupud, „uus aasta ilmub ise“ ja
   värske laadimine päris lehel), `tests/framework-test.html` 25/25, `tests/tervisekassa-test.html` 32/32,
   `scripts/test-tervisekassa.ps1` 76/76. Tervisekassa andmete uuendamine: `scripts/import-tervisekassa.ps1` (vt TERVISEKASSA.md).
 
@@ -23,8 +23,8 @@ Viimati uuendatud: 05.11.2026. Avaldatud: https://maag6969.github.io/vt-startpag
 Allikas: `../M3_kodutoo_tervishoiu_kvaliteet/M2-SOOVITUSED-M3-parandustest.md` (M3 koodi loetakse ainult lugemiseks, M3 faile siin ei muudeta).
 
 **Reeglid:** (1) **liita funktsioon-funktsiooni haaval, mitte asendada** faile ega töötavaid asju (M2-s on kaks mudelit kõrvuti, Tervisekassa
-staatilise andmeharu konksud, võrdlusnupud, kleepuv loend); (2) iga etapp lõpeb regressiooni käivitamisega; (3) commit ja push ainult
-kasutaja käsul; (4) kujundusotsused (M3 B-osa, AI-nuppude välimus) alles pärast intervjuud avatud küsimustega; (5) mobiilivaate teemad
+staatilise andmeharu konksud, võrdlusnupud, kleepuv loend); (2) iga etapp lõpeb regressiooni käivitamisega; (3) valmis ja testitud töö
+läheb kohe GitHubi (kasutaja 06.11.2026); (4) kujundusotsused (M3 B-osa, AI-nuppude välimus) alles pärast intervjuud avatud küsimustega; (5) mobiilivaate teemad
 tehakse viimasena, seni jäävad meelde.
 
 | # | Etapp | Seis |
@@ -34,14 +34,9 @@ tehakse viimasena, seni jäävad meelde.
 | 3 | **Aastad:** päring „kõik aastad“, `TAI.syncYears` (uus aasta ilmub ise), `TAI.describe` (kohahoidjad `{aastatel}`), aastasiltide hõrendamine (ka kaherealine „2026 (pooleli)“ sildiga), ETU ja Eurostati päringud; **Tervisekassa:** aastad, pooleliolev aasta (= väljavõtte aasta) ja vaikeaastad (viimane täisaasta ja sellele eelnev) tulevad meta-failist (importskript → `config.prepare()`), importskripti `-AllikaUuendus` on kohustuslik | tehtud 05.11.2026, regressioon 40/40. **M3 `TAI.LATEST` jäeti tahtlikult ülevõtmata:** PxWeb `top` andis ETU42 puhul 2006 (tabeli esimese aasta), mitte uusima; viimase aasta valib mudel, Eurostatil `lastTimePeriod=1`. M3 tabelite aastad võivad olla uuemad ees, seal töötab; soovitame M3-s kontrollida |
 | 4 | **B.1 valitud lõige:** lõige KPI kastis (üks kaart: kaardi sees; mitu: ühine rida kasti ülaosas), iga graafiku ja andmetabeli pealkirja all, ka vaikevalikuga (kuju „Filter: väärtus · Filter: väärtus“, väike paks kiri nagu M3); vana ülemine rida kadus; võrdlusrežiimis on võrreldav filter nimetatud võrdlusena („Sugu: Mehed vrdl Naised“); tulbal on aasta ja „…lõikes“, oma võrdlustelje filter välja ja valitud rühm „esile tõstetud“ (kasutaja otsused 05.11.2026) | tehtud 05.11.2026, regressioon 45/45 |
 | 5 | **Ülejäänud tehniline M3-st:** A.2 ühik/komakohad funktsioonina, A.4 pikk tulp (ühendada olemasoleva `defaultValues` + „Näita kõiki“ mehhanismiga), A.5 abifunktsioonid (**kontrolli nimekonflikti: `sexVar`/`ageVar` on M2-s juba olemas**), A.6 valikulised väljad. Lisandub ainult juurde; testitakse sünteetilise tabeliga, sest ükski M2 tabel neid veel ei vaja; `README-NAIDIS.js` uuendada | ootab |
-| 6 | **AI-nuppude tööpakett (eraldi):** esmalt **metoodikadokument** (`AI-ANALUUS.md`: eesmärk, sihtgrupp, reeglid iga allika kohta, testiprotokoll), siis `ai-prompt.js` selektorid M2 markupile (`.kpi__label`, `.callout`, `.data-table`, `.module__footnotes p`, `.chart-note--after`), klikikäsitleja (`copyViaTextarea` enne `window.open`), PiP/toast, Abacuse loendurid, SharePointi iframe'i kontroll. **Tervisekassa juhis vajab oma keelde** (vt allpool) | ootab |
+| 6 | **AI-nuppude tööpakett (eraldi):** metoodika [AI-ANALUUS.md](AI-ANALUUS.md) kinnitatud; `js/ai-prompt.js` (ühine juhis, profiilid `etu`/`tervisekassa`/`eurostat`, aastate märkused andmetest), nupud ja klikikäsitleja `js/app.js`-is, tumesinine nupp, loendurid `a-<KOOD>-ai-*`. Regressioonis 18 AI kontrolli | avaldatud 06.11.2026, regressioon 63/63. **Veel lahti:** kolleegid proovivad päris teenustega (AI-ANALUUS.md p. 8; ükski päris AI-vastus pole veel kontrollitud); SharePointi iframe'i kontroll koos SharePointi Embedi otsusega |
 | 7 | **Mobiil:** sujuv kerimine aruande juurde, uued võrdlusnupud ja vanuserühmade vaade, AI-nupud telefonis, printimine | viimane |
 | 8 | **Edasised tööd planeerida:** ETU41–42 vanuserühmade võrdlus (vana mudel on soo-põhine), Tervisekassa järgmised aruanded (maakonnad, retseptid, kulud, esmased diagnoosid), rahvaarvud ja määrad | pärast 1–7 |
-
-**Tervisekassa AI-juhise keelud** (TERVISEKASSA.md p. 3): isikute arvu muutust ei nimetata halvenemiseks ega paranemiseks; see ei ole levimus
-ega ravimata inimeste osakaal; diagnoose ja aastaid ei liideta (kattuvad isikud); 2026 ei ole täisaasta; retsepti arv ≠ ravimeid saanud
-inimeste arv, arvete arv ≠ visiitide arv; määrasid ei arvutata. M3 juhise „ütle, kas olukord on paranenud või halvenenud“ ja „võimalikud
-põhjused“ osad ei sobi Tervisekassa andmetele sellisel kujul.
 
 ## Lahtised otsad (ei kuulu M3 kavasse)
 
@@ -69,7 +64,7 @@ põhjused“ osad ei sobi Tervisekassa andmetele sellisel kujul.
 - Eesti jutumärgid JS stringides: „avav“ + sulgev “ (U+201C), mitte sirge `"`.
 - Kerimiskinnitus (`overflow-anchor`) lõhub aruande vahetamisel kerimist: peab jääma `html { overflow-anchor: none }`.
 - `tests/`, `tools/` ja `.counter-admin-keys.tsv` on `.gitignore`-s, avalikku repo ei lähe. `data/tervisekassa/raw/` xlsx-failid lähevad (kasutaja otsus).
-- Ära klõpsa testides AI-nuppe (kui need tulevad): need avavad välise saidi.
+- Ära klõpsa testides AI-nuppe ilma `window.open` asenduseta: need avavad välise saidi (regressioon asendab selle ise).
 - **Tervisekassa uus väljavõte:** vt TERVISEKASSA.md p. 8 (`-AllikaUuendus` kohustuslik; aastad ja pooleliolev aasta tulevad failidest).
 - **Regressioonitestis avatakse aruanded loendi rea klõpsuga, mitte aadressi otse muutes:** `#KOOD` ilma parameetriteta lähtestab selle aruande
   valikud (nii on tahtlikult), loendi rida hoiab need alles.
@@ -78,4 +73,4 @@ põhjused“ osad ei sobi Tervisekassa andmetele sellisel kujul.
 ## Dokumentide kihid
 
 `README.md` ülesehitus ja failid · `TASKS.md` praegune seis ja kava · `TASKS-ARHIIV.md` kogu ajalugu · `disain.md` kujundus · `TERVISEKASSA.md`
-Tervisekassa allikarühma reeglid ja kontrollarvud · `ETAPP2-JUHIS.md` ajalooline juhis · `js/tables/README-NAIDIS.js` uue tabeli konfiguratsiooni mall.
+Tervisekassa allikarühma reeglid ja kontrollarvud · `AI-ANALUUS.md` AI-nuppude metoodika · `ETAPP2-JUHIS.md` ajalooline juhis · `js/tables/README-NAIDIS.js` uue tabeli konfiguratsiooni mall.

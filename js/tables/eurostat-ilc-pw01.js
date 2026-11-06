@@ -46,6 +46,7 @@
     description: "Üldine eluga rahulolu (0–10 hindamisskaala), Eesti Euroopa Liidu riikide võrdluses.",
     eyebrow: "Eurostat · ilc_pw01",
     group: "Eurostat",
+    ai: { profile: "eurostat" },
 
     years: YEARS,
     yearVar: "time",

@@ -114,6 +114,7 @@ js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout,
                             (ETU, binaarne osakaal + soo võrdlusrežiim) ja üldine "General" (suvaline seeriamuutuja,
                             Eurostat); M3-s on ainult üldmudel — põhjus vt TASKS-ARHIIV.md „Piloteerimise 2. etapp"
 js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
+js/ai-prompt.js             AI-analüüsi juhis (ühine osa + allika profiil + ekraanil nähtav aruanne), vt AI-ANALUUS.md
 js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
 js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
 js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju (vt TASKS-ARHIIV.md 17.09.2026)
@@ -139,7 +140,7 @@ tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
 vaikeväärtused jäetakse aadressist välja, vigased parameetrid ignoreeritakse).
 
 Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
-lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `usage.js` → `app.js`.
+lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `usage.js` → `ai-prompt.js` → `app.js`.
 
 Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfiguratsioonist
 (`indicator.phrase` callout-lause jaoks kujul „… {kes} osakaal“, `views.breakdown.groups` / `inPhrase`,

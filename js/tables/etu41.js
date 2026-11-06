@@ -11,6 +11,7 @@
     description: "Olulise depressiooniga täiskasvanute osakaal {aastatel}.",
     eyebrow: "Eesti terviseuuring · ETU41",
     group: "Tervise Arengu Instituut",
+    ai: { profile: "etu" },
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

@@ -5,7 +5,7 @@
  *   vt-startpage                     avalehe avamised (iga avamine)
  *   ds-<KOOD>                        andmestiku avamine (andmed laaditud edukalt)
  *   f-<KOOD>-<filter>-<väärtus>      filtri valik kasutaja poolt (nt f-ETU41-sugu-vordlus)
- *   a-<KOOD>-<tegevus>               lisategevus: andmetabel | allikas | prindi | fail
+ *   a-<KOOD>-<tegevus>               lisategevus: andmetabel | allikas | prindi | fail | ai-claude | ai-chatgpt | ai-gemini
  *
  * Sama sündmus loetakse ühes brauseriseansis üks kord (sessionStorage); avalehe avamine iga kord.
  * Arvu suurendatakse ainult avaldatud lehel; mujal (arendus) ainult loetakse.
@@ -24,7 +24,7 @@
   // Filtrite parameetrinimed — samad mis aadressis (#ETU41?taustatunnus=3&vanus=2&sugu=vordlus)
   var PARAM_NAMES = { Taustatunnus: "taustatunnus", "Vanuserühm": "vanus", Sugu: "sugu" };
   var SEX_VALUES = { "0": "kokku", "1": "mehed", "2": "naised", compare: "vordlus" };
-  var ACTIONS = ["andmetabel", "allikas", "prindi", "fail"];
+  var ACTIONS = ["andmetabel", "allikas", "prindi", "fail", "ai-claude", "ai-chatgpt", "ai-gemini"];
 
   function seenThisSession(key) {
     try {
@@ -92,7 +92,8 @@
         });
       });
       TAI.getTables().forEach(function (t) {
-        var names = { andmetabel: "andmetabeli avamine", allikas: "TAI allikalingi klõps", prindi: "printimine", fail: "faili üleslaadimine" };
+        var names = { andmetabel: "andmetabeli avamine", allikas: "TAI allikalingi klõps", prindi: "printimine", fail: "faili üleslaadimine",
+          "ai-claude": "AI-analüüs (Claude)", "ai-chatgpt": "AI-analüüs (ChatGPT)", "ai-gemini": "AI-analüüs (Gemini)" };
         ACTIONS.forEach(function (a) {
           list.push({ key: usage.keyAction(t.code, a), group: "Lisategevused", table: t.code, label: t.code + " · " + names[a] });
         });

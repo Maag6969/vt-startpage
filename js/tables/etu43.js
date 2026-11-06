@@ -11,6 +11,7 @@
     description: "Ebapiisava uneajaga täiskasvanute osakaal {aastatel}.",
     eyebrow: "Eesti terviseuuring · ETU43",
     group: "Tervise Arengu Instituut",
+    ai: { profile: "etu" },
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

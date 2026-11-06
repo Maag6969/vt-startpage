@@ -11,6 +11,10 @@
     description: "Olulise emotsionaalse distressiga täiskasvanute osakaal {aastatel}.",
     eyebrow: "Eesti terviseuuring · ETU42",
     group: "Tervise Arengu Instituut",
+    ai: {
+      profile: "etu",
+      notes: ["Vanuserühmade piirid erinevad aastati (2006 ja 2014: alates 16. eluaastast, 2019: alates 15. eluaastast). Nimeta seda nende aastate võrdlemisel piiranguna."]
+    },
     years: YEARS,
     yearVar: "Aasta",
     indicator: {

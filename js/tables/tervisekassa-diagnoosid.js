@@ -317,6 +317,7 @@
     description: "Isikute arv Tervisekassa avaandmetes (arved ja retseptid): depressioon F32 ja F33.",
     eyebrow: "Tervisekassa (avaandmed) · Üldine statistika",
     group: "Tervisekassa (avaandmed)",
+    ai: { profile: "tervisekassa" },
 
     source: {
       label: "Tervisekassa",
