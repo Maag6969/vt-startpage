@@ -97,7 +97,9 @@
   var SEX_PARAM = { "1": "mehed", "2": "naised", compare: "vordlus" };
 
   function parseHash() {
-    var raw = decodeURIComponent(location.hash.replace(/^#/, ""));
+    var raw = location.hash.replace(/^#/, "");
+    // Vigane % jada (nt #%E0%A4%A) viskaks URIError'i ja jätaks lehe tühjaks → jääb toorena, kood on siis tundmatu (tühi olek)
+    try { raw = decodeURIComponent(raw); } catch (e) { /* kasuta toorest aadressi */ }
     var q = raw.indexOf("?");
     var params = {};
     (q >= 0 ? raw.slice(q + 1) : "").split("&").forEach(function (pair) {

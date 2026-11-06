@@ -54,6 +54,7 @@ tehakse viimasena, seni jäävad meelde.
 
 - **SharePointi Embed** ja **HTML Field Security** (vajab IT/admini): ootel kasutaja otsusel 16.09.2026.
 - **Content-Security-Policy** päis: ootel, vajab hoolikat testimist.
+- **Turvaülevaatus 06.11.2026** ([TURVAULEVAATUS.md](TURVAULEVAATUS.md)): turvaauku ei leitud; ainus leid (vigane `%` aadressis jättis sisupaneeli tühjaks) on parandatud, regressioon 74/74.
 - **Abacuse loendurid GoatCounterile** üle viia (kosmeetiline risk).
 - **Printimine:** Edge'i PDF-iga kontrollitud (Tervisekassa, selle vanuserühmade võrdlus, ETU41 soovõrdlus, Eurostat; korras); Ctrl+P dialoog ja paber proovimata. **Päris telefon:** AI-nuppude lõikelaud ja rakenduse avanemine proovimata (kolleegide test). **Lingi eelvaade** SharePointis/Teamsis: kontrollida päris keskkonnas; eelvaatel pole pilti (`og:image`).
 - **Eurostati riikide tulbas ja tabelis on EL-27 keskmise silt „Kokku“** (KPI-kaardil „EL-27 keskmine“): segadust tekitav, parandada (märgatud 06.11.2026 printimise kontrollis).
