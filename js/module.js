@@ -222,7 +222,8 @@
 
   function hasMissing(model) {
     var missing = model.kpis.some(function (k) { return k.value == null; });
-    if (model.trend) model.trend.forEach(function (s) { s.points.forEach(function (p) { if (p.value == null) missing = true; }); });
+    // connectGaps: uuringut ei tehta igal aastal, vahele jäänud aasta pole „puuduv andmestik“
+    if (model.trend && !model.config.connectGaps) model.trend.forEach(function (s) { s.points.forEach(function (p) { if (p.value == null) missing = true; }); });
     if (model.breakdown) model.breakdown.groups.forEach(function (g) {
       g.items.forEach(function (it) { it.values.forEach(function (v) { if (v == null) missing = true; }); });
     });
@@ -265,6 +266,7 @@
 
   function sliceYearText(config, y) {
     var label = config.seriesVar ? TAI.yearLabel(config, y) : y;
+    if (config.periodYears) return "Periood " + label;
     return /^\d{4}$/.test(label) ? label + ". aasta" : label;   // „2019. aasta“, aga „2026 (pooleli)“
   }
 
@@ -371,12 +373,15 @@
   var TICKS = 4;
 
   /** Telje maksimum, mis jagub TICKS sammuks täisarvuliste protsentidega (nt 4 → 8 → 12 → 16). */
-  function niceMax(values) {
+  var NICE_STEPS = [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000, 25000];
+  /* capPct: protsenditelg ei lähe üle 100%, kui kõik väärtused on ≤ 100 (muidu 97,9% → telg 200%). Protsentide astmestik on
+     endine; suuremad sammud on arvude jaoks, mis varem jooksid teljest üle (ülevõetud M3-st). */
+  function niceMax(values, capPct) {
     var max = Math.max.apply(null, values.filter(function (v) { return v != null; }).concat([0]));
     var raw = (max * 1.15) / TICKS;
-    var steps = [1, 2, 5, 10, 20, 25];
-    for (var i = 0; i < steps.length; i++) if (steps[i] >= raw) return steps[i] * TICKS;
-    return 25 * TICKS;
+    var out = NICE_STEPS[NICE_STEPS.length - 1] * TICKS;
+    for (var i = 0; i < NICE_STEPS.length; i++) if (NICE_STEPS[i] >= raw) { out = NICE_STEPS[i] * TICKS; break; }
+    return capPct && max <= 100 && out > 100 ? 100 : out;
   }
 
   /*
@@ -428,7 +433,7 @@
 
     var all = [];
     model.trend.forEach(function (s) { s.points.forEach(function (p) { all.push(p.value); }); });
-    var maxV = niceMax(all);
+    var maxV = niceMax(all, true);
 
     function x(i) { return padL + inset + ((plotW - 2 * inset) * i) / Math.max(1, years.length - 1); }
     function y(v) { return padT + plotH - (plotH * v) / maxV; }
@@ -498,7 +503,7 @@
 
     var all = b.totals.slice();
     b.groups.forEach(function (g) { g.items.forEach(function (it) { all = all.concat(it.values); }); });
-    var maxV = niceMax(all);
+    var maxV = niceMax(all, true);
     function bx(v) { return barX + (plotW * v) / maxV; }
 
     // sildid murtakse enne, et kaherealine silt saaks kõrgema rea
@@ -585,15 +590,49 @@
   TAI.yearLabel = function (config, code) { return TAI.labelOf(config, config.yearVar, code); };
   var yl = TAI.yearLabel;
 
-  /** Väärtuse vormindaja: tabeli oma (config.formatValue, nt täisarvud), muidu ühikuga kümnendarv. */
-  function valueFormat(config) {
-    return config.formatValue || function (v) { return TAI.formatValue(v, config.unit); };
-  }
+  /* „2025. aastal“ / „2024. aastaga“, või config.periodYears korral (kaheaastased perioodid, nt „2024/2025“) „perioodil …“ / „perioodiga …“. */
+  TAI.inYear = function (config, code) {
+    return config.periodYears ? "perioodil " + yl(config, code) : yl(config, code) + ". aastal";
+  };
+  TAI.vsYear = function (config, code) {
+    return config.periodYears ? "perioodiga " + yl(config, code) : yl(config, code) + ". aastaga";
+  };
+
+  /** Väärtuse vormindaja: tabeli oma (config.formatValue, nt täisarvud), muidu ühiku ja komakohtadega arv (võivad sõltuda filtrist). */
+  function valueFormat(config, state) { return TAI.formatterFor(config, state); }
+
+  function isPct(config, state) { var u = TAI.unitOf(config, state); return u == null || u === "%"; }
 
   /** Telje ülempiir: fikseeritud arv või tabeli oma arvutus (config.axisMax), muidu niceMax. */
-  function axisMaxOf(config, values) {
+  function axisMaxOf(config, values, state) {
     if (typeof config.axisMax === "function") return config.axisMax(values);
-    return config.axisMax || niceMax(values);
+    return config.axisMax || niceMax(values, isPct(config, state));
+  }
+
+  /*
+   * Pikk tulp (config.views.breakdown.limit = N): joonisel N esimest (sort: "desc" korral N suurimat) + valitud rida, kui see
+   * jääb välja. Sama „Näita kõiki“ nupp mis defaultValues-loendil; andmetabel ja kokkuvõtte lause kasutavad alati kõiki ridu.
+   */
+  TAI.barItemCount = function (b) {
+    return b.groups.reduce(function (n, g) { return n + g.items.length; }, 0);
+  };
+  TAI.visibleBarGroups = function (b) {
+    if (!b.limit || b.expanded || TAI.barItemCount(b) <= b.limit) return b.groups;
+    var left = b.limit;
+    return b.groups.map(function (g) {
+      var items = g.items.filter(function (it, i) { return i < left || it.code === b.selected; });
+      left = Math.max(0, left - g.items.length);
+      return { label: g.label, items: items };
+    }).filter(function (g) { return g.items.length; });
+  };
+
+  /* Ühik kokkuvõtte lauses: „%“ on juba numbris; muu ühik: üks sõna ilma sulgudeta („58,1 aastat“), pikem fraas sulgudes.
+     config.calloutUnit: false jätab selle ära (nt kui skaala on juba graafiku all kirjas). */
+  function unitPhrase(config, state) {
+    if (config.calloutUnit === false || TAI.unitOf(config, state) !== "") return "";
+    var label = config.unitLabel || "";
+    if (!label) return "";
+    return /\s/.test(label) ? " (" + label + ")" : " " + label;
   }
 
   /** Varutoonid seeriale, kui config.vars[seriesVar].colors puudub. */
@@ -656,12 +695,23 @@
       });
     }
 
+    var deltaPhrase = TAI.deltaPhraseOf(config, state), decimals = TAI.decimalsOf(config, state);
     var kpis = series.map(function (s, i) {
-      var value, delta = null;
+      var value, delta = null, kYear = latest, kPrev = prev;
       if (trend) {
         var pts = trend[i].points;
-        value = pts[pts.length - 1].value;
-        if (prev) delta = TAI.delta(value, pts[pts.length - 2].value, config.deltaPhrase);
+        if (config.connectGaps) {
+          // Uuringut ei tehta igal aastal: KPI = viimane olemasolev aasta, võrdlus = sellele eelnev olemasolev aasta.
+          var have = pts.filter(function (p) { return p.value != null; });
+          var lastP = have[have.length - 1], prevP = have[have.length - 2];
+          value = lastP ? lastP.value : null;
+          kYear = lastP ? lastP.year : latest;
+          kPrev = prevP ? prevP.year : null;
+          if (prevP) delta = TAI.delta(value, prevP.value, deltaPhrase, decimals);
+        } else {
+          value = pts[pts.length - 1].value;
+          if (prev) delta = TAI.delta(value, pts[pts.length - 2].value, deltaPhrase, decimals);
+        }
       } else {
         var sel = baseSelectionGeneral(config, state, latest);
         sel[config.seriesVar] = s.code;
@@ -669,7 +719,7 @@
         if (bd0 && config.vars[bd0.var].totalValue != null) sel[bd0.var] = config.vars[bd0.var].totalValue;
         value = valueAt(data.breakdown, sel);
       }
-      return { label: s.label, color: s.color, valence: s.valence, year: latest, prevYear: prev, value: value, delta: delta };
+      return { label: s.label, color: s.color, valence: s.valence, year: kYear, prevYear: kPrev, value: value, delta: delta };
     });
 
     /*
@@ -702,13 +752,13 @@
      */
     if (config.kpiReference && kpis.length && kpis[0].value != null) {
       var kr = config.kpiReference;
-      var refSel = baseSelectionGeneral(config, state, latest);
+      var refSel = baseSelectionGeneral(config, state, kpis[0].year);
       refSel[kr.var] = kr.value;
       var refValue = valueAt(data.trend || data.breakdown, refSel);
       if (refValue != null) {
         kpis[0].reference = {
           label: kr.label, value: refValue, subjectLabel: kr.subjectLabel,
-          delta: TAI.delta(kpis[0].value, refValue, config.deltaPhrase)
+          delta: TAI.delta(kpis[0].value, refValue, deltaPhrase, decimals)
         };
       }
     }
@@ -717,15 +767,21 @@
     var bd = config.views.breakdown;
     if (bd && data.breakdown) {
       var bVar = config.vars[bd.var];
-      var hasTotal = bVar.totalValue != null;
+      // showTotal: false või function(state): koondjoont ei näidata, kui koond on tulpade summa, mitte võrreldav tase (muidu venib telg)
+      var showTotal = typeof bd.showTotal === "function" ? bd.showTotal(state) : bd.showTotal !== false;
+      var hasTotal = bVar.totalValue != null && showTotal;
       // Kompaktne vaikimisi loend (nt riikide puhul), kui config seda määrab; "näita kõiki" lülitab
       // state[bd.expandFlag]-i abil täisloendile — vt app.js renderFilters/expand-nupp.
       var allValues = bVar.values.filter(function (v) { return v !== bVar.totalValue; });
+      var expandFlag = bd.expandFlag || (bd.limit ? "showAllBars" : undefined);
       var showAll = !bd.defaultValues || (bd.expandFlag && state[bd.expandFlag]);
       var visibleValues = showAll ? allValues : bd.defaultValues.filter(function (v) { return allValues.indexOf(v) >= 0; });
-      var groups = bd.groups || [{ label: null, values: visibleValues }];
+      // groups: massiiv või function(state)
+      var groups = (typeof bd.groups === "function" ? bd.groups(state) : bd.groups) || [{ label: null, values: visibleValues }];
+      // connectGaps: tulbad samast viimasest olemasolevast aastast kui KPI, muidu oleksid need uuringuta aastal tühjad
+      var barYear = config.connectGaps && kpis.length ? kpis[0].year : latest;
       var valueFor = function (s, code) {
-        var sel = baseSelectionGeneral(config, state, latest);
+        var sel = baseSelectionGeneral(config, state, barYear);
         sel[config.seriesVar] = s.code;
         sel[bd.var] = code;
         return valueAt(data.breakdown, sel);
@@ -734,28 +790,44 @@
         title: bd.title,
         inPhrase: bd.inPhrase,
         varCode: bd.var,
-        year: latest,
+        year: barYear,
         selected: (state[bd.var] != null && state[bd.var] !== bVar.totalValue) ? state[bd.var] : (bd.highlight || null),
         expandable: !!bd.defaultValues,
-        expandFlag: bd.expandFlag,
+        expandFlag: expandFlag,
         expanded: showAll,
         totalCount: allValues.length,
         shownCount: visibleValues.length,
+        limit: bd.limit || 0,
         series: series,
         totals: hasTotal ? series.map(function (s) { return valueFor(s, bVar.totalValue); }) : null,
         groups: groups.map(function (g) {
-          return {
-            label: g.label,
-            items: g.values.map(function (code) {
-              return {
-                code: code,
-                label: TAI.labelOf(config, bd.var, code),
-                values: series.map(function (s) { return valueFor(s, code); })
-              };
-            })
-          };
+          var items = g.values.map(function (code) {
+            return {
+              code: code,
+              label: TAI.labelOf(config, bd.var, code),
+              values: series.map(function (s) { return valueFor(s, code); })
+            };
+          });
+          // sort: "desc": suurimast väiksemani esimese seeria järgi, puuduvad lõppu
+          if (bd.sort === "desc") {
+            items.sort(function (a, c) {
+              var av = a.values[0], cv = c.values[0];
+              if (av == null) return cv == null ? 0 : 1;
+              if (cv == null) return -1;
+              return cv - av;
+            });
+          }
+          return { label: g.label, items: items };
         })
       };
+      // limit: kõik read on mudelis (tabel, lause), joonis näitab vähem (TAI.visibleBarGroups). defaultValues on ülimuslik.
+      if (breakdown.limit && !bd.defaultValues) {
+        breakdown.expanded = !!state[expandFlag];
+        breakdown.totalCount = TAI.barItemCount(breakdown);
+        breakdown.expandable = breakdown.totalCount > breakdown.limit;
+      } else {
+        breakdown.limit = 0;
+      }
     }
 
     return { config: config, state: state, series: series, latest: latest, prev: prev, trend: trend, kpis: kpis, breakdown: breakdown };
@@ -780,7 +852,7 @@
 
   function calloutTextGeneral(model) {
     var config = model.config;
-    var fmt = function (v) { return TAI.formatValue(v, config.unit); };
+    var fmt = valueFormat(config, model.state);
     var sentences = [];
     var suffix = populationSuffixGeneral(config, model.state);
     var k = model.kpis;
@@ -788,26 +860,27 @@
     var valid = k.filter(function (x) { return x.value != null; });
     if (valid.length === 1) {
       var only = valid[0];
-      var s0 = yl(config, model.latest) + ". aastal" + suffix + " oli " + config.measureLabel.toLowerCase() + " " + fmt(only.value);
+      // only.year / only.prevYear == model.latest / model.prev, v.a connectGaps-tabelitel (viimane olemasolev aasta)
+      var s0 = capitalize(TAI.inYear(config, only.year)) + suffix + " oli " + config.measureLabel.toLowerCase() + " " + fmt(only.value) + unitPhrase(config, model.state);
       if (only.delta) {
         var d0 = only.delta;
         s0 += d0.direction === "flat"
-          ? ", mis on praktiliselt sama kui " + yl(config, model.prev) + ". aastal"
+          ? ", mis on praktiliselt sama kui " + TAI.inYear(config, only.prevYear)
           : ", mis on " + d0.text.replace(/^[▲▼→]\s*/, "") + " " +
-            (d0.direction === "up" ? "rohkem" : "vähem") + " kui " + yl(config, model.prev) + ". aastal";
+            (d0.direction === "up" ? "rohkem" : "vähem") + " kui " + TAI.inYear(config, only.prevYear);
         var j0 = judgment(d0.direction, only.valence);
         if (j0) s0 += " — see näitab olukorra " + (j0 === "better" ? "paranemist" : "halvenemist");
       }
       sentences.push(s0 + ".");
     } else if (valid.length > 1) {
       var top = valid.slice().sort(function (a, c) { return c.value - a.value; })[0];
-      var s = yl(config, model.latest) + ". aastal" + suffix + " oli enim vastuseid kategoorias „" + top.label + "“ (" + fmt(top.value) + ")";
+      var s = capitalize(TAI.inYear(config, top.year)) + suffix + " oli enim vastuseid kategoorias „" + top.label + "“ (" + fmt(top.value) + ")";
       if (top.delta) {
         var d = top.delta;
         s += d.direction === "flat"
-          ? ", mis on praktiliselt sama kui " + yl(config, model.prev) + ". aastal"
+          ? ", mis on praktiliselt sama kui " + TAI.inYear(config, top.prevYear)
           : ", mis on " + d.text.replace(/^[▲▼→]\s*/, "") + " " +
-            (d.direction === "up" ? "rohkem" : "vähem") + " kui " + yl(config, model.prev) + ". aastal";
+            (d.direction === "up" ? "rohkem" : "vähem") + " kui " + TAI.inYear(config, top.prevYear);
         var j = judgment(d.direction, top.valence);
         if (j) s += " — see näitab olukorra " + (j === "better" ? "paranemist" : "halvenemist");
       }
@@ -826,6 +899,11 @@
           "“ (" + fmt(hi.values[0]) + ") ja madalaim „" + lo.label + "“ (" + fmt(lo.values[0]) + ").");
       }
     }
+    // config.calloutExtra(model, fmt) → lause või null: tabeli oma lisalause, peab tuginema ainult ekraanil olevatele arvudele
+    if (typeof config.calloutExtra === "function") {
+      var extra = config.calloutExtra(model, fmt);
+      if (extra) sentences.push(extra);
+    }
     (config.calloutCaveats || []).forEach(function (c) {
       if (c.values.indexOf(model.state[c.var]) >= 0) sentences.push(c.text);
     });
@@ -835,18 +913,19 @@
 
   function renderKpisGeneral(model, slice) {
     var config = model.config;
-    var fmt = valueFormat(config);
+    var fmt = valueFormat(config, model.state);
     var single = model.kpis.length === 1;
     return '<div class="kpi-row">' + model.kpis.map(function (k) {
       var deltaHtml = "";
       if (!k.delta && k.prevYear && k.value != null) {
-        deltaHtml = '<p class="kpi__delta is-flat">Muutust ei saa arvutada: ' + esc(yl(config, k.prevYear)) + ". aasta andmed puuduvad</p>";
+        deltaHtml = '<p class="kpi__delta is-flat">Muutust ei saa arvutada: ' +
+          esc(config.periodYears ? "perioodi " + yl(config, k.prevYear) : yl(config, k.prevYear) + ". aasta") + " andmed puuduvad</p>";
       }
       if (k.delta) {
         var j = judgment(k.delta.direction, k.valence);
         var cls = j === "worse" ? "is-worse" : j === "better" ? "is-better" : "is-flat";
         deltaHtml = '<p class="kpi__delta ' + cls + '">' + esc(k.delta.text) +
-          ' <span class="kpi__delta-ref">' + esc(k.deltaRef || "võrreldes " + yl(config, k.prevYear) + ". aastaga") + "</span></p>";
+          ' <span class="kpi__delta-ref">' + esc(k.deltaRef || "võrreldes " + TAI.vsYear(config, k.prevYear)) + "</span></p>";
       }
       return '<div class="kpi">' +
         '<p class="kpi__label">' + esc(k.cardLabel) + " · " + esc(yl(config, k.year)) + "</p>" +
@@ -868,15 +947,15 @@
 
   function renderDataTablesGeneral(model) {
     var config = model.config;
-    var fmt = valueFormat(config);
-    var ut = TAI.unitText(config);
+    var fmt = valueFormat(config, model.state);
+    var ut = TAI.unitText(config, model.state);
     var unitSuffix = ut ? " (" + ut + ")" : "";
     var html = "";
     var heads = model.series.map(function (s) { return '<th scope="col" class="num">' + esc(s.label) + "</th>"; }).join("");
 
     if (model.trend) {
       html += '<table class="data-table"><caption>' + esc(config.measureLabel) + unitSuffix + " aastate kaupa" + captionSlice(TAI.trendSlice(model)) + "</caption>" +
-        '<thead><tr><th scope="col">Aasta</th>' + heads + "</tr></thead><tbody>" +
+        '<thead><tr><th scope="col">' + (config.periodYears ? "Periood" : "Aasta") + "</th>" + heads + "</tr></thead><tbody>" +
         config.years.map(function (y, i) {
           return '<tr><th scope="row">' + esc(yl(config, y)) + "</th>" + model.trend.map(function (s) {
             return '<td class="num">' + fmt(s.points[i].value) + "</td>";
@@ -909,8 +988,9 @@
 
   function drawTrendChartGeneral(svg, model, width) {
     var config = model.config;
-    var fmt = valueFormat(config);
-    var axisUnit = config.unit != null ? config.unit : "%";
+    var fmt = valueFormat(config, model.state);
+    var unitNow = TAI.unitOf(config, model.state);
+    var axisUnit = unitNow != null ? unitNow : "%";
     var years = config.years;
     var narrow = width < 480;
     // Pooleliolevad aastad (config.provisionalYears): katkendjoon ja seest tühi punkt.
@@ -928,7 +1008,7 @@
     // config.axisMax: fikseeritud ülempiiriga skaalade jaoks (nt hindamisskaala 0–10) — niceMax()
     // astmestik (5/10/20/…) on mõeldud lahtise suurusjärguga arvudele (protsendid, suremuskordajad)
     // ja venitab kitsa, teadaoleva vahemikuga skaala teljed ebamõistlikult suureks.
-    var maxV = axisMaxOf(config, all);
+    var maxV = axisMaxOf(config, all, model.state);
 
     function x(i) { return padL + inset + ((plotW - 2 * inset) * i) / Math.max(1, years.length - 1); }
     function y(v) { return padT + plotH - (plotH * v) / maxV; }
@@ -960,7 +1040,7 @@
       var pts = s.points.map(function (p, i) { return p.value == null ? null : [x(i), y(p.value)]; });
       var d = "", dashed = "", pen = false, last = null;
       pts.forEach(function (p, i) {
-        if (!p) { pen = false; last = null; return; }
+        if (!p) { if (!config.connectGaps) { pen = false; last = null; } return; }   // connectGaps: joon üle uuringu vaheaastate
         if (isProvisional(i)) {
           if (last) dashed += "M" + last[0] + "," + last[1] + " L" + p[0] + "," + p[1] + " ";
           pen = false;
@@ -1015,8 +1095,8 @@
 
   function drawBarChartGeneral(svg, model, width) {
     var config = model.config;
-    var fmt = valueFormat(config);
-    var b = model.breakdown;
+    var fmt = valueFormat(config, model.state);
+    var b = Object.assign({}, model.breakdown, { groups: TAI.visibleBarGroups(model.breakdown) });
     var nSeries = b.series.length;
     var W = Math.max(280, width);
     var narrow = W < 480;
@@ -1031,7 +1111,7 @@
 
     var all = (b.totals || []).slice();
     b.groups.forEach(function (g) { g.items.forEach(function (it) { all = all.concat(it.values); }); });
-    var maxV = axisMaxOf(config, all);
+    var maxV = axisMaxOf(config, all, model.state);
     function bx(v) { return barX + (plotW * v) / maxV; }
 
     var charW = narrow ? 6.4 : 6.8;

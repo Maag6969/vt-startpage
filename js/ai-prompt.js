@@ -74,7 +74,9 @@
     if (years.length === 1) {
       notes.push("Andmetes on ainult üks aasta (" + years[0] + "): trendi ega aastatevahelist muutust ära analüüsi, kirjelda osas 2 ainult erinevusi rühmade vahel.");
     } else if (years.length > 1) {
-      var gaps = years.some(function (y, i) { return i > 0 && Number(y) - Number(years[i - 1]) !== 1; });
+      // Perioodid („2024/2025“) ei ole arvud: lünkade kohta siis midagi ei väideta
+      var gaps = years.every(function (y) { return /^\d+$/.test(y); }) &&
+        years.some(function (y, i) { return i > 0 && Number(y) - Number(years[i - 1]) !== 1; });
       notes.push("Andmetes on aastad " + years.join(", ") + "." + (gaps
         ? " Need ei ole järjestikused: vahele jäävate aastate kohta andmeid ei ole, nimeta seda trendi kirjeldades."
         : ""));

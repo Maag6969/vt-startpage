@@ -56,6 +56,7 @@
     unit: "",
     unitLabel: "hinne skaalal 0 (üldse mitte rahul) kuni 10 (täiesti rahul)",
     deltaPhrase: "palli",
+    calloutUnit: false,   // skaala on graafiku all kirjas, kokkuvõtte lauses seda ei korrata
     axisMax: 10,
 
     kpiSubject: "Eesti",

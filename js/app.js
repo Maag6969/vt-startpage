@@ -347,7 +347,9 @@
       var id = "filter-" + code;
       var comp = comparisonFor(config, code);
       var comparing = !!(comp && state[comp.flag]);
-      var options = code === "Sugu" ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, v.labels[i]]; });
+      // optionLabels (valikuline): rippmenüü sildid hierarhia-taandega (nt „– Kardioloog“); mujal kasutatakse puhtaid labels'eid
+      var optionLabels = v.optionLabels || v.labels;
+      var options = code === "Sugu" ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, optionLabels[i]]; });
       html += '<div class="field"><label for="' + esc(id) + '">' + esc(v.label) + "</label>" +
         '<select id="' + esc(id) + '" data-filter="' + esc(code) + '">' +
         options.map(function (o) {
@@ -434,7 +436,7 @@
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
     var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
-    var unitTxt = config.seriesVar ? TAI.unitText(config) : "%";
+    var unitTxt = config.seriesVar ? TAI.unitText(config, stateOf(config)) : "%";
     var yearOf = function (y) { return config.seriesVar ? TAI.yearLabel(config, y) : y; };
     var trendNote = typeof config.trendNote === "function" ? config.trendNote() : config.trendNote;   // võib sõltuda andmetest
 
@@ -529,7 +531,8 @@
   contentEl.addEventListener("click", function (evt) {
     var btn = evt.target.closest('[data-action="toggle-expand"]');
     if (!btn || !view) return;
-    var flag = view.config.views.breakdown && view.config.views.breakdown.expandFlag;
+    var body = contentEl.querySelector(".module__body");
+    var flag = body && body._model && body._model.breakdown && body._model.breakdown.expandFlag;
     if (!flag) return;
     var state = stateOf(view.config);
     state[flag] = !state[flag];

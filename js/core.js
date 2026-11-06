@@ -33,8 +33,8 @@
   function latestYearOf(t) {
     var code = t.years[t.years.length - 1];
     var label = t.seriesVar ? TAI.yearLabel(t, code) : code; // TAI.yearLabel (module.js) — vt allpool
-    var n = parseInt(label, 10);
-    return isNaN(n) ? 0 : n;
+    var found = String(label).match(/\d{4}/g);   // periood „2024/2025“ loeb viimase aasta järgi
+    return found ? parseInt(found[found.length - 1], 10) : 0;
   }
 
   TAI.getTables = function () {
@@ -149,6 +149,9 @@
       if (!v.values || !v.labels || v.values.length !== v.labels.length) {
         throw new Error(c.code + ": muutuja '" + code + "' values/labels on puudu või erineva pikkusega");
       }
+      if (v.optionLabels && v.optionLabels.length !== v.values.length) {
+        throw new Error(c.code + ": muutuja '" + code + "' optionLabels on erineva pikkusega kui values");
+      }
     });
   }
 
@@ -174,8 +177,40 @@
     };
   };
 
-  TAI.apiUrl = function (config) { return TAI.API_BASE + config.code + ".px"; };
-  TAI.pxwebUrl = function (config) { return TAI.PXWEB_BASE + config.code + ".px/"; };
+  /*
+   * Maakond (15 maakonda + Eesti kokku, tähestiku järjekorras; ülevõetud M3-st). Linnad ja „Maakond teadmata“ jäetakse välja,
+   * et maakondade tulbas poleks topelt. Enamik TAI tabeleid kasutab neid EHAK-i koode; kui tabeli metaandmetes on teised
+   * koodid, anna need opts.codes-is samas järjekorras (kontrolli alati: M3-s erinesid need tabeliti).
+   * opts.total = kokku-rea kood ("00" või "0"), opts.elimination nagu sexVar-il.
+   */
+  TAI.COUNTY_CODES = ["37", "39", "45", "50", "52", "56", "60", "64", "68", "71", "74", "79", "81", "84", "87"];
+  TAI.COUNTY_LABELS = ["Harju maakond", "Hiiu maakond", "Ida-Viru maakond", "Jõgeva maakond", "Järva maakond",
+    "Lääne maakond", "Lääne-Viru maakond", "Põlva maakond", "Pärnu maakond", "Rapla maakond", "Saare maakond",
+    "Tartu maakond", "Valga maakond", "Viljandi maakond", "Võru maakond"];
+
+  TAI.countyVar = function (opts) {
+    opts = opts || {};
+    var total = opts.total || "00";
+    var v = {
+      label: "Maakond",
+      values: [total].concat(opts.codes || TAI.COUNTY_CODES),
+      labels: ["Eesti kokku"].concat(TAI.COUNTY_LABELS),
+      totalValue: total
+    };
+    if (opts.elimination) v.elimination = true;
+    return v;
+  };
+
+  /* Vaikimisi on tabel kaustas API_BASE; teises TAI kaustas oleva tabeli seadistus annab `taiPath`, nt "04THressursid/05Tootajad". */
+  var TAI_API_ROOT = "https://statistika.tai.ee/api/v1/et/Andmebaas/";
+  var TAI_PXWEB_ROOT = "https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__";
+
+  TAI.apiUrl = function (config) {
+    return (config.taiPath ? TAI_API_ROOT + config.taiPath + "/" : TAI.API_BASE) + config.code + ".px";
+  };
+  TAI.pxwebUrl = function (config) {
+    return (config.taiPath ? TAI_PXWEB_ROOT + config.taiPath.split("/").join("__") + "/" : TAI.PXWEB_BASE) + config.code + ".px/";
+  };
 
   TAI.labelOf = function (config, varCode, value) {
     var v = config.vars[varCode];
@@ -207,6 +242,9 @@
     Object.keys(config.vars).forEach(function (code) {
       var v = config.vars[code];
       var values;
+
+      // responseOnly: dimensioon on ainult vastuses, mitte päringus (nt TAI ContentsCode "EliminatedValue")
+      if (v.responseOnly) return;
 
       if (code === config.yearVar && !(selection[code] && selection[code].length)) {
         query.push({ code: code, selection: { filter: "all", values: ["*"] } });
@@ -469,11 +507,12 @@
 
   /*
    * Kuvatav ühikutekst: kas lühike sufiks number otsa (config.unit, vaikimisi "%"), või kui väärtus
-   * pole protsent (config.unit === "") — pikem kirjeldav fraas (config.unitLabel).
+   * pole protsent (config.unit === "") — pikem kirjeldav fraas (config.unitLabel). Ühik võib sõltuda filtrist (TAI.unitOf).
    */
-  TAI.unitText = function (config) {
-    if (config.unit === "") return config.unitLabel || "";
-    return config.unit != null ? config.unit : "%";
+  TAI.unitText = function (config, state) {
+    var unit = TAI.unitOf(config, state);
+    if (unit === "") return config.unitLabel || "";
+    return unit != null ? unit : "%";
   };
 
   /** Laeb kõik konfiguratsiooni päringud (config.queries(state)) paralleelselt. Tagastab { nimi: lugeja }.
@@ -647,7 +686,38 @@
   /* 12.34 → "12,3<unit>" (eesti formaat). `unit` vaikimisi "%" (tagasiühilduvus tabelitega, mis
      config.unit ei määra). Tabelid, mille väärtus pole protsent (nt hindamisskaala 0–10), määravad
      config.unit = "" (tühi, ühik selgitatakse mujal, vt TAI.unitText) või mõne muu sufiksi. */
-  TAI.formatValue = function (v, unit) { return v == null ? "–" : pctFormat.format(v) + (unit != null ? unit : "%"); };
+  var numberFormats = { 1: pctFormat };
+  function numberFormat(decimals) {
+    var d = decimals == null ? 1 : decimals;
+    if (!numberFormats[d]) {
+      numberFormats[d] = new Intl.NumberFormat("et-EE", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+    return numberFormats[d];
+  }
+
+  TAI.formatValue = function (v, unit, decimals) {
+    return v == null ? "–" : numberFormat(decimals).format(v) + (unit != null ? unit : "%");
+  };
+
+  /* Ühik, komakohad ja muutuse sõna võivad olla väärtus või function(state): üks tabel võib filtri järgi näidata
+     osakaalu („%“, 1 koma) või arvu ("", 0 koma). Vaikimisi nagu varem: 1 koma. */
+  TAI.unitOf = function (config, state) {
+    return typeof config.unit === "function" ? config.unit(state || {}) : config.unit;
+  };
+  TAI.decimalsOf = function (config, state) {
+    var d = typeof config.decimals === "function" ? config.decimals(state || {}) : config.decimals;
+    return d == null ? 1 : d;
+  };
+  TAI.deltaPhraseOf = function (config, state) {
+    return typeof config.deltaPhrase === "function" ? config.deltaPhrase(state || {}) : config.deltaPhrase;
+  };
+
+  /* Tabeli ja oleku järgi vormindaja. Tabeli oma config.formatValue (nt täisarvud) on ülimuslik. */
+  TAI.formatterFor = function (config, state) {
+    if (config.formatValue) return config.formatValue;
+    var unit = TAI.unitOf(config, state), d = TAI.decimalsOf(config, state);
+    return function (v) { return TAI.formatValue(v, unit, d); };
+  };
 
   /** 12.34 → "12,3%" (eesti formaat). */
   TAI.formatPct = function (v) { return TAI.formatValue(v, "%"); };
@@ -655,13 +725,13 @@
   /* Muutus kahe väärtuse vahel: { diff, direction: "up" | "down" | "flat", text }. `phrase` on
      ühikusõna deltateksti lõpus (vaikimisi "protsendipunkti" — tagasiühilduvus); anna tühi string,
      kui tabelil pole sobivat lühikest ühikusõna. */
-  TAI.delta = function (current, previous, phrase) {
+  TAI.delta = function (current, previous, phrase, decimals) {
     if (current == null || previous == null) return null;
     var diff = current - previous;
     var direction = diff > 0.05 ? "up" : diff < -0.05 ? "down" : "flat";
     var arrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "→";
     var p = phrase != null ? phrase : "protsendipunkti";
-    return { diff: diff, direction: direction, text: arrow + " " + pctFormat.format(Math.abs(diff)) + (p ? " " + p : "") };
+    return { diff: diff, direction: direction, text: arrow + " " + numberFormat(decimals).format(Math.abs(diff)) + (p ? " " + p : "") };
   };
 
 })(window);

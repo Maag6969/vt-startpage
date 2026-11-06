@@ -27,6 +27,22 @@
  *   code, title, fullTitle, description, eyebrow, group ("Tervise Arengu Instituut" | "Eurostat" | ...; kuvatakse grupipealkirjana, järjekord TAI.GROUP_ORDER), years, yearVar,
  *   vars (kõik API muutujad, sh aasta), filters, views { trend, breakdown }, queries(state), footnotes.
  *
+ * VALIKULISED SEADED ÜLDISELE KUJULE (06.11.2026, ülevõetud M3-st; ilma nendeta käitub tabel nagu varem):
+ *   unit, decimals, deltaPhrase    väärtus või function(state): nt filter „Näitaja“ valib osakaalu („%“, 1 koma) või arvu ("", 0 koma)
+ *   calloutUnit: false             ära korda unitLabel-it kokkuvõtte lauses (vaikimisi: üks sõna ilma sulgudeta, pikem fraas sulgudes)
+ *   calloutExtra(model, fmt)       tabeli oma lisalause (string või null); ainult ekraanil olevate arvude põhjal
+ *   connectGaps: true              uuring pole igal aastal: joon üle lünkade, KPI ja tulbad viimasest olemasolevast aastast
+ *   periodYears: true              kaheaastased perioodid: „perioodil 2024/2025“ (aastakoodid kujul „2024/2025“)
+ *   taiPath: "04THressursid/05Tootajad"   TAI tabel teises kaustas kui TAI.API_BASE
+ *   vars.X.optionLabels            rippmenüü sildid (nt taandega „– Kardioloog“); mujal kasutatakse puhtaid labels'eid
+ *   vars.X.responseOnly: true      dimensioon on ainult vastuses, päringus seda küsida ei saa (nt TAI ContentsCode)
+ *   TAI.countyVar({ total, codes, elimination })   15 maakonda + Eesti kokku; KONTROLLI koode tabeli metaandmetest
+ *   views.breakdown.limit: N       pikk tulp: joonisel N esimest + valitud rida, sama „Näita kõiki“ nupp; tabel ja lause näevad kõiki
+ *   views.breakdown.sort: "desc"   suurimast väiksemani (esimese seeria järgi, puuduvad lõppu)
+ *   views.breakdown.groups         massiiv või function(state)
+ *   views.breakdown.showTotal      false või function(state): koondjoont ei näidata, kui koond on tulpade summa
+ *   defaultValues ja limit koos: defaultValues on ülimuslik.
+ *
  * AI-NUPUD (05.11.2026): `ai: { profile: "etu" | "tervisekassa" | "eurostat", notes: ["aruande enda reegel"] }`. Ilma selle väljata nuppe ei
  *   näidata: uue allika jaoks lisa js/ai-prompt.js-i oma profiil (mida number EI tähenda, millised selgitused on lubatud), vt AI-ANALUUS.md.
  *
