@@ -27,7 +27,7 @@
 
   // ---- andmemudel (vana, indicator-põhine) ---------------------------
 
-  /** Seeriad olekust: võrdlusel mehed + naised, muidu valitud sugu. */
+  /** Seeriad olekust: soo võrdlusel mehed + naised, vanuserühmade võrdlusel iga rühm (valitud soo piires), muidu valitud sugu. */
   function seriesOfIndicator(config, state) {
     if (state.compareSexes) {
       return [
@@ -36,12 +36,14 @@
       ];
     }
     var code = state.Sugu || "0";
-    return [{
-      code: code,
-      label: TAI.labelOf(config, "Sugu", code),
-      kes: code === "1" ? "meeste" : code === "2" ? "naiste" : "inimeste",
-      color: COLORS.series1
-    }];
+    var kes = code === "1" ? "meeste" : code === "2" ? "naiste" : "inimeste";
+    if (state.compareAges) {
+      var cmp = TAI.comparisonFor(config, "Vanuserühm");
+      return cmp.values.map(function (age, i) {
+        return { code: code, age: age, label: TAI.labelOf(config, "Vanuserühm", age), kes: kes, color: cmp.colors[i] };
+      });
+    }
+    return [{ code: code, label: TAI.labelOf(config, "Sugu", code), kes: kes, color: COLORS.series1 }];
   }
 
   /**
@@ -49,7 +51,7 @@
    * Lugeja ignoreerib võtmeid, mida vastuses pole — nii sobib sama valik nii API vastusele
    * kui ka üleslaaditud täistabelile.
    */
-  function baseSelectionIndicator(config, state, sexCode, year) {
+  function baseSelectionIndicator(config, state, s, year) {
     var sel = {};
     sel[config.yearVar] = year;
     Object.keys(config.vars).forEach(function (code) {
@@ -58,7 +60,8 @@
       if (v.totalValue == null) return;
       sel[code] = state[code] != null ? state[code] : v.totalValue;
     });
-    sel.Sugu = sexCode;
+    sel.Sugu = s.code;
+    if (s.age) sel["Vanuserühm"] = s.age;
     return sel;
   }
 
@@ -77,7 +80,7 @@
       trend = series.map(function (s) {
         return Object.assign({}, s, {
           points: years.map(function (y) {
-            return { year: y, value: share(data.trend, baseSelectionIndicator(config, state, s.code, y)) };
+            return { year: y, value: share(data.trend, baseSelectionIndicator(config, state, s, y)) };
           })
         });
       });
@@ -91,7 +94,7 @@
         value = pts[pts.length - 1].value;
         if (prev) delta = TAI.delta(value, pts[pts.length - 2].value);
       } else {
-        var sel = baseSelectionIndicator(config, state, s.code, latest);
+        var sel = baseSelectionIndicator(config, state, s, latest);
         if (config.views.breakdown) sel[config.views.breakdown.var] = config.vars[config.views.breakdown.var].totalValue;
         value = share(data.breakdown, sel);
       }
@@ -110,7 +113,8 @@
     kpis.forEach(function (k) { k.cardLabel = k.label + (narrowedIndicator ? ", valitud lõige" : ""); });
 
     var breakdown = null;
-    var bd = config.views.breakdown;
+    // Vanuserühmade võrdlusel tulpa ei näidata: rühmade info on joontel ja kaartidel, 7 tulpa rea kohta oleks loetamatu
+    var bd = state.compareAges ? null : config.views.breakdown;
     if (bd && data.breakdown) {
       var bVar = config.vars[bd.var];
       var groups = bd.groups || [{
@@ -118,7 +122,7 @@
         values: bVar.values.filter(function (v) { return v !== bVar.totalValue; })
       }];
       var valueFor = function (s, code) {
-        var sel = baseSelectionIndicator(config, state, s.code, latest);
+        var sel = baseSelectionIndicator(config, state, s, latest);
         sel[bd.var] = code;
         return share(data.breakdown, sel);
       };
@@ -164,6 +168,20 @@
 
   function phrase(config, kes) { return config.indicator.phrase.replace("{kes}", kes); }
 
+  /* Üle kahe rühma võrdluse lause osa: kõrgeim ja madalaim rühm. Ekraanil võrdse väärtusega rühmad nimetatakse kõik. */
+  function compareExtremes(kpis, format, unit) {
+    var valid = kpis.filter(function (x) { return x.value != null; });
+    if (valid.length < 2) return "";
+    var values = valid.map(function (x) { return x.value; });
+    var max = Math.max.apply(null, values), min = Math.min.apply(null, values);
+    if (format(max) === format(min)) return "kõigis rühmades sama (" + format(max) + unit + ")";
+    function groupsAt(value) {
+      var names = valid.filter(function (x) { return format(x.value) === format(value); }).map(function (x) { return "„" + x.label + "“"; });
+      return names.length === 1 ? "rühmas " + names[0] : "rühmades " + names.slice(0, -1).join(", ") + " ja " + names[names.length - 1];
+    }
+    return "kõrgeim " + groupsAt(max) + " (" + format(max) + unit + ") ja madalaim " + groupsAt(min) + " (" + format(min) + unit + ")";
+  }
+
   function calloutTextIndicator(model) {
     var config = model.config;
     var sentences = [];
@@ -184,6 +202,9 @@
     } else if (k.length === 2 && k[0].value != null && k[1].value != null) {
       sentences.push(intro + phrase(config, "naiste") + " " + fmt(k[1].value) +
         " ja meeste osakaal " + fmt(k[0].value) + ".");
+    } else if (k.length > 2) {
+      var extremes = compareExtremes(k, fmt, "");
+      if (extremes) sentences.push(intro + phrase(config, model.series[0].kes) + " " + extremes + ".");
     }
 
     var b = model.breakdown;
@@ -322,7 +343,8 @@
   TAI.renderLegend = function (series) {
     if (series.length < 2) return "";
     return '<ul class="legend">' + series.map(function (s) {
-      return '<li><span class="legend__swatch" style="background:' + s.color + '"></span>' + esc(s.label) + "</li>";
+      // värv pannakse peale CSSOM-iga (app.js applySwatches), sest CSP ei luba style="…" atribuuti HTML-is
+      return '<li><span class="legend__swatch" data-swatch="' + esc(s.color) + '"></span>' + esc(s.label) + "</li>";
     }).join("") + "</ul>";
   };
 
@@ -474,9 +496,12 @@
       entries.forEach(function (e, rank) {
         var cx = x(i), cy = y(e.v);
         var below = entries.length > 1 && rank === entries.length - 1;
-        svg.appendChild(el("text", {
-          class: "mark-label", x: cx, y: below ? cy + 20 : cy - 11, "text-anchor": "middle"
-        }, fmt(e.v)));
+        // Üle kahe seeria kattuksid sildid: väärtused on KPI-kaartidel, vihjes ja andmetabelis
+        if (model.trend.length <= 2) {
+          svg.appendChild(el("text", {
+            class: "mark-label", x: cx, y: below ? cy + 20 : cy - 11, "text-anchor": "middle"
+          }, fmt(e.v)));
+        }
         var dot = el("circle", Object.assign(markAttrs(e.s.label + " · " + yr, e.v), {
           cx: cx, cy: cy, r: 5, fill: e.s.color, class: "mark line-dot"
         }));
@@ -644,9 +669,22 @@
    * muutuja (nt "geo") kannab kahte rolli: väike võrdlusseeria trendi/KPI jaoks (nt ainult Eesti)
    * JA suur loend breakdown-tulpade jaoks (nt kõik riigid) — vt js/tables/eurostat-ilc-pw01.js.
    */
-  function seriesOfGeneral(config) {
+  function seriesOfGeneral(config, state) {
     var v = config.vars[config.seriesVar];
     var codes = config.seriesValues || v.values;
+    // Võrdlus: üks joon iga võrreldava rühma kohta (seeriamuutuja esimene väärtus, nt Eesti)
+    var cmp = TAI.activeComparison(config, state);
+    if (cmp) {
+      var mi = v.values.indexOf(codes[0]);
+      return cmp.values.map(function (val, i) {
+        return {
+          code: codes[0], cmpVar: cmp.filter, cmpCode: val,
+          label: TAI.labelOf(config, cmp.filter, val),
+          color: cmp.colors[i],
+          valence: (v.valence && v.valence[mi]) || "neutral"
+        };
+      });
+    }
     return codes.map(function (code) {
       var i = v.values.indexOf(code);
       return {
@@ -670,8 +708,16 @@
     return sel;
   }
 
+  /** Valik ühe seeria kohta: seeriamuutuja väärtus ja võrdlusel ka rühm. */
+  function selectSeries(config, sel, s) {
+    sel[config.seriesVar] = s.code;
+    if (s.cmpVar) sel[s.cmpVar] = s.cmpCode;
+    return sel;
+  }
+
   function buildModelGeneral(config, data, state) {
-    var series = seriesOfGeneral(config);
+    var series = seriesOfGeneral(config, state);
+    var comparison = TAI.activeComparison(config, state);
     var years = config.years;
     var latest = years[years.length - 1];
     var prev = years.length > 1 ? years[years.length - 2] : null;
@@ -687,8 +733,7 @@
       trend = series.map(function (s) {
         return Object.assign({}, s, {
           points: years.map(function (y) {
-            var sel = baseSelectionGeneral(config, state, y);
-            sel[config.seriesVar] = s.code;
+            var sel = selectSeries(config, baseSelectionGeneral(config, state, y), s);
             return { year: y, value: valueAt(data.trend, sel) };
           })
         });
@@ -713,8 +758,7 @@
           if (prev) delta = TAI.delta(value, pts[pts.length - 2].value, deltaPhrase, decimals);
         }
       } else {
-        var sel = baseSelectionGeneral(config, state, latest);
-        sel[config.seriesVar] = s.code;
+        var sel = selectSeries(config, baseSelectionGeneral(config, state, latest), s);
         var bd0 = config.views.breakdown;
         if (bd0 && config.vars[bd0.var].totalValue != null) sel[bd0.var] = config.vars[bd0.var].totalValue;
         value = valueAt(data.breakdown, sel);
@@ -750,7 +794,7 @@
      * see on (nt "Eesti tulemus"). Rida algab ka valitud aastaga (vt renderKpisGeneral), et see
      * oleks iseseisvalt loetav ega eeldaks, et lugeja seob selle kaardi pealkirja aastaga.
      */
-    if (config.kpiReference && kpis.length && kpis[0].value != null) {
+    if (config.kpiReference && !comparison && kpis.length && kpis[0].value != null) {
       var kr = config.kpiReference;
       var refSel = baseSelectionGeneral(config, state, kpis[0].year);
       refSel[kr.var] = kr.value;
@@ -765,6 +809,8 @@
 
     var breakdown = null;
     var bd = config.views.breakdown;
+    // Võrdlusel tulpa ei näidata, kui see võrdleks sama asja, mis jooned, või kui rea kohta tuleks üle kahe tulba
+    if (comparison && bd && (comparison.filter === bd.var || comparison.values.length > 2)) bd = null;
     if (bd && data.breakdown) {
       var bVar = config.vars[bd.var];
       // showTotal: false või function(state): koondjoont ei näidata, kui koond on tulpade summa, mitte võrreldav tase (muidu venib telg)
@@ -781,8 +827,7 @@
       // connectGaps: tulbad samast viimasest olemasolevast aastast kui KPI, muidu oleksid need uuringuta aastal tühjad
       var barYear = config.connectGaps && kpis.length ? kpis[0].year : latest;
       var valueFor = function (s, code) {
-        var sel = baseSelectionGeneral(config, state, barYear);
-        sel[config.seriesVar] = s.code;
+        var sel = selectSeries(config, baseSelectionGeneral(config, state, barYear), s);
         sel[bd.var] = code;
         return valueAt(data.breakdown, sel);
       };
@@ -830,7 +875,7 @@
       }
     }
 
-    return { config: config, state: state, series: series, latest: latest, prev: prev, trend: trend, kpis: kpis, breakdown: breakdown };
+    return { config: config, state: state, series: series, latest: latest, prev: prev, trend: trend, kpis: kpis, breakdown: breakdown, comparison: comparison };
   }
 
   function populationSuffixGeneral(config, state) {
@@ -858,7 +903,17 @@
     var k = model.kpis;
 
     var valid = k.filter(function (x) { return x.value != null; });
-    if (valid.length === 1) {
+    if (model.comparison) {
+      // Võrdluse lause: ainult kirjeldav, toetub KPI-kaartide arvudele; hinnangut ega uusi arve ei anta
+      if (valid.length > 1) {
+        var ranked = valid.slice().sort(function (a, c) { return c.value - a.value; });
+        var top1 = ranked[0], low1 = ranked[ranked.length - 1], u = unitPhrase(config, model.state);
+        var when = capitalize(TAI.inYear(config, valid[0].year)) + suffix + " oli " + config.measureLabel.toLowerCase();
+        sentences.push(valid.length === 2
+          ? when + " rühmas „" + top1.label + "“ " + fmt(top1.value) + u + " ja rühmas „" + low1.label + "“ " + fmt(low1.value) + u + "."
+          : when + " " + compareExtremes(valid, fmt, u) + ".");
+      }
+    } else if (valid.length === 1) {
       var only = valid[0];
       // only.year / only.prevYear == model.latest / model.prev, v.a connectGaps-tabelitel (viimane olemasolev aasta)
       var s0 = capitalize(TAI.inYear(config, only.year)) + suffix + " oli " + config.measureLabel.toLowerCase() + " " + fmt(only.value) + unitPhrase(config, model.state);
@@ -888,7 +943,8 @@
       sentences.push(s + ".");
     }
 
-    var b = model.breakdown;
+    // Võrdlusel seda lauset pole: esimene seeria on ainult üks võrreldavatest rühmadest
+    var b = model.comparison ? null : model.breakdown;
     if (b) {
       var items = [];
       b.groups.forEach(function (g) { g.items.forEach(function (it) { items.push(it); }); });
@@ -901,7 +957,7 @@
       }
     }
     // config.calloutExtra(model, fmt) → lause või null: tabeli oma lisalause, peab tuginema ainult ekraanil olevatele arvudele
-    if (typeof config.calloutExtra === "function") {
+    if (typeof config.calloutExtra === "function" && !model.comparison) {
       var extra = config.calloutExtra(model, fmt);
       if (extra) sentences.push(extra);
     }
@@ -1088,7 +1144,8 @@
         var dot = el("circle", Object.assign(markAttrs(e.s.label + " · " + yl(config, yr), e.v, fmt), {
           cx: cx, cy: cy, r: 5, fill: e.s.color, class: "mark line-dot"
         }));
-        if (isProvisional(i)) dot.setAttribute("style", "fill: var(--taust); stroke: " + e.s.color);
+        // CSSOM (mitte setAttribute("style")): CSP ei luba style-atribuuti
+        if (isProvisional(i)) { dot.style.fill = "var(--taust)"; dot.style.stroke = e.s.color; }
         svg.appendChild(dot);
       });
     });

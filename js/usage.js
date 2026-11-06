@@ -81,12 +81,11 @@
       TAI.getTables().forEach(function (t) {
         (t.filters || []).forEach(function (varCode) {
           var v = t.vars[varCode];
-          var values = varCode === "Sugu" ? Object.keys(SEX_VALUES).filter(function (k) { return k !== "compare" || t.canCompareSexes; }) : v.values.slice();
-          if (varCode === "Vanuserühm" && t.canCompareAges) values.push("vordlus"); // vanuserühmade võrdlus
+          var comp = TAI.comparisonFor(t, varCode);
+          var values = varCode === "Sugu" ? Object.keys(SEX_VALUES).filter(function (k) { return k !== "compare"; }) : v.values.slice();
+          if (comp) values.push(comp.usageOn);   // võrdlusnupp
           values.forEach(function (val) {
-            var label = varCode === "Sugu"
-              ? (val === "compare" ? "Mehed vrdl Naised" : TAI.labelOf(t, "Sugu", val))
-              : val === "vordlus" && varCode === "Vanuserühm" ? "Vanuserühmad vrdl" : TAI.labelOf(t, varCode, val);
+            var label = comp && val === comp.usageOn ? comp.label : TAI.labelOf(t, varCode, val);
             list.push({ key: usage.keyFilter(t.code, varCode, val), group: "Filtrid", table: t.code, label: t.code + " · " + v.label + ": " + label });
           });
         });

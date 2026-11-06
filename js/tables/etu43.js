@@ -28,7 +28,7 @@
     },
 
     filters: ["Sugu"],
-    canCompareSexes: true,
+    compare: { Sugu: "sugu" },
 
     // Ainult üks aasta → trendijoonist ega delta-muutust pole (disain.md p. 5)
     views: {

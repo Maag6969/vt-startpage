@@ -87,24 +87,41 @@
   TAI.SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
 
   /*
-   * Rühmasisesed võrdlused (nupud rippmenüüde all): iga võrdlus on oma lipp olekus ja seotud ühe filtriga. Korraga võib sees olla
-   * ainult üks (soo VÕI vanus). Aruanne lubab võrdluse: soo → config.canCompareSexes, vanus → config.canCompareAges. Kasutavad
-   * app.js (nupud, menüü) ja module.js (valitud lõige).
+   * Rühmasisesed võrdlused (nupp oma rippmenüü all; kasutaja otsus 06.11.2026): iga võrdlus on oma lipp olekus ja seotud ühe
+   * filtriga, korraga on sees üks. Aruanne lubab võrdluse seadistusega config.compare = { filtriKood: "sugu" | "vanus" | "haridus" }
+   * või { filtriKood: { kind, values, colors } }, kui rühmad või värvid vajavad täpsustamist (vaikimisi kõik väärtused peale koondi).
+   * Kasutavad app.js (nupud, menüü) ja module.js (seeriad, valitud lõige). `buttonLabel` = nupu tekst, `label` = menüü rida ja lõige.
    */
+  var COMPARE_KINDS = {
+    sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
+            usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
+    vanus: { flag: "compareAges", label: "Vanuserühmad vrdl", buttonLabel: "Vanuserühmade võrdlus", buttonId: "compare-ages", usageOn: "vordlus" },
+    haridus: { flag: "compareEdu", label: "Haridustasemed vrdl", buttonLabel: "Haridustasemete võrdlus", buttonId: "compare-edu", usageOn: "vordlus" }
+  };
+  var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
+
   TAI.comparisonsOf = function (config) {
-    var filters = config.filters || [];
-    var list = [];
-    if (config.canCompareSexes && filters.indexOf("Sugu") >= 0) {
-      list.push({ flag: "compareSexes", filter: "Sugu", label: "Mehed vrdl Naised", buttonId: "compare-sexes", usageOn: "compare", usageOff: "0" });
-    }
-    if (config.canCompareAges && filters.indexOf("Vanuserühm") >= 0) {
-      list.push({ flag: "compareAges", filter: "Vanuserühm", label: "Vanuserühmad vrdl", buttonId: "compare-ages", usageOn: "vordlus", usageOff: "kokku" });
-    }
-    return list;
+    var map = config.compare || {};
+    return (config.filters || []).filter(function (code) { return map[code]; }).map(function (code) {
+      var spec = typeof map[code] === "string" ? { kind: map[code] } : map[code];
+      var kind = COMPARE_KINDS[spec.kind], v = config.vars[code];
+      return Object.assign({}, kind, {
+        kind: spec.kind,
+        filter: code,
+        values: spec.values || v.values.filter(function (x) { return x !== v.totalValue; }),
+        colors: spec.colors || kind.colors || GROUP_COLORS,
+        usageOff: v.totalValue
+      });
+    });
   };
 
   TAI.comparisonFor = function (config, filterCode) {
     return TAI.comparisonsOf(config).filter(function (c) { return c.filter === filterCode; })[0] || null;
+  };
+
+  /** Praegu sisse lülitatud võrdlus või null. */
+  TAI.activeComparison = function (config, state) {
+    return TAI.comparisonsOf(config).filter(function (c) { return state[c.flag]; })[0] || null;
   };
 
   /** [{ name, url|null }] samas järjekorras kui vasak loend; grupita tabelid loetellu ei kuulu. */
@@ -144,6 +161,12 @@
     if (c.seriesVar && !c.vars[c.seriesVar]) {
       throw new Error(c.code + ": seeriamuutujat '" + c.seriesVar + "' pole vars-is kirjeldatud");
     }
+    // Ühik ja ühiku silt lisatakse HTML-i ilma escape'ita (TAI.formatValue): lubatud on ainult lihttekst (ülevõetud paketi skeletist 06.11.2026).
+    [["unit", c.unit], ["unitLabel", c.unitLabel], ["deltaPhrase", c.deltaPhrase], ["indicator.unit", c.indicator && c.indicator.unit]].forEach(function (p) {
+      if (typeof p[1] === "string" && /[<>&"']/.test(p[1])) {
+        throw new Error(c.code + ": väli '" + p[0] + "' ei tohi sisaldada märke < > & \" '");
+      }
+    });
     Object.keys(c.vars).forEach(function (code) {
       var v = c.vars[code];
       if (!v.values || !v.labels || v.values.length !== v.labels.length) {
@@ -278,10 +301,13 @@
    * Kasutaja olekust ({ Sugu: "2", Vanuserühm: "0", ... }) päringu selection.
    * Koondkategooria ("0") jäetakse välja — buildQuery lisab selle ise vaid eliminatsioonita muutujatele.
    * overrides: { muutujaKood: [väärtused] } kirjutab üle (nt kõik vanuserühmad tulpdiagrammi jaoks).
+   * Sisse lülitatud võrdluse filtri kohta küsitakse kõik võrreldavad väärtused.
    */
   TAI.selectionFromState = function (config, state, varCodes, overrides) {
     var sel = {};
+    var active = TAI.activeComparison(config, state);
     varCodes.forEach(function (code) {
+      if (active && active.filter === code) { sel[code] = active.values; return; }
       var val = state[code];
       if (val != null && val !== config.vars[code].totalValue) sel[code] = [val];
     });
@@ -669,9 +695,17 @@
 
   // ---- abifunktsioonid ----------------------------------------------
 
-  /** Uues aknas avanev link koos ekraanilugeja märkega. text ja href escape'itakse. */
+  /** Lingi aadress ainult siis, kui see on https:// aadress (turvareeglid C5, C7; ülevõetud paketi skeletist 06.11.2026); muidu null. */
+  TAI.safeUrl = function (href) {
+    return typeof href === "string" && /^https:\/\//i.test(href) ? href : null;
+  };
+
+  /** Uues aknas avanev link koos ekraanilugeja märkega. text ja href escape'itakse; mitte-https aadressi korral
+   *  tagastatakse ainult tekst (link jäetakse tegemata). */
   TAI.externalLink = function (href, text) {
-    return '<a href="' + TAI.escapeHtml(href) + '" target="_blank" rel="noopener">' + TAI.escapeHtml(text) +
+    var safe = TAI.safeUrl(href);
+    if (!safe) return TAI.escapeHtml(text);
+    return '<a href="' + TAI.escapeHtml(safe) + '" target="_blank" rel="noopener">' + TAI.escapeHtml(text) +
       ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>';
   };
 

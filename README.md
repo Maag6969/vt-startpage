@@ -155,7 +155,7 @@ Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfi
 **Tabeli konfiguratsioon** (`TAI.registerTable({...})`): `code`, `title`, `fullTitle`, `description`,
 `eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `phrase`, `higherIsWorse`), `vars` (iga
 muutuja `values`/`labels`, `elimination`, `totalValue`, `defaultValue`), `filters` (kasutaja valikud),
-`canCompareSexes`, `views` (`trend: bool`, `breakdown: { var, title, inPhrase, groups? }`), `queries(state)` →
+`compare` (võrdlusnupud filtrite all, nt `{ Sugu: "sugu", "Vanuserühm": "vanus", isced11: "haridus" }`, vt `TAI.comparisonsOf`), `views` (`trend: bool`, `breakdown: { var, title, inPhrase, groups? }`), `queries(state)` →
 nimetatud päringud (`trend`, `breakdown`), `footnotes`. Valikulised: `trendNote` (märkus trendijoonise all),
 `calloutCaveats` (`[{ var, values, text }]` — lisalause callout'i, kui filter vastab), `kpiNote` (selgitav rida
 muutuseta KPI-kaardil).

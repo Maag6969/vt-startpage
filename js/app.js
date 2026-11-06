@@ -38,9 +38,7 @@
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +
-          '<a href="' + esc(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t)) + '" target="_blank" rel="noopener">' +
-            esc(sourceText) +
-            ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>' +
+          TAI.externalLink(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t), sourceText) +
           '<span class="dataset__views" hidden></span>' +
           '<span class="dataset__status" role="status"></span>' +
         "</div>" +
@@ -94,7 +92,7 @@
   // ---- aadress: #KOOD?taustatunnus=3&vanus=2&sugu=vordlus ------------
 
   var PARAM_NAMES = { Taustatunnus: "taustatunnus", "Vanuserühm": "vanus", Sugu: "sugu" };
-  var SEX_PARAM = { "1": "mehed", "2": "naised", compare: "vordlus" };
+  var SEX_PARAM = { "1": "mehed", "2": "naised" };
 
   function parseHash() {
     var raw = location.hash.replace(/^#/, "");
@@ -115,7 +113,7 @@
   var comparisonFor = TAI.comparisonFor;
 
   function defaultState(config) {
-    var state = { compareSexes: false, compareAges: false };
+    var state = { compareSexes: false, compareAges: false, compareEdu: false };
     (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
     return state;
   }
@@ -126,13 +124,17 @@
     (config.filters || []).forEach(function (code) {
       var val = params[PARAM_NAMES[code] || code.toLowerCase()];
       if (val == null) return;
-      if (code === "Sugu") {
-        // soo võrdlus on tähtsam kui vanuse võrdlus, kui aadressis on mõlemad
-        if (val === SEX_PARAM.compare && config.canCompareSexes) { state.compareSexes = true; state.compareAges = false; state.Sugu = "0"; }
-        else if (val === SEX_PARAM["1"]) state.Sugu = "1";
+      var comp = comparisonFor(config, code);
+      if (comp && val === "vordlus") {
+        // korraga üks võrdlus; soo võrdlus on tähtsam, kui aadressis on mitu
+        if (comp.kind === "sugu" || !TAI.activeComparison(config, state)) {
+          comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
+          state[comp.flag] = true;
+          state[code] = config.vars[code].totalValue;
+        }
+      } else if (code === "Sugu") {
+        if (val === SEX_PARAM["1"]) state.Sugu = "1";
         else if (val === SEX_PARAM["2"]) state.Sugu = "2";
-      } else if (code === "Vanuserühm" && val === "vordlus" && config.canCompareAges) {
-        if (!state.compareSexes) { state.compareAges = true; state.Vanuserühm = config.vars[code].totalValue; }
       } else if (config.vars[code].values.indexOf(val) >= 0) {
         state[code] = val;
       }
@@ -145,11 +147,11 @@
     var parts = [];
     (config.filters || []).forEach(function (code) {
       var name = PARAM_NAMES[code] || code.toLowerCase();
-      if (code === "Sugu") {
-        var key = state.compareSexes ? "compare" : state.Sugu;
-        if (SEX_PARAM[key]) parts.push(name + "=" + SEX_PARAM[key]);
-      } else if (code === "Vanuserühm" && state.compareAges) {
+      var comp = comparisonFor(config, code);
+      if (comp && state[comp.flag]) {
         parts.push(name + "=vordlus");
+      } else if (code === "Sugu") {
+        if (SEX_PARAM[state.Sugu]) parts.push(name + "=" + SEX_PARAM[state.Sugu]);
       } else if (state[code] != null && state[code] !== config.vars[code].totalValue) {
         parts.push(name + "=" + encodeURIComponent(state[code]));
       }
@@ -337,12 +339,11 @@
 
   /*
    * Filtrid (kasutaja otsus 05.11.2026): kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
-   * Rippmenüüde all on eraldi "Võrdlus" nupud rühmasisesteks võrdlusteks (soo ja vanuserühmade võrdlus, korraga üks). Kui
-   * võrdlus on sees, näitab selle filtri menüü võrdluse rida (nt "Mehed vrdl Naised"); mõne väärtuse valimine lülitab võrdluse
-   * välja, nupp ja menüü on alati kooskõlas.
+   * Kaks rida (kasutaja otsus 06.11.2026): pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp (nt Sugu all "Sooline
+   * võrdlus"), kui aruanne seda võrdlust toetab; korraga on sees üks võrdlus. Kui võrdlus on sees, näitab selle filtri menüü
+   * võrdluse rida (nt "Mehed vrdl Naised"); mõne väärtuse valimine lülitab võrdluse välja, nupp ja menüü on alati kooskõlas.
    */
   function renderFilters(config, state) {
-    var comps = comparisonsOf(config);
     var html = '<div class="filter-block"><div class="filters" role="group" aria-label="Filtrid">';
     (config.filters || []).forEach(function (code) {
       var v = config.vars[code];
@@ -358,17 +359,12 @@
           return '<option value="' + esc(o[0]) + '"' + (!comparing && state[code] === o[0] ? " selected" : "") + ">" + esc(o[1]) + "</option>";
         }).join("") +
         (comparing ? '<option value="compare" selected disabled>' + esc(comp.label) + "</option>" : "") +
-        "</select></div>";
+        "</select>" +
+        (comp ? '<button type="button" class="compare-btn" id="' + comp.buttonId + '" data-action="toggle-compare" data-compare="' + comp.flag +
+          '" aria-pressed="' + (comparing ? "true" : "false") + '">' + esc(comp.buttonLabel) + "</button>" : "") +
+        "</div>";
     });
-    html += "</div>";
-    if (comps.length) {
-      html += '<div class="compare" role="group" aria-labelledby="compare-label"><span class="compare__label" id="compare-label">Võrdlus</span>' +
-        '<div class="compare__options">' + comps.map(function (c) {
-          return '<button type="button" class="compare-btn" id="' + c.buttonId + '" data-action="toggle-compare" data-compare="' + c.flag +
-            '" aria-pressed="' + (state[c.flag] ? "true" : "false") + '">' + esc(c.label) + "</button>";
-        }).join("") + "</div></div>";
-    }
-    return html + "</div>";
+    return html + "</div></div>";
   }
 
   /* Filtriploki uuesti joonistamine kohapeal (nupp ja Sugu menüü peavad olema kooskõlas); fookus jääb samale elemendile. */
@@ -414,6 +410,13 @@
       "</article>";
 
     renderBody();
+  }
+
+  /* Legendi värvilapid: värv tuleb data-swatch atribuudist CSSOM-iga (CSP ei luba style="…" atribuuti HTML-is). */
+  function applySwatches(root) {
+    Array.prototype.forEach.call(root.querySelectorAll("[data-swatch]"), function (s) {
+      s.style.background = s.getAttribute("data-swatch");
+    });
   }
 
   function renderBody() {
@@ -471,6 +474,7 @@
     if (model.sourceNote) html += '<p class="chart-note chart-note--after">' + esc(model.sourceNote) + "</p>";
 
     body.innerHTML = html;
+    applySwatches(body);
     body.classList.remove("is-loading");
     body.removeAttribute("aria-busy");
     body._model = model;
@@ -758,11 +762,12 @@
     if (!dpip || !dpip.requestWindow) { showAiToast(text); return; }
     dpip.requestWindow({ width: 380, height: 200 }).then(function (pip) {
       var d = pip.document;
-      d.head.innerHTML = '<meta charset="utf-8"><title>Juhis</title><style>' +
-        "body{margin:0;padding:16px;font:500 16px/1.4 Roboto,system-ui,sans-serif;color:#0e0f21;background:#E4ECFF;border-left:6px solid #4B7DFF;box-sizing:border-box;height:100vh}" +
-        "p{margin:0 0 12px}button{font:inherit;font-size:14px;cursor:pointer;padding:5px 18px;border:0;border-radius:999px;background:#181E54;color:#fff}" +
-        "</style>";
+      // Stiil CSSOM-iga (mitte <style> ega style="…"), et range CSP seda ei blokeeriks; värvid ja mõõdud samad mis varem
+      d.head.innerHTML = '<meta charset="utf-8"><title>Juhis</title>';
       d.body.innerHTML = '<p></p><button type="button">Sulge</button>';
+      d.body.style.cssText = "margin:0;padding:16px;font:500 16px/1.4 Roboto,system-ui,sans-serif;color:#0e0f21;background:#E4ECFF;border-left:6px solid #4B7DFF;box-sizing:border-box;height:100vh";
+      d.body.querySelector("p").style.cssText = "margin:0 0 12px";
+      d.body.querySelector("button").style.cssText = "font:inherit;font-size:14px;cursor:pointer;padding:5px 18px;border:0;border-radius:999px;background:#181E54;color:#fff";
       d.body.querySelector("p").textContent = text;
       d.body.querySelector("button").addEventListener("click", function () {
         // Sulgemisel läheb fookus näidikulaua aknale ja AI-aken jääks selle taha: toome AI-akna tagasi ette
@@ -829,8 +834,10 @@
     var copied = copyViaTextarea(prompt);
     btn.focus({ preventScroll: true });
     var existing = box.querySelector(".ai-box__text");
+    // Kopeerimise õnnestumise teade on ainult ujuvas aknas või alanurgas (kasutaja otsus 06.11.2026: mitte topelt).
+    // Nupukasti jääb tekst ainult siis, kui kopeerimine ebaõnnestus, sest see juhendab sealset tekstikasti.
     if (copied) {
-      msg.textContent = aiCopiedText();
+      msg.textContent = "";
       if (existing) existing.parentNode.removeChild(existing);
     } else {
       msg.textContent = aiManualCopyText();
@@ -847,7 +854,7 @@
 
     var opened = openAiService(target.url);
     if (!opened) opened = window.open(target.url, "_blank");
-    showAiNotice(msg.textContent, opened);
+    showAiNotice(copied ? aiCopiedText() : msg.textContent, opened);
 
     usage.track(usage.keyAction(view.config.code, "ai-" + target.id));
   });

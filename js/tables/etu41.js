@@ -36,7 +36,7 @@
 
     // Kasutaja valitavad filtrid (järjekord = kuvamise järjekord)
     filters: ["Taustatunnus", "Vanuserühm", "Sugu"],
-    canCompareSexes: true,
+    compare: { "Vanuserühm": "vanus", Sugu: "sugu" },
 
     views: {
       trend: true,
@@ -55,18 +55,17 @@
     },
 
     /*
-     * state: { Taustatunnus, Sugu, Vanuserühm, compareSexes }
-     *  trend     — kõik aastad valitud lõikes (võrdlusel mehed + naised eraldi)
+     * state: { Taustatunnus, Sugu, Vanuserühm, compareSexes, compareAges }
+     *  trend     — kõik aastad valitud lõikes (võrdlusel rühmad eraldi, vt TAI.selectionFromState)
      *  breakdown — viimane aasta, kõik taustatunnused
      */
     queries: function (state) {
       var cfg = TAI.getTable("ETU41");
-      var sexOverride = state.compareSexes ? { Sugu: ["1", "2"] } : {};
       return {
-        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Taustatunnus", "Sugu", "Vanuserühm"], sexOverride)),
-        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], Object.assign({
+        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Taustatunnus", "Sugu", "Vanuserühm"], {})),
+        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], {
           Taustatunnus: cfg.vars.Taustatunnus.values
-        }, sexOverride)))
+        }))
       };
     },
 

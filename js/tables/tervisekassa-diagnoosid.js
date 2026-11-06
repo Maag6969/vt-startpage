@@ -364,8 +364,7 @@
     filters: ["Diagnoos", "Vanuserühm", "Vaatlusaasta", "Vordlusaasta", "Sugu"],
     // Aastad on juba KPI sildil („· 2025“), muutuse reas („võrreldes 2024. aastaga“) ja tulpdiagrammi lõikes; lõikes neid ei korrata
     sliceSkip: ["Vaatlusaasta", "Vordlusaasta"],
-    canCompareSexes: true,
-    canCompareAges: true,
+    compare: { "Vanuserühm": "vanus", Sugu: "sugu" },
     views: { trend: true, breakdown: { var: "Vanuserühm" } },
 
     trendNote: function () {

@@ -13,9 +13,13 @@
 <meta property="og:description" content="Eesti vaimse tervise ja heaolu avaandmed ühel lehel: depressioon, distress, uneaja piisavus ja eluga rahulolu. Allikad: Tervise Arengu Instituut, Tervisekassa, Eurostat.">
 <meta property="og:url" content="https://maag6969.github.io/vt-startpage/">
 <meta name="twitter:card" content="summary">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!--
+  Content Security Policy: skriptid, stiilid ja fondid ainult omalt lehelt; päringud ainult nimetatud andmeallikatele ja loendurile.
+  Uue andmeallika lisamisel lisa selle aadress connect-src alla (muidu päring blokeeritakse). style-src on range: HTML-is ei tohi olla
+  style="…" atribuuti, värve pannakse CSSOM-iga. Meta-tag ei toeta frame-ancestors'i (GitHub Pages ei lase HTTP-päiseid seadistada).
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://statistika.tai.ee https://ec.europa.eu https://abacus.jasoncameron.dev; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>

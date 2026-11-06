@@ -98,6 +98,12 @@
     },
 
     filters: ["sex", "age", "isced11"],
+    // Vanuserühmade võrdluses ainult mittekattuvad rühmad (filtris on ka kattuvad, nt 25–64 ja 65 ja vanemad)
+    compare: {
+      sex: { kind: "sugu", values: ["M", "F"] },
+      age: { kind: "vanus", values: ["Y16-24", "Y25-34", "Y35-49", "Y50-64", "Y65-74", "Y_GE75"] },
+      isced11: "haridus"
+    },
 
     views: {
       trend: true,
@@ -118,7 +124,13 @@
      */
     queries: function (state) {
       var cfg = TAI.getTable("ilc_pw01");
-      var filters = "sex=" + (state.sex || "T") + "&age=" + (state.age || "Y_GE16") + "&isced11=" + (state.isced11 || "TOTAL");
+      // Võrdlusel küsitakse selle filtri kõik võrreldavad rühmad (korduvad parameetrid, vt allolev märkus)
+      var active = TAI.activeComparison(cfg, state);
+      function dim(code, fallback) {
+        var values = active && active.filter === code ? active.values : [state[code] || fallback];
+        return values.map(function (v) { return code + "=" + encodeURIComponent(v); }).join("&");
+      }
+      var filters = dim("sex", "T") + "&" + dim("age", "Y_GE16") + "&" + dim("isced11", "TOTAL");
       var base = TAI.EUROSTAT_BASE + "ilc_pw01?format=JSON&lang=EN&" + filters;
       // viimane aasta API-st (Eurostat `lastTimePeriod=1`), mitte kõvasti kirjas aasta: uus aasta ilmub ise (TAI.syncYears)
       function geoParams(codes) { return codes.map(function (c) { return "geo=" + encodeURIComponent(c); }).join("&"); }

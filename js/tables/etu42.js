@@ -30,7 +30,7 @@
     },
 
     filters: ["Sugu", "Vanuserühm"],
-    canCompareSexes: true,
+    compare: { Sugu: "sugu", "Vanuserühm": "vanus" },
 
     views: {
       trend: true,
@@ -39,12 +39,11 @@
 
     queries: function (state) {
       var cfg = TAI.getTable("ETU42");
-      var sexOverride = state.compareSexes ? { Sugu: ["1", "2"] } : {};
       return {
-        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], sexOverride)),
-        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu"], Object.assign({
+        trend: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu", "Vanuserühm"], {})),
+        breakdown: TAI.buildQuery(cfg, TAI.selectionFromState(cfg, state, ["Sugu"], {
           "Vanuserühm": cfg.vars["Vanuserühm"].values
-        }, sexOverride)))
+        }))
       };
     },
 
