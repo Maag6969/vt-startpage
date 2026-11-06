@@ -46,6 +46,7 @@ tehakse viimasena, seni jäävad meelde.
 2. **Tervisekassa „Retseptid ja kulud“** (kasutaja valik): arvud on `data/tervisekassa/` failides juba olemas (`arved`, `arvete_summa`, `retseptid`, `realiseeritud_retseptid`, `realiseeritud_kogusumma`, `tk_tasutud_summa_ilma_trmh`), uut väljavõtet pole vaja. Enne: intervjuu (üks aruanne või kaks, filtrid), `config.ai` juhise täiendus; 2026 realiseerimist täisaastatega ei võrrelda (TERVISEKASSA.md p. 3).
 3. **Hiljem, järjekord lahtine:** ETU41–43 vanuserühmade võrdlus (vana mudel on soo-põhine); uued TAI tabelid: PKH1–3 (sh TAI enda määr 100 000 elaniku kohta), ETU423–427 ja ETU417 (distress ja depressioon hariduse, sissetuleku jm järgi); etapist 5 üle võtmata M3 osad vajaduse korral.
 4. **Sõltub Tervisekassa vastusest või uutest väljavõtetest:** maakonnad, esmased diagnoosid, rahvaarvud ja määrad; hiljem enesekahjustamine.
+5. **Kõige viimane, kui kõik muu on valmis: telefonivaade** (`POHIMOTTED.md` A12, kasutaja otsus 06.11.2026). Seni töötatakse ja kontrollitakse arvutivaates. Siia kuuluvad: pärast etappi 7 lisandunud aruannete ja funktsioonide telefonivaade (375 ja 320 px) ning proovimine päris telefonis. Etapis 7 tehtud telefonikood jääb alles.
 
 **Meeldetuletus umbes 06.12.2026 (kasutaja palve):** küsi uuesti (a) Tervisekassa andmepäringu mustandi ja (b) kolleegide AI-testi kohta (päris teenused ja telefon, AI-ANALUUS.md p. 8). 06.11.2026 mõlema vastus oli „ei“.
 

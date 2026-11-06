@@ -809,6 +809,8 @@
     }
     var toast = document.getElementById("ai-toast");
     if (toast) toast.hidden = true;
+    var dpip = window.documentPictureInPicture;
+    if (dpip && dpip.window) { try { dpip.window.close(); } catch (e) { /* juba suletud */ } }
   }
 
   contentEl.addEventListener("click", function (evt) {
