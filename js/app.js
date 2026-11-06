@@ -642,9 +642,21 @@
   /* Uue aruande avamisel algab see ülevalt (kasutaja soov 05.11.2026). Kitsas ekraanil on loend aruande kohal, seega
      keritakse alati; laial ekraanil ainult siis, kui leht on kerinud aruande algusest mööda (nt lugenud pikka
      aruannet ja valib kleepuvast loendist teise), muidu algaks uus aruanne keskelt. */
+  /* Sujuv kerimine; kui see ei hakka üldse liikuma (nt mõnes iframe'is, kus brauser animatsiooni ei käivita), hüpatakse kohale.
+     Kui leht on hakanud liikuma (animatsioon või kasutaja ise), ei sekkuta. */
+  function smoothScrollTo(el) {
+    var startY = window.scrollY;
+    el.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    setTimeout(function () {
+      if (window.scrollY === startY && Math.abs(el.getBoundingClientRect().top) > 2) {
+        el.scrollIntoView({ behavior: "instant", block: "start" });
+      }
+    }, 400);
+  }
+
   function scrollToContent() {
     if (MOBILE_QUERY.matches) {
-      contentEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+      smoothScrollTo(contentEl);
     } else if (contentEl.getBoundingClientRect().top < 0) {
       // laial ekraanil kohe (mitte sujuvalt): sisu vahetub ja kasvab kerimise ajal, sujuv kerimine katkeks
       contentEl.scrollIntoView({ behavior: "instant", block: "start" });
@@ -694,7 +706,7 @@
     var link = evt.target.closest(".back-link");
     if (!link) return;
     evt.preventDefault();
-    listEl.scrollIntoView({ behavior: scrollBehavior(), block: "start" });
+    smoothScrollTo(listEl);
     var activeBtn = listEl.querySelector(".dataset.is-active .dataset__button");
     if (activeBtn) activeBtn.focus({ preventScroll: true });
   });
@@ -707,9 +719,11 @@
     var ta = document.createElement("textarea");
     ta.value = str;
     ta.setAttribute("readonly", "");
-    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    // 16 px: iOS ei suumi lehte; setSelectionRange: iOS-is select() üksi ei vali kirjutuskaitstud teksti
+    ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
     document.body.appendChild(ta);
     ta.select();
+    ta.setSelectionRange(0, str.length);
     var ok = false;
     try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
     document.body.removeChild(ta);
@@ -757,6 +771,28 @@
     }).catch(function () { showAiToast(text); });
   }
 
+  // Puuteekraaniga seadmel (telefon, tahvel) pole Ctrl+V-d ja aken ei avane kõrvale, vaid uuel vahelehel või rakenduses
+  function isTouchDevice() { return window.matchMedia("(pointer: coarse)").matches; }
+
+  function aiCopiedText() {
+    return "Näidikulaua andmed on kopeeritud lõikelauale. " + (isTouchDevice()
+      ? "Hoia AI vestlusaknas sõrme tekstikastil, vali „Kleebi“ ja saada."
+      : "Vajuta AI vestlusaknas Ctrl+V, et sisestada need analüüsiks, ja seejärel Enter.");
+  }
+
+  function aiManualCopyText() {
+    return "Automaatne kopeerimine ei õnnestunud. Kopeeri tekst siit käsitsi " + (isTouchDevice()
+      ? "(hoia sõrme tekstil, vali kõik ja kopeeri)"
+      : "(Ctrl+A, Ctrl+C)") + " ja kleebi avanenud vestlusaknasse:";
+  }
+
+  function openAiService(url) {
+    if (isTouchDevice()) return window.open(url, "tai-ai-analysis");
+    var w = Math.round(screen.availWidth * 0.5), h = screen.availHeight - 40;
+    var left = (screen.availLeft || 0) + screen.availWidth - w, top = screen.availTop || 0;
+    return window.open(url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
+  }
+
   function setAiEnabled(on) {
     contentEl.querySelectorAll("button[data-ai]").forEach(function (b) {
       b.disabled = !on;
@@ -790,10 +826,10 @@
     btn.focus({ preventScroll: true });
     var existing = box.querySelector(".ai-box__text");
     if (copied) {
-      msg.textContent = "Näidikulaua andmed on kopeeritud lõikelauale. Vajuta AI vestlusaknas Ctrl+V, et sisestada need analüüsiks, ja seejärel Enter.";
+      msg.textContent = aiCopiedText();
       if (existing) existing.parentNode.removeChild(existing);
     } else {
-      msg.textContent = "Automaatne kopeerimine ei õnnestunud. Kopeeri tekst siit käsitsi (Ctrl+A, Ctrl+C) ja kleebi avanenud vestlusaknasse:";
+      msg.textContent = aiManualCopyText();
       if (!existing) {
         existing = document.createElement("textarea");
         existing.className = "ai-box__text";
@@ -805,9 +841,7 @@
       existing.value = prompt;
     }
 
-    var w = Math.round(screen.availWidth * 0.5), h = screen.availHeight - 40;
-    var left = (screen.availLeft || 0) + screen.availWidth - w, top = screen.availTop || 0;
-    var opened = window.open(target.url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
+    var opened = openAiService(target.url);
     if (!opened) opened = window.open(target.url, "_blank");
     showAiNotice(msg.textContent, opened);
 

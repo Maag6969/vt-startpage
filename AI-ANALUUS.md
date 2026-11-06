@@ -71,7 +71,9 @@ vaimne tervis halvenes“. Eurostat: sama kujul („rahulolu näitaja paranes“
 
 Aruande ülemine rida: vasakul staatusrida, paremal silt **„Analüüsi kuvatud andmeid AI-ga:“** ja nupud **Claude, ChatGPT, Gemini**: väikesed (0,78 rem), täielikult ümarad otsad. Nupud on abitegevus, mitte põhinupud. Teade
 ujuva aknana (Chrome/Edge) või alanurgas: „Näidikulaua andmed on kopeeritud lõikelauale. Vajuta AI vestlusaknas Ctrl+V, et sisestada need analüüsiks, ja seejärel Enter.“ Printimisel peidetud.
-Nupu värv: vt p. 9.2. Telefonivaade: etapp 7.
+Nupu värv: vt p. 9.2.
+
+**Telefonis (kasutaja otsus 06.11.2026: nupud jäävad):** nupud on vähemalt 40 px kõrged, silt on eraldi real ja kolm nuppu ühes reas. Puuteekraaniga seadmes ütleb teade Ctrl+V asemel: „Hoia AI vestlusaknas sõrme tekstikastil, vali „Kleebi“ ja saada.“ Teenus avaneb ilma akna mõõtudeta (uus vaheleht või rakendus); ujuvat teateakent seal pole, teade on lehel ja alanurgas ning jääb näha, kui kasutaja näidikulaua juurde tagasi tuleb. **Päris telefoniga pole seda proovitud** (lõikelaud, rakenduse avanemine): kolleegide test.
 
 Lõikes, kus lehel numbreid ei ole (nt Tervisekassa F33 + sugu), on nupud välja lülitatud, sest AI-l poleks midagi analüüsida ja ta võiks hakata numbreid ise pakkuma. Filtri muutmisel kaob vana teade, sest lõikelaual on siis eelmise lõike andmed.
 

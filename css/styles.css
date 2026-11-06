@@ -238,7 +238,6 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .ai-box__msg:empty { display: none; }
 .ai-box__text { display: block; width: 0; min-width: 100%; box-sizing: border-box; margin: 6px 0 0; font: inherit; font-size: 0.8125rem; }
-@media (max-width: 700px) { .ai-box { margin-left: 0; } }
 .ai-toast {
   position: fixed; left: 16px; bottom: 16px; z-index: 50;
   width: min(380px, 44vw); padding: 14px 16px; box-sizing: border-box;
@@ -441,6 +440,21 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   .site-footer { padding: 16px; }
 }
 
+/* Ainult ekraanil: printimisel on lehe laius samuti alla 768 px, aga seal ei ole vaja näpuga vajutada ega kerida.
+   Nupud vähemalt 40 px kõrged (sama mis rippmenüüd). */
+@media screen and (max-width: 767px) {
+  .ai-box { margin-left: 0; width: 100%; }
+  .ai-box__label { flex-basis: 100%; font-size: 0.875rem; }
+  .ai-box__btn { flex: 1 1 0; min-height: 40px; font-size: 0.875rem; }
+  .ai-toast__close { min-height: 40px; }
+  .compare-btn { min-height: 40px; }
+  .back-link { padding: 9px 0; }
+  .dataset__footer a { display: inline-block; padding: 6px 0; }
+  /* Mitme veeruga võrdlustabel kitsal ekraanil: tabel keritav, leht mitte. Padding hoiab fookusjoone nähtaval. */
+  .data-details { overflow-x: auto; padding: 3px; margin-left: -3px; margin-right: -3px; }
+  .data-table th, .data-table td { padding: 6px; }
+}
+
 /* ---- printimine ----------------------------------------------------- */
 
 .print-only { display: none; }
@@ -459,7 +473,8 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 
   /* taustavärvid (callout, sildid) ka printides */
   .callout, .pill, .kpi, svg.chart { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .kpi-row, .kpi, .callout, .chart-section, .data-table tr { break-inside: avoid; }
+  /* tabel koos pealkirjaga samale lehele; lehest pikem tabel murdub ikka, aga ridade vahelt */
+  .kpi-row, .kpi, .callout, .chart-section, .chart-note--after, .data-table, .data-table tr { break-inside: avoid; }
   .chart-section h3 { break-after: avoid; }
 
   a { color: inherit; text-decoration: none; }

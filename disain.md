@@ -139,8 +139,8 @@ kui eelmise aruande lugemine on selle algusest mööda kerinud.
 - Viga: pealkiri + selgitus (`TAI.describeError`), nupp „Proovi uuesti“ ja vajadusel faili üleslaadimine.
 
 ### Kitsas ekraan (< 768px)
-Paneelid virnas, loend üleval. Rea valimisel keritakse automaatselt mooduli algusesse; mooduli ülaosas
-link „↑ Tagasi andmestike juurde“.
+Paneelid virnas, loend üleval. Rea valimisel keritakse sujuvalt mooduli algusesse; mooduli ülaosas
+link „↑ Tagasi andmestike juurde“. Nupud (AI, võrdlus, teate sulgemine) on vähemalt 40 px kõrged nagu rippmenüüd. Mitme veeruga andmetabel kerib külje suunas oma kastis, leht ei kerita. AI-nuppude silt on oma real, kolm nuppu ühes reas (AI-ANALUUS.md p. 7).
 
 ### Lehe üldjalus
 „Avaandmed pärinevad järgmistest andmeallikatest: Tervise Arengu Instituut, Tervisekassa, Eurostat“ (kasutaja sõnastus

@@ -14,7 +14,7 @@ Viimati uuendatud: 06.11.2026. Avaldatud: https://maag6969.github.io/vt-startpag
 - **Ühine käitumine:** kõik lõiked on rippmenüüd; rippmenüüde all „Võrdlus“ nupud („Mehed vrdl Naised“ kõigil TAI ja Tervisekassa
   aruannetel, „Vanuserühmad vrdl“ praegu ainult Tervisekassa aruandel); vasak loend on laial ekraanil kleepuv ja uus aruanne avaneb
   alati algusest; lehe jalus ja avalehe tekst võtavad allikate loetelu loendi gruppidest; lehe avamine ei küsi Tervisekassalt midagi.
-- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 70/70 (kõik tabelid, filtrid, nupud, lõige, AI-nupud, sünteetiline tabel valikuliste seadetega, „uus aasta ilmub ise“ ja
+- **Testid (kohalikud, `tests/` ja `scripts/`):** `tests/regressioon.html` 74/74 (kõik tabelid, filtrid, nupud, lõige, AI-nupud, sünteetiline tabel valikuliste seadetega, „uus aasta ilmub ise“ ja
   värske laadimine päris lehel), `tests/framework-test.html` 25/25, `tests/tervisekassa-test.html` 32/32,
   `scripts/test-tervisekassa.ps1` 76/76. Tervisekassa andmete uuendamine: `scripts/import-tervisekassa.ps1` (vt TERVISEKASSA.md).
 
@@ -35,7 +35,7 @@ tehakse viimasena, seni jäävad meelde.
 | 4 | **B.1 valitud lõige:** lõige KPI kastis (üks kaart: kaardi sees; mitu: ühine rida kasti ülaosas), iga graafiku ja andmetabeli pealkirja all, ka vaikevalikuga (kuju „Filter: väärtus · Filter: väärtus“, väike paks kiri nagu M3); vana ülemine rida kadus; võrdlusrežiimis on võrreldav filter nimetatud võrdlusena („Sugu: Mehed vrdl Naised“); tulbal on aasta ja „…lõikes“, oma võrdlustelje filter välja ja valitud rühm „esile tõstetud“ (kasutaja otsused 05.11.2026) | tehtud 05.11.2026, regressioon 45/45 |
 | 5 | **Ülejäänud tehniline M3-st:** A.2 ühik, komakohad ja muutuse sõna funktsioonina; A.3 protsenditelje lagi, suuremad telje sammud arvudele, `showTotal`, perioodi järgi sorteerimine; A.4 `limit` (sama „Näita kõiki“ nupp mis `defaultValues`-il); A.5 `countyVar` (M2 `sexVar`/`ageVar` jäid muutmata, need on M3-ga samad); A.6 `taiPath`, `connectGaps`, `periodYears`, `calloutExtra`, `optionLabels`, `responseOnly`, `groups` funktsioonina, `sort: "desc"`. Lisand M3-le: `connectGaps` korral on ka tulbad ja võrdlusrida viimasest olemasolevast aastast; `calloutUnit: false` hoiab Eurostati lause endisena. Juhend `README-NAIDIS.js`-is | tehtud 06.11.2026, regressioon 69/69 (6 uut kontrolli sünteetilise tabeliga). **Tahtlikult üle võtmata:** `reference` joon (M2-l on kasutaja valitud `kpiReference`, 17.09.2026), `siblings`/`familyTitle` (loendi kujundus, vajab intervjuud), `staleLabel` (märgiks ETU tabelid „uuring lõppenud“, sisuline otsus), `TAI.silc` ja `sdmx` (pole veel tabelit, mis vajaks). Vt etapp 8 |
 | 6 | **AI-nuppude tööpakett (eraldi):** metoodika [AI-ANALUUS.md](AI-ANALUUS.md) kinnitatud; `js/ai-prompt.js` (ühine juhis, profiilid `etu`/`tervisekassa`/`eurostat`, aastate märkused andmetest), nupud ja klikikäsitleja `js/app.js`-is, tumesinine nupp, loendurid `a-<KOOD>-ai-*`. Regressioonis 18 AI kontrolli | avaldatud 06.11.2026, regressioon 63/63. **Veel lahti:** kolleegid proovivad päris teenustega (AI-ANALUUS.md p. 8; ükski päris AI-vastus pole veel kontrollitud); SharePointi iframe'i kontroll koos SharePointi Embedi otsusega |
-| 7 | **Mobiil:** sujuv kerimine aruande juurde, uued võrdlusnupud ja vanuserühmade vaade, AI-nupud telefonis, printimine | viimane |
+| 7 | **Mobiil:** kontrollitud 375 ja 320 px kõigil aruannetel ja võrdlustes. Parandatud: AI- ja võrdlusnupud vähemalt 40 px, tabel 320 px laiusel keritav (oli ära lõigatud). AI-nupud jäävad telefoni (kasutaja otsus): puuteekraanil teade „Kleebi“ (mitte Ctrl+V), teenus avaneb ilma akna mõõtudeta, kopeerimine iOS-i jaoks täiendatud. Sujuv kerimine töötab, printimine kontrollitud Edge'i PDF-iga (4 vaadet; tabel jääb pealkirjaga samale lehele) | tehtud 06.11.2026, regressioon 74/74. **Päris telefonis ja Ctrl+P dialoogiga pole proovitud** (kolleegide test, vt lahtised otsad) |
 | 8 | **Edasised tööd planeerida:** ETU41–42 vanuserühmade võrdlus (vana mudel on soo-põhine), Tervisekassa järgmised aruanded (maakonnad, retseptid, kulud, esmased diagnoosid), rahvaarvud ja määrad; vajadusel etapist 5 üle võtmata jäänud M3 osad | pärast 1–7 |
 
 ## Lahtised otsad (ei kuulu M3 kavasse)
@@ -43,7 +43,8 @@ tehakse viimasena, seni jäävad meelde.
 - **SharePointi Embed** ja **HTML Field Security** (vajab IT/admini): ootel kasutaja otsusel 16.09.2026.
 - **Content-Security-Policy** päis: ootel, vajab hoolikat testimist.
 - **Abacuse loendurid GoatCounterile** üle viia (kosmeetiline risk).
-- **Päris printimine** (Ctrl+P) ja **lingi eelvaade** SharePointis/Teamsis: kontrollida päris keskkonnas; eelvaatel pole pilti (`og:image`).
+- **Printimine:** Edge'i PDF-iga kontrollitud (Tervisekassa, selle vanuserühmade võrdlus, ETU41 soovõrdlus, Eurostat; korras); Ctrl+P dialoog ja paber proovimata. **Päris telefon:** AI-nuppude lõikelaud ja rakenduse avanemine proovimata (kolleegide test). **Lingi eelvaade** SharePointis/Teamsis: kontrollida päris keskkonnas; eelvaatel pole pilti (`og:image`).
+- **Eurostati riikide tulbas ja tabelis on EL-27 keskmise silt „Kokku“** (KPI-kaardil „EL-27 keskmine“): segadust tekitav, parandada (märgatud 06.11.2026 printimise kontrollis).
 - **Tervisekassa andmepäring** Tervisekassale: kasutaja teeb ise, küsimused TERVISEKASSA.md p. 6. Kuni vastuseta pole maakondi, kordumatute
   isikute koondeid mitmele diagnoosile ega määrasid.
 - **Abacus:** `ds-TK-diagnoosid`, `a-TK-diagnoosid-allikas` ja `f-TK-diagnoosid-sugu-vordlus` tekkisid vaatamisega ilma halduskoodita
@@ -65,8 +66,10 @@ tehakse viimasena, seni jäävad meelde.
 - Kerimiskinnitus (`overflow-anchor`) lõhub aruande vahetamisel kerimist: peab jääma `html { overflow-anchor: none }`.
 - `tests/`, `tools/` ja `.counter-admin-keys.tsv` on `.gitignore`-s, avalikku repo ei lähe. `data/tervisekassa/raw/` xlsx-failid lähevad (kasutaja otsus).
 - Ära klõpsa testides AI-nuppe ilma `window.open` asenduseta: need avavad välise saidi (regressioon asendab selle ise).
+- **Brauseripaani iframe'is sujuv kerimine ei liigu üldse** (ka nähtavas), ülemisel tasemel liigub: `smoothScrollTo` hüppab 400 ms pärast kohale, kui leht pole liikuma hakanud. Telefoni laiust testitakse iframe'i kitsendamisega; puuteekraani asendab `matchMedia`.
+- **Prindi kontroll ilma dialoogita:** `msedge --headless=new --print-to-pdf=<fail> --virtual-time-budget=9000 --user-data-dir=<ajutine> <aadress>`, siis loe PDF-i.
 - **Tervisekassa uus väljavõte:** vt TERVISEKASSA.md p. 8 (`-AllikaUuendus` kohustuslik; aastad ja pooleliolev aasta tulevad failidest).
-- **Regressiooni üksik „NetworkError: Failed to fetch“** konsoolivea kontrollis tuli 06.11.2026 ühes jooksus neljast ega kordunud: käivita uuesti, enne kui koodi kahtlustad (päring ise jäi tuvastamata).
+- **Regressiooni üksik „NetworkError: Failed to fetch“** tuli 06.11.2026 kahes jooksus ligi kümnest ega kordunud järgmises jooksus; ühel korral jäi ETU41 selle tõttu laadimata ja kukkus läbi ka filtrite test. Käivita uuesti, enne kui koodi kahtlustad (täpne põhjus teadmata; testid teevad palju päringuid järjest).
 - **Eesti arvuvorming:** neljakohaline arv on ilma tühikuta (`1235`), tühik alates viiest kohast (`12 346`).
 - **Regressioonitestis avatakse aruanded loendi rea klõpsuga, mitte aadressi otse muutes:** `#KOOD` ilma parameetriteta lähtestab selle aruande
   valikud (nii on tahtlikult), loendi rida hoiab need alles.
