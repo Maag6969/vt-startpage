@@ -1,0 +1,211 @@
+# TAI Vaimse Tervise Näidikulaud — Lähteülesanne / README
+
+**Vaata töötavat lehte:** https://maag6969.github.io/vt-startpage/
+(nt otselink vaatele: https://maag6969.github.io/vt-startpage/#ETU41?sugu=vordlus)
+
+Kujundus-, töö- ja metoodikadokumendid (otsused, seis, ajalugu) on autori kohalikes tööfailides ja ei ole selles repos; repos on ainult leht ja selle andmed.
+
+## Eesmärk
+
+Master-dashboard, kus vasak paneel (~1/3 laiusest) koondab loeteluna vaimse tervise andmeallikad Tervise
+Arengu Instituudi (TAI) statistika andmebaasist, ning iga rea juures on "API" nupp, mille vajutamisel avaneb
+paremas paneelis (~2/3) vastava tabeli täielik näidikulaud — reaalajas TAI PxWeb API-st laaditud andmete
+põhjal.
+
+- **Sisu ja visuaalne stiil:** referents "Depressiooni Trendid" (KPI-kaardid, legend, callout-tekstid, SVG
+  graafikud, andmetabel kokkuvõttes).
+- **Funktsionaalsus:** referents `tai_vaimse_tervise_dashboard.html` (live API-fetch nupp, JSON-stat2 lugeja,
+  CORS-i tõrke korral faili-üleslaadimise varuplaan).
+
+## Põhimõte: ei mingeid isiklikke tokeneid/mandaate lahenduses (kinnitatud 17.09.2026)
+
+**Kokkulepe kasutajaga, kehtib läbivalt kogu selle projekti ja kõigi tulevaste sarnaste vibe-coding
+lahenduste arendusel:** rakendus ei tohi kasutada ega nõuda lahenduse looja (kasutaja) isiklikke API-võtmeid,
+tokeneid, kontosid ega muid mandaate selleks, et **külastajad** saaksid rakendust kasutada. Kõik
+külastaja-poolsed andmepäringud peavad minema külastaja enda brauserist otse avalikku, autentimist
+mittevajavasse teenusesse — täpselt nii, nagu külastaja avaks selle teenuse kodulehe ise oma brauseris.
+
+Selles projektis kehtib see kahe välisteenuse kohta:
+
+- **TAI PxWeb API** (`statistika.tai.ee`) — avalik andmeliides, päringu teeb iga külastaja brauser ise,
+  ilma sisselogimiseta ja ilma tokenita. Andmebaasi vaatest ei erine see millegi poolest külastajast, kes
+  avaks TAI kodulehe otse.
+- **Abacus** (`abacus.jasoncameron.dev`, kasutusstatistika loendurid) — avalik, kontota teenus; loendurite
+  nimed on avalikud "võtmed", mitte kellegi isiklikud mandaadid.
+
+Mõlemad päringud käivituvad kasutaja arvutis (vt `js/core.js` `fetch()`-kutsed ja `js/usage.js`), mitte
+serveris ega mõne AI-assistendi taustaprotsessis — sest see leht **ongi** ainult staatilised failid
+GitHub Pagesil, ilma serveripoolse loogikata. Kui edaspidi lisandub allikas, mis nõuab autentimist
+(API-võti, konto), tuleb see **enne kasutuselevõttu** kasutajaga eraldi läbi arutada, sest see rikuks seda
+põhimõtet.
+
+## Ühised reeglid
+
+Sotsiaalministeeriumi ja sellega seotud veebilehtede ühised reeglid, metoodika ja mallid on autori kohalikus disainipaketis, mis ei ole
+GitHubis. Selle repo kood on sellest paketist sõltumatu ja töötab ilma selleta.
+
+## Andmeallikad (I versioon — 3 tabelit)
+
+Kõik pärinevad samast TAI PxWeb kaustast: `Andmebaas/05Uuringud/01ETeU/04VaimneTervis/`
+
+| Kood | Pealkiri | API tee | Muutujad |
+|---|---|---|---|
+| **ETU41** | Depressiooni sümptomite esinemine soo, vanuserühma ja taustatunnuste järgi | `https://statistika.tai.ee/api/v1/et/Andmebaas/05Uuringud/01ETeU/04VaimneTervis/ETU41.px` | Aasta (2006, 2014, 2019); Taustatunnus (10 kat.); Depressioon (2); Sugu (3); Vanuserühm (8) |
+| **ETU42** | Emotsionaalse distressi esinemine soo ja vanuserühma järgi | `https://statistika.tai.ee/api/v1/et/Andmebaas/05Uuringud/01ETeU/04VaimneTervis/ETU42.px` | Aasta (2006, 2014, 2019); Distress (2); Sugu (3); Vanuserühm (8) |
+| **ETU43** | Uneaja piisavus soo ja vanuserühma järgi | `https://statistika.tai.ee/api/v1/et/Andmebaas/05Uuringud/01ETeU/04VaimneTervis/ETU43.px` | Aasta (ainult 2019); Piisavus (2: piisav / ebapiisav); Sugu (3); Vanuserühm (8) |
+
+ETU41 struktuur (sh muutujate täpsed koodid) on kinnitatud töötavas prototüübis. ETU42 ja ETU43 koodid
+kontrolliti TAI API metaandmete GET-päringu ja POST-proovipäringutega 16.09.2026 (vt allpool).
+
+### Kinnitatud API-struktuur: ETU42 ja ETU43 (16.09.2026)
+
+**ETU42 — Emotsionaalse distressi esinemine soo ja vanuserühma järgi**
+
+| Muutuja (`code`) | Koodid | Eliminatsioon* |
+|---|---|---|
+| `Aasta` | `2006`, `2014`, `2019` | ei |
+| `Distress` | `0` = Olulise distressita, `1` = Olulise distressiga | ei |
+| `Sugu` | `0` = Mehed ja naised, `1` = Mehed, `2` = Naised | **jah** |
+| `Vanuserühm` | `0` = 15 ja vanemad, `1` = 15-24, `2` = 25-34, `3` = 35-44, `4` = 45-54, `5` = 55-64, `6` = 65-74, `7` = 75 ja vanemad | **jah** |
+
+**ETU43 — Uneaja piisavus soo ja vanuserühma järgi**
+
+| Muutuja (`code`) | Koodid | Eliminatsioon* |
+|---|---|---|
+| `Aasta` | `2019` (ainus; API märgib ajamuutujaks) | ei |
+| `Piisavus` | `0` = Piisav uneaeg, `1` = Ebapiisav uneaeg | ei |
+| `Sugu` | `0` = Mehed ja naised, `1` = Mehed, `2` = Naised | **ei** |
+| `Vanuserühm` | `0` = 15 ja vanemad, `1` = 15-24, … `7` = 75 ja vanemad (samad mis ETU42) | **ei** |
+
+\* Eliminatsioon = muutuja võib päringust välja jätta. ETU42-s annab väljajätmine koondväärtuse
+(„kokku“) ja dimensioon kaob vastusest. **ETU43-s väljajätmine ei anna koondväärtust:** vastus sisaldab
+siis kõiki kategooriaid ja dimensioon jääb alles. Seepärast tuleb ETU43 päringus `Sugu` ja
+`Vanuserühm` alati selgesõnaliselt kaasa panna, kogu rühma jaoks koodiga `0`.
+
+**Olulised tähelepanekud raamistiku jaoks:**
+
+- **Väärtused on protsendid.** Mõlemas tabelis on kategooriapaari summa 100, nt ETU42 Mehed 2006: 92,6 + 7,4.
+  Prototüübi `shareWithDepression`-loogika (osa / (osa + ülejäänu) × 100) annab sama tulemuse, nii et
+  ühist arvutusfunktsiooni võib kasutada. Otse näidatav väärtus on „olulise distressiga“ / „ebapiisav uneaeg“.
+- **Vastuses on lisadimensioon `ContentsCode`** (suurus 1). JSON-stat2 lugeja peab seda taluma: praegune
+  `readJsonStat2` jätab valikust puuduva dimensiooni vahele ja arvestab selle positsiooniks 0, mis
+  suurusega 1 dimensiooni puhul on korrektne.
+- **Koodide järjekord:** mõlemas tabelis on koondkategooria (`0`) indeksil 0.
+- **ETU42 metoodiline märkus (API `note`):** aastatel 2006 ja 2014 olid vanuserühmad „16 ja vanemad“ ning
+  „16-24“, 2019. aastal „15 ja vanemad“ ning „15-24“. See tuleb trendijoonise juures jaluses välja tuua.
+- **ETU43 mõiste (API `note`):** küsimus oli keskmise ööpäevase uneaja kohta. Soovitus on alla
+  18-aastastele 9 tundi, 18-aastastele ja vanematele 7–8 tundi. See läheb jaluse mõisteselgituseks.
+- **Kodeering:** POST-päringu sisu peab olema UTF-8 (muutuja nimes on „ü“). Brauseri `fetch` teeb seda
+  vaikimisi, kuid näiteks PowerShell 5.1 `Invoke-RestMethod` stringiga sisu puhul mitte (tulemuseks „Bad Request“).
+
+## Tehniline arhitektuur
+
+1. **Ühine tuummoodul** — json-stat2 lugeja (`readJsonStat2`), tooltip-loogika, veakäsitlus + faili-üleslaadimise
+   varuplaan CORS-i tõrke puhuks. Kirjutatakse üks kord, taaskasutatakse kõigi kolme tabeli jaoks.
+2. **Tabelipõhine konfiguratsioon** — iga tabeli jaoks eraldi: API-tee, VARS-metaandmed, `buildQuery()`
+   variant, renderduse spetsiifika (millised diagrammid/KPI-d antud tabeli jaoks mõtestatud on).
+3. **Master-leht** — vasak loendipaneel (rida = pealkiri + lühikirjeldus + allika viide + "API" nupp),
+   parem paneel renderdab valitud tabeli mooduli.
+
+### Failistruktuur ja raamistiku liides (etapp 3, 16.09.2026)
+
+```
+index.html                  master-leht (etapp 4)
+favicon.svg                 vahekaardi ikoon
+css/styles.css              stiilid, disainitokenid ja printimise stiil
+js/core.js                  ühine tuummoodul, nimeruum window.TAI
+js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne callout, SVG-graafikud, andmetabel.
+                            KAKS mudelit kõrvuti (dispatch `config.seriesVar` olemasolu järgi): vana "Indicator"
+                            (ETU, binaarne osakaal + soo võrdlusrežiim) ja üldine "General" (suvaline seeriamuutuja,
+                            Eurostat); M3-s on ainult üldmudel
+js/usage.js                 kasutusstatistika (Abacus): avalehe, andmestike, filtrite ja lisategevuste loendurid
+js/ai-prompt.js             AI-analüüsi juhis (ühine osa + allika profiil + ekraanil nähtav aruanne)
+js/app.js                   master-lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, mooduli karkass
+js/tables/etu41.js … 43.js  tabelipõhised konfiguratsioonid (TAI.registerTable), TAI PxWeb, vana "indicator" kuju
+js/tables/eurostat-*.js     Eurostati tabelid, uus "seriesVar/measureLabel" kuju
+js/tables/tervisekassa-*.js Tervisekassa adapter ja aruanne: valmis JSON-failid, ei mingit live-päringut
+data/tervisekassa/          importskripti JSON-failid (+ yldstat.js varuks failina avamisel)
+                            Lehe jalus ja avalehe allikate loetelu tulevad samast kohast (`TAI.getSources()`, core.js)
+                            Vasaku loendi grupp tuleb `config.group` väljalt (järjekord `TAI.GROUP_ORDER`, core.js)
+
+Ainult kohalikus arvutis (.gitignore — avalikku repo ei lähe):
+scripts/*-tervisekassa.ps1  Tervisekassa xlsx → JSON importskript ja selle testid (PowerShell)
+data/tervisekassa/raw/      Power BI väljavõtted (xlsx), importskripti sisend
+js/tables/README-NAIDIS.js  uue tabelikonfiguratsiooni mall
+TASKS.md, TASKS-ARHIIV.md, disain.md, AI-ANALUUS.md, ETAPP2-JUHIS.md, TERVISEKASSA.md, TURVAULEVAATUS.md  töö- ja metoodikadokumendid
+tests/framework-test.html   ühik- ja integratsioonitestid (avada kohaliku serveri kaudu)
+tools/serve.ps1             kohalik staatiline server arenduseks
+tools/stats.html            kasutusstatistika järjestatult (http://localhost:8080/tools/stats.html)
+.counter-admin-keys.tsv     loendurite halduskoodid (salajane)
+.claude/launch.json         eelvaate serveri seadistus
+cors-test.html              etapi 2 CORS-test (tulemus TASKS-ARHIIV.md-s)
+tai_vaimse_tervise_dashboard.html  algne ETU41 prototüüp (loogika üle viidud)
+```
+
+**Otselink vaatele:** `#KOOD?taustatunnus=3&vanus=2&sugu=vordlus` (`sugu` = `mehed` | `naised` | `vordlus`;
+vaikeväärtused jäetakse aadressist välja, vigased parameetrid ignoreeritakse).
+
+Skriptid on **tavalised `<script>`-failid, mitte ES-moodulid** — build-sammu pole ja leht töötab ka
+lihtsalt failina avatuna. Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `usage.js` → `ai-prompt.js` → `app.js`.
+
+Renderdaja (`module.js`) on tabelist sõltumatu: kõik tabelipõhine tuleb konfiguratsioonist
+(`indicator.phrase` callout-lause jaoks kujul „… {kes} osakaal“, `views.breakdown.groups` / `inPhrase`,
+`views.trend`). Puuduvad väärtused (API `..` → `null`) kuvatakse „Andmed puuduvad“ ja neid ei tuletata.
+
+**Tabeli konfiguratsioon** (`TAI.registerTable({...})`): `code`, `title`, `fullTitle`, `description`,
+`eyebrow`, `years`, `yearVar`, `indicator` (`var`, `positive`, `label`, `phrase`, `higherIsWorse`), `vars` (iga
+muutuja `values`/`labels`, `elimination`, `totalValue`, `defaultValue`), `filters` (kasutaja valikud),
+`compare` (võrdlusnupud filtrite all, nt `{ Sugu: "sugu", "Vanuserühm": "vanus", isced11: "haridus" }`, mitu rühmitust ühes filtris massiivina, vt `TAI.comparisonsOf`), `views` (`trend: bool`, `breakdown: { var, title, inPhrase, groups? }`), `queries(state)` →
+nimetatud päringud (`trend`, `breakdown`), `footnotes`. Valikulised: `trendNote` (märkus trendijoonise all),
+`calloutCaveats` (`[{ var, values, text }]` — lisalause callout'i, kui filter vastab), `kpiNote` (selgitav rida
+muutuseta KPI-kaardil).
+
+Üleslaaditud fail peab sisaldama **kõiki** tabeli muutujaid; kui andmetes mõni dimensioon puudub, annab
+`indicatorShare` konkreetse kategooria kohta `null`, mitte koondväärtust.
+
+**Tuummooduli peamised funktsioonid:**
+
+| Funktsioon | Mida teeb |
+|---|---|
+| `TAI.buildQuery(config, selection)` | Koostab PxWeb POST-päringu; näitaja kõigi väärtustega, eliminatsioonita muutujatele lisab koondkategooria |
+| `TAI.selectionFromState(config, state, vars, overrides)` | Kasutaja valikutest päringu piirangud |
+| `TAI.loadTable(config, state)` | Laeb kõik `queries(state)` päringud paralleelselt → `{ trend, breakdown }` lugejad ja sünkroonib aastad (`syncYears`) |
+| `TAI.syncYears(config, reader)` | Lisab API vastuse uuemad aastad `config.years`-ile: **uus andmeaasta ilmub ise** (05.11.2026). `buildQuery` küsib aastaid vaikimisi „kõik API-s olevad“ (filter `all`). **NB:** PxWeb `top` ei anna viimast aastat, vaid tabeli esimese; ETU tabelites on aastad kasvavas järjekorras. Viimane aasta valitakse mudelis, Eurostatil `lastTimePeriod=1` |
+| `TAI.describe(config)` | Kirjeldus, mis ei vanane: `{aastatel}` → „aastatel 2006, 2014 ja 2019“ (üks aasta: „2019. aastal“), `{aastad}` → loetelu; viimane „AAAA–AAAA“ vahemik uueneb |
+| `config.prepare()` (valikuline) | Lubadus, mida `app.js` ootab enne filtrite ja oleku loomist (Tervisekassa meta-fail: aastad, pooleliolev aasta, vaikeaastad) |
+| `TAI.readJsonStat2(payload)` | JSON-stat2 lugeja; `get(selection)` keeldub lugemast, kui suurem dimensioon on valimata |
+| `TAI.indicatorShare(reader, config, selection)` | Näitaja osakaal protsentides |
+| `TAI.readUploadedFile(file, config)` | Varuplaan: PxWebist alla laaditud JSON-stat2 fail, kontrollib tabeli vastavust |
+| `TAI.NetworkError` / `HttpError` / `DataError`, `TAI.describeError(err)` | Veatüübid ja eestikeelne selgitus (+ kas pakkuda faili üleslaadimist) |
+| `TAI.attachTooltip(svg, el)` | Tooltip hiire, puute ja klaviatuurifookusega |
+| `TAI.formatPct`, `TAI.delta`, `TAI.escapeHtml` | Eesti numbriformaat, protsendipunktide muutus, HTML-i turvaline väljund |
+
+## Avaldamine ja hostimine
+
+- **Peamine tee:** GitHub Pages (kattub koolituse nõudega). Live-fetch TAI API-sse peab CORS-i osas
+  GitHub Pagesilt töötama — see tuleb varakult (2. töövoo-etapp) päriselt testida, enne kolme tabeli
+  valmisehitamist.
+- **SharePoint-integratsioon:** GitHub Pagesil majutatud leht lisatakse SharePointi lehele "Embed"
+  veebiosa kaudu (iframe). Live-fetchi turvakontekst määratakse lehe enda origin'i (GitHub Pages) järgi,
+  mitte SharePointi järgi — seega peaks funktsionaalsus säilima. Vajalik: SharePointi admin peab
+  "HTML Field Security" seadistuses github.io domeeni lubatud nimekirja lisama.
+- **Mitte teha:** valmis HTML-faili otse SharePointi dokumendikausta üleslaadimine ja sealt avamine —
+  SharePoint sunnib .html-faile tavaliselt allalaadimisele, mitte brauseris renderdamisele.
+- **Varuvariant, kui iframe-embed osutub probleemseks:** tavaline hüperlink SharePointi lehel, mis avab
+  dashboardi uuel vahekaardil.
+
+## Töövoo etapid (loogilises järjekorras)
+
+1. Andmeallikate API-struktuuri lõplik kontroll (ETU42, ETU43 täpsed kategooriakoodid).
+2. CORS/live-fetch valideerimine päris GitHub Pagesilt (minimaalne ühe-tabeli testleht).
+3. Korduvkasutatava raamistiku (tuummoodul + tabelikonfiguratsioon) disain ja kirjutamine.
+4. Master-lehe infoarhitektuur: vasak loendipaneel + parem kuvamisala.
+5. Esimese mooduli (ETU41) integreerimine master-raamistikku.
+6. Teise (ETU42) ja kolmanda (ETU43) mooduli lisamine, üks korraga, testides iga sammu järel.
+7. Viimistlus: disaini ühtlustamine, responsiivsus, veakäsitlus kõigi kolme tabeli jaoks.
+8. Avaldamine GitHub Pagesile + SharePointi Embed-integratsioon (koos IT/admin kaasamisega HTML Field
+   Security seadistuse jaoks).
+
+## Märkused
+
+Ehitatud TTÜ "Programmeerimine tehisintellektiga (Vibe Coding)" koolituse raames (15.–18.09.2026).

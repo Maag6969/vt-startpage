@@ -1,0 +1,24 @@
+# Stiiliraamat — ei avaldata avalikus repos
+*.pdf
+
+# Arendus- ja abifailid — ainult kohalikus arvutis, avalikku repo ei lähe (disain.md p. 2 „Viimistlus“)
+.claude/
+tests/
+tools/
+cors-test.html
+tai_vaimse_tervise_dashboard.html
+
+# Vaatamiste loenduri halduskood (salajane)
+.counter-admin-key*
+
+# Töö- ja metoodikadokumendid, skriptid ja toored väljavõtted: ainult kohalikus arvutis (GitHubi läheb ainult leht ja selle andmed)
+TASKS.md
+TASKS-ARHIIV.md
+disain.md
+AI-ANALUUS.md
+ETAPP2-JUHIS.md
+TERVISEKASSA.md
+TURVAULEVAATUS.md
+scripts/
+data/tervisekassa/raw/
+js/tables/README-NAIDIS.js

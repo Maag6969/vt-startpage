@@ -1,0 +1,792 @@
+/*
+ * TAI vaimse tervise näidikulaud — ühine tuummoodul.
+ *
+ * Laetakse tavalise <script>-ina (mitte ES-moodulina), et leht töötaks ka file:// kaudu avatuna.
+ * Kõik avalik liides on nimeruumis window.TAI; tabelite konfiguratsioonid registreeritakse
+ * TAI.registerTable() kaudu (vt js/tables/*.js).
+ */
+(function (global) {
+  "use strict";
+
+  var TAI = global.TAI || {};
+  global.TAI = TAI;
+
+  TAI.API_BASE = "https://statistika.tai.ee/api/v1/et/Andmebaas/05Uuringud/01ETeU/04VaimneTervis/";
+  TAI.PXWEB_BASE = "https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__05Uuringud__01ETeU__04VaimneTervis/";
+
+  // ---- tabelite register ----------------------------------------------
+
+  var tables = [];
+
+  TAI.registerTable = function (config) {
+    validateConfig(config);
+    tables.push(config);
+    return config;
+  };
+
+  /*
+   * Uusima avaldamisaasta järgi kõige uuem tabel eespool; sama uusima aastaga tabelite vahel
+   * tähestikjärjekord (nimekirja pealkirja järgi) — kokku lepitud kasutajaga 18.09.2026. See
+   * kehtib automaatselt ka igale edaspidi lisatavale tabelile, register.js-i registreerimisjärjekord
+   * ise ei loe.
+   */
+  function latestYearOf(t) {
+    var code = t.years[t.years.length - 1];
+    var label = t.seriesVar ? TAI.yearLabel(t, code) : code; // TAI.yearLabel (module.js) — vt allpool
+    var found = String(label).match(/\d{4}/g);   // periood „2024/2025“ loeb viimase aasta järgi
+    return found ? parseInt(found[found.length - 1], 10) : 0;
+  }
+
+  TAI.getTables = function () {
+    return tables.slice().sort(function (a, b) {
+      var ya = latestYearOf(a), yb = latestYearOf(b);
+      return ya !== yb ? yb - ya : a.title.localeCompare(b.title, "et");
+    });
+  };
+
+  /*
+   * Vasaku loendi grupid (kokku lepitud kasutajaga 21.10.2026): grupi nimi on allika nimi
+   * (config.group, nt "Tervise Arengu Instituut" / "Eurostat"), järjekord fikseeritud: Eesti andmed ees,
+   * rahvusvaheline all. Grupi nimi on ühtlasi kuvatav pealkiri, seega kirjuta see täpselt nii, nagu lugeja näeb.
+   * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
+   * pealkirjata. Grupi sees säilib ette antud järjekord (getTables(): uusim aasta, siis tähestik).
+   */
+  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Tervisekassa (avaandmed)", "Eurostat"];
+
+  TAI.groupTables = function (list) {
+    var groups = [];
+    list.forEach(function (t) {
+      var name = t.group || "";
+      var g = groups.filter(function (x) { return x.name === name; })[0];
+      if (!g) { g = { name: name, items: [] }; groups.push(g); }
+      g.items.push(t);
+    });
+    function rank(name) {
+      if (!name) return TAI.GROUP_ORDER.length + 1;
+      var i = TAI.GROUP_ORDER.indexOf(name);
+      return i >= 0 ? i : TAI.GROUP_ORDER.length;
+    }
+    return groups.sort(function (a, b) { return rank(a.name) - rank(b.name); });
+  };
+
+  TAI.getTableGroups = function () { return TAI.groupTables(TAI.getTables()); };
+
+  /*
+   * Allikate loetelu avalehe tekstis ja lehe jaluses (kokku lepitud kasutajaga 05.11.2026): iga grupp on üks
+   * allikas, seega uus allikas (uus `config.group`) lisandub mõlemasse ise. Valikuline lisainfo siin:
+   *  - short: lühike nimi loetelus, kui grupi pealkiri on pikem (nt "Tervisekassa (avaandmed)" → "Tervisekassa");
+   *  - url: allika avaleht, millele jaluses nimi lingitakse (puudumisel on nimi lihtsalt tekst).
+   */
+  TAI.GROUP_INFO = {
+    "Tervise Arengu Instituut": { url: "https://statistika.tai.ee/pxweb/et/Andmebaas/" },
+    "Tervisekassa (avaandmed)": { short: "Tervisekassa", url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed" },
+    "Eurostat": { url: "https://ec.europa.eu/eurostat" }
+  };
+
+  /* Sugu rippmenüü ja lõike väärtused (Kokku | Mehed | Naised); ühine, et menüü ja valitud lõige ütleksid sama. */
+  TAI.SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
+
+  /*
+   * Rühmasisesed võrdlused (nupp oma rippmenüü all; kasutaja otsus 06.11.2026): iga võrdlus on oma lipp olekus ja seotud ühe
+   * filtriga, korraga on sees üks. Aruanne lubab võrdluse seadistusega config.compare = { filtriKood: "sugu" | "vanus" | "haridus" }
+   * või { filtriKood: { kind, values, colors } }, kui rühmad või värvid vajavad täpsustamist (vaikimisi kõik väärtused peale koondi).
+   * Mitu rühmitust ühes filtris (nt ETU41 Taustatunnus): väärtuseks massiiv, iga rühmitus saab oma nupu; aadressis „vordlus-<liik>“.
+   * Kasutavad app.js (nupud, menüü) ja module.js (seeriad, valitud lõige). `buttonLabel` = nupu tekst, `label` = menüü rida ja lõige.
+   */
+  var COMPARE_KINDS = {
+    sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
+            usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
+    vanus: { flag: "compareAges", label: "Vanuserühmad vrdl", buttonLabel: "Vanuserühmade võrdlus", buttonId: "compare-ages" },
+    haridus: { flag: "compareEdu", label: "Haridustasemed vrdl", buttonLabel: "Haridustasemete võrdlus", buttonId: "compare-edu" },
+    rahvus: { flag: "compareNat", label: "Rahvused vrdl", buttonLabel: "Rahvuste võrdlus", buttonId: "compare-nat" },
+    kooselu: { flag: "compareCoh", label: "Kooselu vrdl", buttonLabel: "Kooselu võrdlus", buttonId: "compare-coh" },
+    aktiivsus: { flag: "compareEco", label: "Majanduslik aktiivsus vrdl", buttonLabel: "Majandusliku aktiivsuse võrdlus", buttonId: "compare-eco" },
+    sissetulek: { flag: "compareInc", label: "Kvintiilid vrdl", buttonLabel: "Sissetulekurühmade võrdlus", buttonId: "compare-inc" }   // M2-s praegu kasutuseta, liigid samad mis M3-s ja skeletis
+  };
+  var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
+
+  TAI.comparisonsOf = function (config) {
+    var map = config.compare || {};
+    var list = [];
+    (config.filters || []).forEach(function (code) {
+      if (!map[code]) return;
+      var specs = Array.isArray(map[code]) ? map[code] : [map[code]];
+      specs.forEach(function (raw) {
+        var spec = typeof raw === "string" ? { kind: raw } : raw;
+        var kind = COMPARE_KINDS[spec.kind], v = config.vars[code];
+        var param = specs.length > 1 ? "vordlus-" + spec.kind : "vordlus";
+        list.push(Object.assign({}, kind, {
+          kind: spec.kind,
+          filter: code,
+          param: param,
+          values: spec.values || v.values.filter(function (x) { return x !== v.totalValue; }),
+          colors: spec.colors || kind.colors || GROUP_COLORS,
+          usageOn: kind.usageOn || param,
+          usageOff: v.totalValue
+        }));
+      });
+    });
+    return list;
+  };
+
+  /** Ühe filtri võrdlused (nupud selle all). */
+  TAI.comparisonsFor = function (config, filterCode) {
+    return TAI.comparisonsOf(config).filter(function (c) { return c.filter === filterCode; });
+  };
+
+  /** Praegu sisse lülitatud võrdlus või null. */
+  TAI.activeComparison = function (config, state) {
+    return TAI.comparisonsOf(config).filter(function (c) { return state[c.flag]; })[0] || null;
+  };
+
+  /** Selle filtri praegu sisse lülitatud võrdlus või null. */
+  TAI.activeComparisonFor = function (config, state, filterCode) {
+    var active = TAI.activeComparison(config, state);
+    return active && active.filter === filterCode ? active : null;
+  };
+
+  /** [{ name, url|null }] samas järjekorras kui vasak loend; grupita tabelid loetellu ei kuulu. */
+  TAI.getSources = function () {
+    return TAI.getTableGroups().filter(function (g) { return g.name; }).map(function (g) {
+      var info = TAI.GROUP_INFO[g.name] || {};
+      return { name: info.short || g.name, url: info.url || null };
+    });
+  };
+
+  TAI.getTable = function (code) {
+    for (var i = 0; i < tables.length; i++) {
+      if (tables[i].code === code) return tables[i];
+    }
+    return null;
+  };
+
+  /*
+   * Kaks tabelikonfiguratsiooni kuju kehtivad kõrvuti (17.09.2026, esimene Eurostati tabel):
+   *  - vana, ETU-põhine: config.indicator = { var, positive, ... } (binaarne osakaal, nt Depressioon jah/ei)
+   *  - uus, üldine: config.seriesVar + config.measureLabel (suvaline väärtusteljega muutuja, nt
+   *    hindamisskaala või riik) — vt js/module.js, kus kõik renderdusfunktsioonid harjutavad
+   *    kumba kuju kasutada `config.seriesVar` olemasolu järgi. Uut kuju EI kanta ETU-tabelitele üle
+   *    ilma eraldi otsuseta (vt TASKS-ARHIIV.md „2. etapp“) — need jäävad vana kujuga muutumatuks.
+   */
+  function validateConfig(c) {
+    var required = ["code", "title", "description", "vars", "years"];
+    required.forEach(function (key) {
+      if (!c[key]) throw new Error("Tabeli konfiguratsioonist puudub väli '" + key + "'" + (c.code ? " (" + c.code + ")" : ""));
+    });
+    if (!c.indicator && !c.seriesVar) {
+      throw new Error(c.code + ": tabelil peab olema kas 'indicator' (vana kuju) või 'seriesVar' (uus kuju)");
+    }
+    if (c.indicator && !c.vars[c.indicator.var]) {
+      throw new Error(c.code + ": näitaja muutujat '" + c.indicator.var + "' pole vars-is kirjeldatud");
+    }
+    if (c.seriesVar && !c.vars[c.seriesVar]) {
+      throw new Error(c.code + ": seeriamuutujat '" + c.seriesVar + "' pole vars-is kirjeldatud");
+    }
+    // Ühik ja ühiku silt lisatakse HTML-i ilma escape'ita (TAI.formatValue): lubatud on ainult lihttekst (ülevõetud paketi skeletist 06.11.2026).
+    [["unit", c.unit], ["unitLabel", c.unitLabel], ["deltaPhrase", c.deltaPhrase], ["indicator.unit", c.indicator && c.indicator.unit]].forEach(function (p) {
+      if (typeof p[1] === "string" && /[<>&"']/.test(p[1])) {
+        throw new Error(c.code + ": väli '" + p[0] + "' ei tohi sisaldada märke < > & \" '");
+      }
+    });
+    Object.keys(c.vars).forEach(function (code) {
+      var v = c.vars[code];
+      if (!v.values || !v.labels || v.values.length !== v.labels.length) {
+        throw new Error(c.code + ": muutuja '" + code + "' values/labels on puudu või erineva pikkusega");
+      }
+      if (v.optionLabels && v.optionLabels.length !== v.values.length) {
+        throw new Error(c.code + ": muutuja '" + code + "' optionLabels on erineva pikkusega kui values");
+      }
+    });
+  }
+
+  // ---- ühised muutujad (sama kodeering ETU41/42/43-s) -----------------
+
+  TAI.sexVar = function (elimination) {
+    return {
+      label: "Sugu",
+      values: ["0", "1", "2"],
+      labels: ["Mehed ja naised", "Mehed", "Naised"],
+      totalValue: "0",
+      elimination: !!elimination
+    };
+  };
+
+  TAI.ageVar = function (elimination) {
+    return {
+      label: "Vanuserühm",
+      values: ["0", "1", "2", "3", "4", "5", "6", "7"],
+      labels: ["15 ja vanemad", "15–24", "25–34", "35–44", "45–54", "55–64", "65–74", "75 ja vanemad"],
+      totalValue: "0",
+      elimination: !!elimination
+    };
+  };
+
+  /*
+   * Maakond (15 maakonda + Eesti kokku, tähestiku järjekorras; ülevõetud M3-st). Linnad ja „Maakond teadmata“ jäetakse välja,
+   * et maakondade tulbas poleks topelt. Enamik TAI tabeleid kasutab neid EHAK-i koode; kui tabeli metaandmetes on teised
+   * koodid, anna need opts.codes-is samas järjekorras (kontrolli alati: M3-s erinesid need tabeliti).
+   * opts.total = kokku-rea kood ("00" või "0"), opts.elimination nagu sexVar-il.
+   */
+  TAI.COUNTY_CODES = ["37", "39", "45", "50", "52", "56", "60", "64", "68", "71", "74", "79", "81", "84", "87"];
+  TAI.COUNTY_LABELS = ["Harju maakond", "Hiiu maakond", "Ida-Viru maakond", "Jõgeva maakond", "Järva maakond",
+    "Lääne maakond", "Lääne-Viru maakond", "Põlva maakond", "Pärnu maakond", "Rapla maakond", "Saare maakond",
+    "Tartu maakond", "Valga maakond", "Viljandi maakond", "Võru maakond"];
+
+  TAI.countyVar = function (opts) {
+    opts = opts || {};
+    var total = opts.total || "00";
+    var v = {
+      label: "Maakond",
+      values: [total].concat(opts.codes || TAI.COUNTY_CODES),
+      labels: ["Eesti kokku"].concat(TAI.COUNTY_LABELS),
+      totalValue: total
+    };
+    if (opts.elimination) v.elimination = true;
+    return v;
+  };
+
+  /* Vaikimisi on tabel kaustas API_BASE; teises TAI kaustas oleva tabeli seadistus annab `taiPath`, nt "04THressursid/05Tootajad". */
+  var TAI_API_ROOT = "https://statistika.tai.ee/api/v1/et/Andmebaas/";
+  var TAI_PXWEB_ROOT = "https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__";
+
+  TAI.apiUrl = function (config) {
+    return (config.taiPath ? TAI_API_ROOT + config.taiPath + "/" : TAI.API_BASE) + config.code + ".px";
+  };
+  TAI.pxwebUrl = function (config) {
+    return (config.taiPath ? TAI_PXWEB_ROOT + config.taiPath.split("/").join("__") + "/" : TAI.PXWEB_BASE) + config.code + ".px/";
+  };
+
+  TAI.labelOf = function (config, varCode, value) {
+    var v = config.vars[varCode];
+    var i = v ? v.values.indexOf(value) : -1;
+    return i >= 0 ? v.labels[i] : value;
+  };
+
+  // ---- päringu koostamine ---------------------------------------------
+
+  /*
+   * selection: { muutujaKood: [väärtused] } — ainult need muutujad, mida soovitakse piirata.
+   *
+   * Reeglid (kinnitatud API vastu 16.09.2026, vt README „Kinnitatud API-struktuur“):
+   *  - näitaja muutuja (nt Distress) küsitakse alati kõigi väärtustega, et osakaalu saaks arvutada;
+   *  - eliminatsiooniga muutuja (elimination: true) võib välja jääda → API annab koondväärtuse;
+   *  - eliminatsioonita muutuja, mida pole valikus, saab vaikimisi väärtuse (defaultValue, tavaliselt "0"),
+   *    sest muidu tagastab API kõik kategooriad (ETU43 Sugu/Vanuserühm).
+   *  - aastamuutuja vaikimisi KÕIGI API-s olevate aastatega (filter "all", 05.11.2026): uued aastad jõuavad
+   *    näidikulauale ilma koodimuudatuseta (vt TAI.syncYears). Ülevõetud M3-st ja liidetud vana "indicator" loogikaga.
+   *    NB! M3 `TAI.LATEST` (filter "top") jäeti SIIA TAHTLIKULT ÜLE VÕTMATA: PxWeb "top" võtab muutuja esimese väärtuse
+   *    tabeli enda järjekorras ja M2 ETU tabelites on aastad kasvavas järjekorras (ETU42 "top" andis 2006, mitte 2019).
+   *    Viimase aasta jaoks küsi kõik aastad (tabelid on väikesed) ja lase mudelil viimane valida; Eurostatil kasuta
+   *    `lastTimePeriod=1`.
+   */
+  TAI.buildQuery = function (config, selection) {
+    selection = selection || {};
+    var query = [];
+
+    Object.keys(config.vars).forEach(function (code) {
+      var v = config.vars[code];
+      var values;
+
+      // responseOnly: dimensioon on ainult vastuses, mitte päringus (nt TAI ContentsCode "EliminatedValue")
+      if (v.responseOnly) return;
+
+      if (code === config.yearVar && !(selection[code] && selection[code].length)) {
+        query.push({ code: code, selection: { filter: "all", values: ["*"] } });
+        return;
+      }
+
+      if (config.indicator && code === config.indicator.var) {
+        values = v.values.slice();
+      } else if (selection[code] && selection[code].length) {
+        values = selection[code].slice();
+      } else if (code === config.yearVar) {
+        values = v.values.slice();
+      } else if (v.elimination) {
+        return; // API annab koondväärtuse
+      } else {
+        values = [v.defaultValue != null ? v.defaultValue : v.values[0]];
+      }
+
+      values.forEach(function (val) {
+        if (v.values.indexOf(val) < 0) {
+          throw new Error(config.code + ": tundmatu väärtus '" + val + "' muutujal " + code);
+        }
+      });
+      query.push({ code: code, selection: { filter: "item", values: values } });
+    });
+
+    return { query: query, response: { format: "json-stat2" } };
+  };
+
+  /*
+   * Kasutaja olekust ({ Sugu: "2", Vanuserühm: "0", ... }) päringu selection.
+   * Koondkategooria ("0") jäetakse välja — buildQuery lisab selle ise vaid eliminatsioonita muutujatele.
+   * overrides: { muutujaKood: [väärtused] } kirjutab üle (nt kõik vanuserühmad tulpdiagrammi jaoks).
+   * Sisse lülitatud võrdluse filtri kohta küsitakse kõik võrreldavad väärtused.
+   */
+  TAI.selectionFromState = function (config, state, varCodes, overrides) {
+    var sel = {};
+    var active = TAI.activeComparison(config, state);
+    varCodes.forEach(function (code) {
+      if (active && active.filter === code) { sel[code] = active.values; return; }
+      var val = state[code];
+      if (val != null && val !== config.vars[code].totalValue) sel[code] = [val];
+    });
+    Object.keys(overrides || {}).forEach(function (code) { sel[code] = overrides[code]; });
+    return sel;
+  };
+
+  // ---- JSON-stat2 lugeja ----------------------------------------------
+
+  /*
+   * Tagastab { get(selection), dims, ids, raw }.
+   * get({ Aasta: "2019", Sugu: "1", ... }) → number | null (puuduv väärtus) | undefined (valik ei sobi).
+   * Valikust puuduv dimensioon on lubatud ainult siis, kui selle suurus on 1 (nt ContentsCode);
+   * suurema dimensiooni puhul tagastatakse undefined, et vale lahtrit vaikselt ei loetaks.
+   */
+  TAI.readJsonStat2 = function (payload) {
+    var ds = payload && payload.dataset ? payload.dataset : payload;
+    if (!ds || !ds.dimension || !ds.value) {
+      throw new TAI.DataError("Tundmatu andmestruktuur — oodati JSON-stat2 vormingut.");
+    }
+    var ids = ds.id || ds.dimension.id;
+    var sizes = ds.size || ds.dimension.size;
+    if (!ids || !sizes || ids.length !== sizes.length) {
+      throw new TAI.DataError("JSON-stat2 failist puudub dimensioonide id/size info.");
+    }
+
+    var strides = new Array(ids.length);
+    strides[ids.length - 1] = 1;
+    for (var i = ids.length - 2; i >= 0; i--) strides[i] = strides[i + 1] * sizes[i + 1];
+
+    var dims = {};
+    ids.forEach(function (id, i) {
+      var cat = ds.dimension[id].category;
+      var indexMap = {};
+      if (Array.isArray(cat.index)) {
+        cat.index.forEach(function (code, pos) { indexMap[code] = pos; });
+      } else if (cat.index && typeof cat.index === "object") {
+        indexMap = cat.index;
+      } else {
+        Object.keys(cat.label || {}).forEach(function (code, pos) { indexMap[code] = pos; });
+      }
+      dims[id] = { stride: strides[i], size: sizes[i], indexMap: indexMap, label: cat.label || {} };
+    });
+
+    var values = ds.value;
+
+    function get(selection) {
+      var offset = 0;
+      for (var k = 0; k < ids.length; k++) {
+        var id = ids[k];
+        var d = dims[id];
+        var pos;
+        if (Object.prototype.hasOwnProperty.call(selection, id)) {
+          pos = d.indexMap[selection[id]];
+          if (pos === undefined) return undefined;
+        } else if (d.size === 1) {
+          pos = 0;
+        } else {
+          return undefined;
+        }
+        offset += pos * d.stride;
+      }
+      var v = Array.isArray(values) ? values[offset] : values[String(offset)];
+      return typeof v === "number" ? v : null;
+    }
+
+    return { get: get, dims: dims, ids: ids, raw: ds };
+  };
+
+  // ---- näitaja osakaal ----------------------------------------------
+
+  /*
+   * Näitaja osakaal protsentides: positiivne / (kõik näitaja kategooriad) × 100.
+   * TAI tabelid annavad juba protsendid (summa 100), valem annab siis sama väärtuse,
+   * kuid töötab ka absoluutarvudega.
+   */
+  TAI.indicatorShare = function (reader, config, selection) {
+    var ind = config.indicator;
+    // Kui valik küsib konkreetset kategooriat muutujalt, mida andmetes pole, ei tohi vastuseks anda
+    // koondväärtust (lugeja ignoreerib puuduvaid dimensioone) → andmed puuduvad.
+    for (var code in selection) {
+      if (reader.dims[code]) continue;
+      var v = config.vars[code];
+      if (v && v.totalValue != null && selection[code] !== v.totalValue) return null;
+    }
+    var total = 0, positive = null;
+    var vals = config.vars[ind.var].values;
+    for (var i = 0; i < vals.length; i++) {
+      var sel = Object.assign({}, selection);
+      sel[ind.var] = vals[i];
+      var v = reader.get(sel);
+      if (v == null) return null;
+      total += v;
+      if (vals[i] === ind.positive) positive = v;
+    }
+    if (!total || positive == null) return null;
+    return (positive / total) * 100;
+  };
+
+  // ---- vead ---------------------------------------------------------
+
+  function makeError(name) {
+    function E(message, details) {
+      this.name = name;
+      this.message = message;
+      this.details = details;
+      this.stack = (new Error(message)).stack;
+    }
+    E.prototype = Object.create(Error.prototype);
+    E.prototype.constructor = E;
+    return E;
+  }
+
+  /** Võrgu- või CORS-tõrge: päring ei jõudnud kohale või brauser blokeeris vastuse. */
+  TAI.NetworkError = makeError("NetworkError");
+  /** API vastas veakoodiga (nt 400 vale päring, 403 liiga suur päring, 429 liiga palju päringuid). */
+  TAI.HttpError = makeError("HttpError");
+  /** Vastus või fail ei ole loetav JSON-stat2. */
+  TAI.DataError = makeError("DataError");
+
+  /*
+   * Kasutajale näidatav eestikeelne selgitus + kas faili üleslaadimine on mõistlik varuvariant.
+   * `config` on valikuline — kui antud ja tabelil on config.source (nt Eurostat), kasutatakse
+   * allikaspetsiifilist sõnastust; muidu vaikimisi "TAI andmebaas" (tagasiühilduvus).
+   */
+  TAI.describeError = function (err, config) {
+    // Lehega samas kohas olevad valmis andmefailid (config.source.staticData): faili üleslaadimist ei pakuta.
+    if (config && config.source && config.source.staticData) {
+      return {
+        title: "Aruande andmefaile ei õnnestunud laadida",
+        text: "Andmed asuvad lehega samas kohas olevates failides (kaust data/tervisekassa). Fail võib puududa või olla vigane.",
+        offerUpload: false
+      };
+    }
+    var srcLabel = (config && config.source && config.source.longLabel) || "TAI andmebaas";
+    var srcParen = (config && config.source) ? " (" + config.source.label + ")" : "";
+    if (err instanceof TAI.NetworkError) {
+      return {
+        title: "Ühendus " + srcLabel + "ga ebaõnnestus",
+        text: "Päring ei jõudnud kohale. Põhjus võib olla internetiühenduses, andmebaasi" + srcParen + " ajutises " +
+              "kättesaamatuses või brauseri turvapiirangus (CORS). Proovi uuesti või lae andmed failina üles.",
+        offerUpload: true
+      };
+    }
+    if (err instanceof TAI.HttpError) {
+      var status = err.details && err.details.status;
+      var hint = status === 429 ? " Liiga palju päringuid lühikese aja jooksul — oota veidi ja proovi uuesti."
+               : status === 403 ? " Päring oli andmebaasi jaoks liiga suur."
+               : status === 400 ? " Päringu vorming ei sobinud andmebaasile (tõenäoliselt muutunud tabeli struktuur)."
+               : "";
+      return {
+        title: srcLabel + srcParen + " vastas veaga (HTTP " + status + ")",
+        text: "Andmeid ei õnnestunud laadida." + hint,
+        offerUpload: status !== 400
+      };
+    }
+    if (err instanceof TAI.DataError) {
+      return { title: "Andmeid ei õnnestunud lugeda", text: err.message, offerUpload: true };
+    }
+    return { title: "Ootamatu viga", text: (err && err.message) || String(err), offerUpload: true };
+  };
+
+  // ---- andmete laadimine --------------------------------------------
+
+  var FETCH_TIMEOUT_MS = 20000;
+
+  /** Ühine fetch+veakäsitlus PxWeb POST-päringu ja lihtsa GET-URL-i jaoks. */
+  async function doFetch(url, init) {
+    var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+    var timer = controller ? setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS) : null;
+    var res;
+    try {
+      res = await fetch(url, Object.assign({}, init, { signal: controller ? controller.signal : undefined }));
+    } catch (e) {
+      var msg = e && e.name === "AbortError" ? "Päring aegus (" + FETCH_TIMEOUT_MS / 1000 + " s)." : (e && e.message) || "Failed to fetch";
+      throw new TAI.NetworkError(msg, { cause: e });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+    if (!res.ok) {
+      throw new TAI.HttpError("API vastas staatusega " + res.status, { status: res.status });
+    }
+    try {
+      return await res.json();
+    } catch (e) {
+      throw new TAI.DataError("API vastus ei olnud korrektne JSON.");
+    }
+  }
+
+  /** POST-päring TAI PxWeb API-sse; tagastab JSON-stat2 lugeja. Vead on TAI.*Error tüüpi. */
+  TAI.fetchJsonStat2 = async function (config, body) {
+    var json = await doFetch(TAI.apiUrl(config), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    return TAI.readJsonStat2(json);
+  };
+
+  /*
+   * GET-päring suvalisest URL-ist (nt Eurostat, mille API on GET+query-string, mitte POST+body
+   * nagu PxWeb) — tagastab JSON-stat lugeja. Eurostati JSON-stat v1 vastus kontrollitud 17.09.2026:
+   * struktuur (dimension/category/index/label, id, size, value) ühildub otse TAI.readJsonStat2-ga.
+   */
+  TAI.EUROSTAT_BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/";
+
+  TAI.fetchJsonStatUrl = async function (url) {
+    var json = await doFetch(url, {});
+    return TAI.readJsonStat2(json);
+  };
+
+  /** GET-päring tavalisele JSON-failile (nt lehega samas kohas olevad Tervisekassa andmefailid). */
+  TAI.fetchJson = function (url) { return doFetch(url, {}); };
+
+  /*
+   * Tabeli allika-URL/silt: kui config.source on määratud (nt Eurostat-tabelil), kasutatakse seda;
+   * muidu vaikimisi TAI PxWeb (tagasiühilduvus olemasolevate ETU-tabelitega, mis config.source-it
+   * ei määra).
+   */
+  TAI.sourceLabel = function (config) { return (config.source && config.source.label) || "TAI"; };
+  TAI.sourceLongLabel = function (config) { return (config.source && config.source.longLabel) || "Tervise Arengu Instituut"; };
+  TAI.sourceUrl = function (config) { return (config.source && config.source.url) || TAI.pxwebUrl(config); };
+
+  /*
+   * Kuvatav ühikutekst: kas lühike sufiks number otsa (config.unit, vaikimisi "%"), või kui väärtus
+   * pole protsent (config.unit === "") — pikem kirjeldav fraas (config.unitLabel). Ühik võib sõltuda filtrist (TAI.unitOf).
+   */
+  TAI.unitText = function (config, state) {
+    var unit = TAI.unitOf(config, state);
+    if (unit === "") return config.unitLabel || "";
+    return unit != null ? unit : "%";
+  };
+
+  /** Laeb kõik konfiguratsiooni päringud (config.queries(state)) paralleelselt. Tagastab { nimi: lugeja }.
+   *  Iga päring on kas PxWeb query-objekt (POST) või lihtne URL-string (GET, nt Eurostat).
+   *  Aruanne võib anda oma laadija (config.loadData), nt valmis JSON-failide jaoks. */
+  TAI.loadTable = async function (config, state) {
+    if (config.loadData) return config.loadData(state || {});
+    var queries = config.queries(state || {});
+    var names = Object.keys(queries);
+    var readers = await Promise.all(names.map(function (name) {
+      var q = queries[name];
+      return typeof q === "string" ? TAI.fetchJsonStatUrl(q) : TAI.fetchJsonStat2(config, q);
+    }));
+    var out = {};
+    names.forEach(function (name, i) { out[name] = readers[i]; });
+    TAI.syncYears(config, out.trend || readers[0]);
+    return out;
+  };
+
+  /*
+   * Aastad API vastusest (05.11.2026, ülevõetud M3-st): kui vastuses on uuemaid aastaid kui tabeli seadistuses
+   * (config.years), lisatakse need lõppu — uus andmeaasta ilmub näidikulauale ilma koodimuudatuseta. Ainult edasi:
+   * seadistuse algusaasta jääb. Silt võetakse vastusest. Tagastab lisatud aastate arvu (0, kui lugejal pole aastamõõdet,
+   * nt Tervisekassa staatilised failid).
+   */
+  TAI.syncYears = function (config, reader) {
+    var yv = config.vars && config.vars[config.yearVar];
+    var d = reader && reader.dims && reader.dims[config.yearVar];
+    if (!yv || !d || !d.indexMap) return 0;
+    function cmp(a, b) {
+      return /^\d+$/.test(a) && /^\d+$/.test(b) ? Number(a) - Number(b) : (a < b ? -1 : a > b ? 1 : 0);
+    }
+    var last = config.years[config.years.length - 1];
+    var added = Object.keys(d.indexMap)
+      .filter(function (c) { return config.years.indexOf(c) < 0 && cmp(c, last) > 0; })
+      .sort(cmp);
+    added.forEach(function (c) {
+      // years, values ja labels võivad olla sama massiiv (nt years: YEARS, values: YEARS, labels: YEARS)
+      var sameValues = yv.values === config.years, sameLabels = yv.labels === config.years || yv.labels === yv.values;
+      config.years.push(c);
+      if (!sameValues) yv.values.push(c);
+      if (!sameLabels) yv.labels.push((d.label && d.label[c]) || c);
+    });
+    return added.length;
+  };
+
+  /* Aastate loetelu eesti keeles: "2006", "2006 ja 2014", "2006, 2014 ja 2019". */
+  function yearListText(config) {
+    var labels = config.years.map(function (y) { return TAI.labelOf(config, config.yearVar, y); });
+    if (labels.length <= 1) return labels.join("");
+    return labels.slice(0, -1).join(", ") + " ja " + labels[labels.length - 1];
+  }
+
+  /*
+   * Kirjeldus, mis ei vanane uue aasta lisandumisel (05.11.2026). Toetab kahte viisi:
+   *  - kohahoidjad kirjelduses: {aastad} → "2006, 2014 ja 2019"; {aastatel} → "aastal 2019" (üks aasta) või
+   *    "aastatel 2006, 2014 ja 2019" (mitu aastat);
+   *  - viimane vahemik kujul „2011–2023“ asendatakse tegelikuga (M3 viis).
+   */
+  TAI.describe = function (config) {
+    var text = config.description || "";
+    text = text.replace(/\{aastad\}/g, function () { return yearListText(config); })
+      .replace(/\{aastatel\}/g, function () {
+        return config.years.length === 1 ? yearListText(config) + ". aastal" : "aastatel " + yearListText(config);
+      });
+    var re = /\d{4}(?:\/\d{4})?–\d{4}(?:\/\d{4})?/g, m, lastMatch = null;
+    while ((m = re.exec(text))) lastMatch = m;
+    if (lastMatch && config.years.length > 1) {
+      var first = TAI.labelOf(config, config.yearVar, config.years[0]);
+      var last = TAI.labelOf(config, config.yearVar, config.years[config.years.length - 1]);
+      text = text.slice(0, lastMatch.index) + first + "–" + last + text.slice(lastMatch.index + lastMatch[0].length);
+    }
+    return text;
+  };
+
+  /**
+   * Varuplaan: käsitsi alla laaditud PxWeb JSON-stat2 fail.
+   * Tagastab Promise<lugeja>. Kontrollib, et fail vastaks valitud tabelile (näitaja dimensioon olemas).
+   */
+  TAI.readUploadedFile = function (file, config) {
+    return new Promise(function (resolve, reject) {
+      if (!file) { reject(new TAI.DataError("Faili ei valitud.")); return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        var json;
+        try {
+          json = JSON.parse(fr.result);
+        } catch (e) {
+          reject(new TAI.DataError("Fail „" + file.name + "“ ei ole JSON-vormingus. Vali PxWebis salvestamisel vorming JSON-stat2."));
+          return;
+        }
+        try {
+          var reader = TAI.readJsonStat2(json);
+          var seriesVarName = config && (config.seriesVar || (config.indicator && config.indicator.var));
+          if (config && seriesVarName && !reader.dims[seriesVarName]) {
+            throw new TAI.DataError("Fail „" + file.name + "“ ei paista olevat tabel " + config.code +
+              " (puudub muutuja " + seriesVarName + ").");
+          }
+          var missing = config ? Object.keys(config.vars).filter(function (code) { return !reader.dims[code]; }) : [];
+          if (missing.length) {
+            throw new TAI.DataError("Failist „" + file.name + "“ " + (missing.length > 1 ? "puuduvad muutujad " : "puudub muutuja ") +
+              missing.join(", ") + ". Vali PxWebis tabelit salvestades kõigi muutujate kõik väärtused.");
+          }
+          resolve(reader);
+        } catch (e) {
+          reject(e);
+        }
+      };
+      fr.onerror = function () { reject(new TAI.DataError("Faili „" + file.name + "“ lugemine ebaõnnestus.")); };
+      fr.readAsText(file);
+    });
+  };
+
+  // ---- tooltip ------------------------------------------------------
+
+  /*
+   * Graafiku elementidel peavad olema data-label ja data-value atribuudid.
+   * Töötab hiire, puute ja klaviatuuriga (element peab olema tabindex="0").
+   */
+  TAI.attachTooltip = function (svg, tooltipEl) {
+    var holder = svg.parentElement;
+
+    function place(x, y, target) {
+      tooltipEl.textContent = target.getAttribute("data-label") + ": " + target.getAttribute("data-value");
+      tooltipEl.style.left = x + "px";
+      tooltipEl.style.top = y + "px";
+      tooltipEl.classList.add("is-visible");
+    }
+    function hide() { tooltipEl.classList.remove("is-visible"); }
+    function markOf(el) { return el && el.closest ? el.closest("[data-value]") : null; }
+
+    svg.addEventListener("mousemove", function (evt) {
+      var t = markOf(evt.target);
+      if (!t) { hide(); return; }
+      var r = holder.getBoundingClientRect();
+      place(evt.clientX - r.left, evt.clientY - r.top, t);
+    });
+    svg.addEventListener("mouseleave", hide);
+    svg.addEventListener("touchstart", function (evt) {
+      var t = markOf(evt.target);
+      if (!t) { hide(); return; }
+      var r = holder.getBoundingClientRect();
+      place(evt.touches[0].clientX - r.left, evt.touches[0].clientY - r.top, t);
+    }, { passive: true });
+    svg.addEventListener("focusin", function (evt) {
+      var t = markOf(evt.target);
+      if (!t) return;
+      var r = holder.getBoundingClientRect();
+      var b = t.getBoundingClientRect();
+      place(b.left + b.width / 2 - r.left, b.top - r.top, t);
+    });
+    svg.addEventListener("focusout", hide);
+  };
+
+  // ---- abifunktsioonid ----------------------------------------------
+
+  /** Lingi aadress ainult siis, kui see on https:// aadress (turvareeglid C5, C7; ülevõetud paketi skeletist 06.11.2026); muidu null. */
+  TAI.safeUrl = function (href) {
+    return typeof href === "string" && /^https:\/\//i.test(href) ? href : null;
+  };
+
+  /** Uues aknas avanev link koos ekraanilugeja märkega. text ja href escape'itakse; mitte-https aadressi korral
+   *  tagastatakse ainult tekst (link jäetakse tegemata). */
+  TAI.externalLink = function (href, text) {
+    var safe = TAI.safeUrl(href);
+    if (!safe) return TAI.escapeHtml(text);
+    return '<a href="' + TAI.escapeHtml(safe) + '" target="_blank" rel="noopener">' + TAI.escapeHtml(text) +
+      ' <span aria-hidden="true">↗</span><span class="visually-hidden">(avaneb uues aknas)</span></a>';
+  };
+
+  TAI.escapeHtml = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+
+  var pctFormat = new Intl.NumberFormat("et-EE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  /* 12.34 → "12,3<unit>" (eesti formaat). `unit` vaikimisi "%" (tagasiühilduvus tabelitega, mis
+     config.unit ei määra). Tabelid, mille väärtus pole protsent (nt hindamisskaala 0–10), määravad
+     config.unit = "" (tühi, ühik selgitatakse mujal, vt TAI.unitText) või mõne muu sufiksi. */
+  var numberFormats = { 1: pctFormat };
+  function numberFormat(decimals) {
+    var d = decimals == null ? 1 : decimals;
+    if (!numberFormats[d]) {
+      numberFormats[d] = new Intl.NumberFormat("et-EE", { minimumFractionDigits: d, maximumFractionDigits: d });
+    }
+    return numberFormats[d];
+  }
+
+  TAI.formatValue = function (v, unit, decimals) {
+    return v == null ? "–" : numberFormat(decimals).format(v) + (unit != null ? unit : "%");
+  };
+
+  /* Ühik, komakohad ja muutuse sõna võivad olla väärtus või function(state): üks tabel võib filtri järgi näidata
+     osakaalu („%“, 1 koma) või arvu ("", 0 koma). Vaikimisi nagu varem: 1 koma. */
+  TAI.unitOf = function (config, state) {
+    return typeof config.unit === "function" ? config.unit(state || {}) : config.unit;
+  };
+  TAI.decimalsOf = function (config, state) {
+    var d = typeof config.decimals === "function" ? config.decimals(state || {}) : config.decimals;
+    return d == null ? 1 : d;
+  };
+  TAI.deltaPhraseOf = function (config, state) {
+    return typeof config.deltaPhrase === "function" ? config.deltaPhrase(state || {}) : config.deltaPhrase;
+  };
+
+  /* Tabeli ja oleku järgi vormindaja. Tabeli oma config.formatValue (nt täisarvud) on ülimuslik. */
+  TAI.formatterFor = function (config, state) {
+    if (config.formatValue) return config.formatValue;
+    var unit = TAI.unitOf(config, state), d = TAI.decimalsOf(config, state);
+    return function (v) { return TAI.formatValue(v, unit, d); };
+  };
+
+  /** 12.34 → "12,3%" (eesti formaat). */
+  TAI.formatPct = function (v) { return TAI.formatValue(v, "%"); };
+
+  /* Muutus kahe väärtuse vahel: { diff, direction: "up" | "down" | "flat", text }. `phrase` on
+     ühikusõna deltateksti lõpus (vaikimisi "protsendipunkti" — tagasiühilduvus); anna tühi string,
+     kui tabelil pole sobivat lühikest ühikusõna. */
+  TAI.delta = function (current, previous, phrase, decimals) {
+    if (current == null || previous == null) return null;
+    var diff = current - previous;
+    var direction = diff > 0.05 ? "up" : diff < -0.05 ? "down" : "flat";
+    var arrow = direction === "up" ? "▲" : direction === "down" ? "▼" : "→";
+    var p = phrase != null ? phrase : "protsendipunkti";
+    return { diff: diff, direction: direction, text: arrow + " " + numberFormat(decimals).format(Math.abs(diff)) + (p ? " " + p : "") };
+  };
+
+})(window);

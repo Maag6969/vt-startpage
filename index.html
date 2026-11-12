@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vaimse tervise näidikulaud</title>
+<meta name="description" content="Eesti vaimse tervise ja heaolu avaandmed ühel lehel: Tervise Arengu Instituut, Tervisekassa ja Eurostat.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<!-- Lingi eelvaade (SharePoint, Teams, e-post) -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="et_EE">
+<meta property="og:title" content="Vaimse tervise näidikulaud">
+<meta property="og:description" content="Eesti vaimse tervise ja heaolu avaandmed ühel lehel: depressioon, distress, uneaja piisavus ja eluga rahulolu. Allikad: Tervise Arengu Instituut, Tervisekassa, Eurostat.">
+<meta property="og:url" content="https://maag6969.github.io/vt-startpage/">
+<meta name="twitter:card" content="summary">
+<!--
+  Content Security Policy: skriptid, stiilid ja fondid ainult omalt lehelt; päringud ainult nimetatud andmeallikatele ja loendurile.
+  Uue andmeallika lisamisel lisa selle aadress connect-src alla (muidu päring blokeeritakse). style-src on range: HTML-is ei tohi olla
+  style="…" atribuuti, värve pannakse CSSOM-iga. Meta-tag ei toeta frame-ancestors'i (GitHub Pages ei lase HTTP-päiseid seadistada).
+-->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://statistika.tai.ee https://ec.europa.eu https://abacus.jasoncameron.dev; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#content">Liigu sisu juurde</a>
+
+<header class="site-header">
+  <div class="site-header__title">
+    <h1>Vaimse tervise näidikulaud</h1>
+    <p class="site-header__views" id="view-count" hidden></p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="panel-list" aria-label="Andmestikud">
+    <div id="dataset-list"></div>
+  </nav>
+
+  <main class="panel-content" id="content" tabindex="-1" aria-live="polite" aria-busy="false"></main>
+</div>
+
+<!-- Sisu (allikate loetelu) tuleb js/app.js renderFooter()-ist, samast allikast mis avalehe tekst -->
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="js/core.js"></script>
+<script src="js/tables/etu41.js"></script>
+<script src="js/tables/etu42.js"></script>
+<script src="js/tables/etu43.js"></script>
+<script src="js/tables/eurostat-ilc-pw01.js"></script>
+<script src="js/tables/tervisekassa-adapter.js"></script>
+<script src="js/tables/tervisekassa-diagnoosid.js"></script>
+<script src="js/module.js"></script>
+<script src="js/usage.js"></script>
+<script src="js/ai-prompt.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
