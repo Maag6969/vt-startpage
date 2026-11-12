@@ -85,7 +85,7 @@
   }
 
   /* KPI sildil on ainult üksus ja see, mis kaarte eristab (sugu või vanuserühm võrdlusel); diagnoos, sugu ja vanuserühm on
-     valitud lõike real kaardi sees või kaardirea kasti ülaosas (kasutaja otsus 05.11.2026, module.js TAI.sliceParts). */
+     valitud lõike real kaardi sees või kaardirea kasti ülaosas (module.js TAI.sliceParts). */
   function cardLabel(state, series) {
     var parts = ["Eesti"];
     if (state.compareSexes) parts.push(series.label.toLowerCase());
@@ -152,7 +152,7 @@
       };
     });
 
-    // Vanuserühmade võrdluse ajal tulpdiagrammi pole (kasutaja otsus 05.11.2026): sama info on joontel ja KPI-kaartidel.
+    // Vanuserühmade võrdluse ajal tulpdiagrammi pole: sama info on joontel ja KPI-kaartidel.
     if (!state.compareAges) {
       model.breakdown = {
         title: "Vanuserühmade võrdlus",
@@ -324,7 +324,7 @@
       longLabel: "Tervisekassa (avaandmed)",
       url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed",
       staticData: true,
-      // Päiserida (kasutaja sõnastus 05.11.2026): "Andmed pärinevad failist Üldine statistika · Fail eksporditud
+      // Päiserida: "Andmed pärinevad failist Üldine statistika · Fail eksporditud
       // Tervisekassa avaandmetest 05.11.2026 (andmed seisuga 01.11.2026)"; "Tervisekassa avaandmetest" on link.
       statusLine: function (link, note) {
         return TAI.escapeHtml("Andmed pärinevad failist Üldine statistika · Fail eksporditud ") +

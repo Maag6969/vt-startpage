@@ -26,7 +26,7 @@
 
   /*
    * Uusima avaldamisaasta järgi kõige uuem tabel eespool; sama uusima aastaga tabelite vahel
-   * tähestikjärjekord (nimekirja pealkirja järgi) — kokku lepitud kasutajaga 18.09.2026. See
+   * tähestikjärjekord (nimekirja pealkirja järgi). See
    * kehtib automaatselt ka igale edaspidi lisatavale tabelile, register.js-i registreerimisjärjekord
    * ise ei loe.
    */
@@ -45,7 +45,7 @@
   };
 
   /*
-   * Vasaku loendi grupid (kokku lepitud kasutajaga 21.10.2026): grupi nimi on allika nimi
+   * Vasaku loendi grupid: grupi nimi on allika nimi
    * (config.group, nt "Tervise Arengu Instituut" / "Eurostat"), järjekord fikseeritud: Eesti andmed ees,
    * rahvusvaheline all. Grupi nimi on ühtlasi kuvatav pealkiri, seega kirjuta see täpselt nii, nagu lugeja näeb.
    * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
@@ -72,7 +72,7 @@
   TAI.getTableGroups = function () { return TAI.groupTables(TAI.getTables()); };
 
   /*
-   * Allikate loetelu avalehe tekstis ja lehe jaluses (kokku lepitud kasutajaga 05.11.2026): iga grupp on üks
+   * Allikate loetelu avalehe tekstis ja lehe jaluses: iga grupp on üks
    * allikas, seega uus allikas (uus `config.group`) lisandub mõlemasse ise. Valikuline lisainfo siin:
    *  - short: lühike nimi loetelus, kui grupi pealkiri on pikem (nt "Tervisekassa (avaandmed)" → "Tervisekassa");
    *  - url: allika avaleht, millele jaluses nimi lingitakse (puudumisel on nimi lihtsalt tekst).
@@ -87,7 +87,7 @@
   TAI.SEX_OPTIONS = [["0", "Kokku"], ["1", "Mehed"], ["2", "Naised"]];
 
   /*
-   * Rühmasisesed võrdlused (nupp oma rippmenüü all; kasutaja otsus 06.11.2026): iga võrdlus on oma lipp olekus ja seotud ühe
+   * Rühmasisesed võrdlused (nupp oma rippmenüü all): iga võrdlus on oma lipp olekus ja seotud ühe
    * filtriga, korraga on sees üks. Aruanne lubab võrdluse seadistusega config.compare = { filtriKood: "sugu" | "vanus" | "haridus" }
    * või { filtriKood: { kind, values, colors } }, kui rühmad või värvid vajavad täpsustamist (vaikimisi kõik väärtused peale koondi).
    * Mitu rühmitust ühes filtris (nt ETU41 Taustatunnus): väärtuseks massiiv, iga rühmitus saab oma nupu; aadressis „vordlus-<liik>“.

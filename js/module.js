@@ -102,7 +102,7 @@
     });
 
     /*
-     * Kinnitatud kasutajaga 18.09.2026: KPI-silt näitab juba valitud Sugu-t (label ülal), aga
+     * KPI-silt näitab juba valitud Sugu-t (label ülal), aga
      * ETU tabelitel on peale Sugu ka teine filter (nt Vanuserühm) — kui see erineb vaikeväärtusest,
      * peab silt seda märkima, muidu jätab kaart mulje, et arv käib kogu populatsiooni, mitte
      * kitsama vanuserühma kohta (vt ka populationSuffix, mida kasutab callout sama eesmärgiga).
@@ -255,7 +255,7 @@
 
   // ---- valitud lõige (filtrilause) ---------------------------------------
   /*
-   * Kasutaja otsus 05.11.2026 (ülevõetud M3-st, M2 kuju järgi; asendab 18.09.2026 reegli „vaikevalikul lõiget ei näidata“):
+   * Reegel (ülevõetud M3-st, M2 kuju järgi; asendab varasema reegli „vaikevalikul lõiget ei näidata“):
    * KPI kastis ning iga joonise ja andmetabeli pealkirja all on väiksemas, paksus kirjas alati näha, milliste valikute (ka
    * vaikevalik, nt „Sugu: Kokku“) alusel numbrid kuvatakse. Kuju „Filtri nimi: väärtus · Filtri nimi: väärtus“. Võrdlusrežiimis
    * on võrreldav filter nimetatud võrdlusena („Sugu: Mehed vrdl Naised“), sest see ON selle graafiku valik.
@@ -767,7 +767,7 @@
     });
 
     /*
-     * Kinnitatud kasutajaga 18.09.2026: kui KPI-kaart näitab üldist (mitte kategooriate vahel
+     * Kui KPI-kaart näitab üldist (mitte kategooriate vahel
      * võrdlevat) näitajat — nagu ilc_pw01, kus seeria on lihtsalt fikseeritud üks riik —, peab
      * silt igal juhul nimetama nii üksuse KUI valitud lõike, et kaarti saaks lugeda eraldiseisvana.
      * config.kpiSubject on üksuse nimi (nt "Eesti"); silt saab kas " kokku" (kõik filtrid
@@ -788,7 +788,7 @@
     /*
      * Valikuline väike võrdlusrida KPI-kaardil (nt "EL-27 keskmine: 7,3") — ei ole omaette KPI-kaart
      * ega täistelg, ainult üks lisaväärtus samast lugejast (config.kpiReference = { var, value, label }).
-     * Kinnitatud kasutajaga 17.09.2026 (ilc_pw01): lihtne trend + kompaktne viide, mitte kaks tervet
+     * ilc_pw01: lihtne trend + kompaktne viide, mitte kaks tervet
      * paralleelset seeriat, sest sama "geo" muutuja täidab siin kahte eri rolli (vt seriesValues).
      * subjectLabel (kinnitatud 18.09.2026): võrdlusrea "kõrgem/madalam" peab ütlema, KELLE tulemus
      * see on (nt "Eesti tulemus"). Rida algab ka valitud aastaga (vt renderKpisGeneral), et see
@@ -924,7 +924,7 @@
           : ", mis on " + d0.text.replace(/^[▲▼→]\s*/, "") + " " +
             (d0.direction === "up" ? "rohkem" : "vähem") + " kui " + TAI.inYear(config, only.prevYear);
         var j0 = judgment(d0.direction, only.valence);
-        // Hinnang käib näitaja, mitte inimeste olukorra kohta (kasutaja otsus 06.11.2026, sama reegel mis AI-juhises)
+        // Hinnang käib näitaja, mitte inimeste olukorra kohta (sama reegel mis AI-juhises)
         if (j0) s0 += " — see on näitaja järgi " + (j0 === "better" ? "paranemine" : "halvenemine");
       }
       sentences.push(s0 + ".");

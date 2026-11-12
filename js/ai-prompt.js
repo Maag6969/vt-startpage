@@ -1,5 +1,5 @@
 /*
- * AI-analüüsi juhise koostamine (metoodika ja kasutaja otsused: AI-ANALUUS.md).
+ * AI-analüüsi juhise koostamine.
  *
  * Lehel ei ole oma AI-mudelit ega API-kutset: juhis kopeeritakse lõikelauale ja külastaja kleebib selle oma
  * kontol avatud teenusesse (kopeerimine ja avamine: app.js). Juhis töötab seega iga mudeliga, ka tasutaga,

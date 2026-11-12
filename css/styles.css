@@ -31,7 +31,7 @@
 
   --series-1: #4B7DFF;
   --series-2: #d4621a;   /* raamatu oranž #f17a29 tumendatud: graafikuelemendi kontrast ≥ 3:1 */
-  /* Rühmade võrdluse jooned (vanuserühmad, haridustasemed; SoM lisavärvid tumendatud, 35–64 lilla kasutaja soovil). 7 värvi
+  /* Rühmade võrdluse jooned (vanuserühmad, haridustasemed; SoM lisavärvid tumendatud, 35–64 lilla). 7 värvi
      validaatoriga kontrollitud valgel taustal (06.11.2026: kõrvuti olevate halvim värvipimeduse ΔE 12,1, tavanägemisel 26,6,
      kontrast ≥ 3:1). Järjekord on fikseeritud: sama värv kõigis aruannetes, kus vanuserühmi võrreldakse. */
   --age-1: #d4621a;   /* oranž */
@@ -100,7 +100,7 @@ a:hover { text-decoration-thickness: 2px; }
   margin: 0;
   color: var(--tekst-pealkiri);
   font-weight: 500;
-  font-size: 2rem;          /* 1.6rem × 1,25 (kasutaja soov 17.09.2026) */
+  font-size: 2rem;          /* 1.6rem × 1,25 */
   line-height: 1.25;
 }
 .site-header__views { margin: 2px 0 0; font-size: 0.875rem; color: var(--tekst-2); font-variant-numeric: tabular-nums; }
@@ -132,7 +132,7 @@ a:hover { text-decoration-thickness: 2px; }
 
 .dataset-list { list-style: none; margin: 0; padding: 0; }
 
-/* Grupi pealkiri (kokku lepitud kasutajaga 21.10.2026): väike hall rida rea kohal */
+/* Grupi pealkiri: väike hall rida rea kohal */
 .dataset-group-heading {
   margin: 0; padding: 14px 20px 6px 24px;
   font-size: 0.8rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
@@ -278,7 +278,7 @@ a:hover { text-decoration-thickness: 2px; }
 .module__subtitle { color: var(--tekst-2); margin: 0 0 12px; }
 .module__meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
 
-/* filtrid kahes reas (kasutaja otsus 06.11.2026): pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp */
+/* filtrid kahes reas: pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp */
 .filter-block { margin: 0 0 24px; }
 .filters {
   display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px 24px;
@@ -337,7 +337,7 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .chart-note--after { margin: 8px 0 0; }
 
-/* Valitud lõige (kasutaja otsus 05.11.2026, M3 eeskujul): KPI kastis ning iga joonise ja andmetabeli pealkirja all, väiksemas
+/* Valitud lõige (M3 eeskujul): KPI kastis ning iga joonise ja andmetabeli pealkirja all, väiksemas
    paksus kirjas, alati ka vaikevalikute korral (module.js TAI.sliceParts). Mitme KPI-kaardiga aruandel üks rida kogu
    kaardirea kasti ülaosas (.kpi-block), ühe kaardiga aruandel kaardi sees sildi all. */
 .slice { font-size: 0.8rem; line-height: 1.4; color: var(--tekst-2); font-weight: 700; }

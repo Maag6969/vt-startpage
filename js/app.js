@@ -342,15 +342,15 @@
   }
 
   /*
-   * Valitud lõige (kasutaja otsus 05.11.2026, asendab 18.09.2026 reegli „näita ainult siis, kui filter erineb vaikeväärtusest“):
+   * Valitud lõige (asendab varasema reegli „näita ainult siis, kui filter erineb vaikeväärtusest“):
    * KPI kastis ning iga joonise ja andmetabeli pealkirja all on alati näha, milliste valikute (ka vaikevalik) alusel numbrid
    * kuvatakse. Selle koostavad TAI.sliceParts/trendSlice/breakdownSlice (module.js); vana ülemine rida „Valitud lõige — …“ kadus.
    */
   var SEX_OPTIONS = TAI.SEX_OPTIONS;
 
   /*
-   * Filtrid (kasutaja otsus 05.11.2026): kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
-   * Kaks rida (kasutaja otsus 06.11.2026): pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp või -nupud (nt Sugu all
+   * Filtrid: kõik lõiked, sh Sugu, on rippmenüüd, igal aruandel oma (config.filters järjekorras).
+   * Kaks rida: pealmises rippmenüüd, igaühe all selle filtri võrdlusnupp või -nupud (nt Sugu all
    * "Sooline võrdlus"), kui aruanne seda võrdlust toetab; korraga on sees üks võrdlus. Kui võrdlus on sees, näitab selle filtri menüü
    * võrdluse rida (nt "Mehed vrdl Naised"); mõne väärtuse valimine lülitab võrdluse välja, nupp ja menüü on alati kooskõlas.
    */
@@ -658,7 +658,7 @@
 
   function scrollBehavior() { return REDUCED_MOTION.matches ? "auto" : "smooth"; }
 
-  /* Uue aruande avamisel algab see ülevalt (kasutaja soov 05.11.2026). Kitsas ekraanil on loend aruande kohal, seega
+  /* Uue aruande avamisel algab see ülevalt. Kitsas ekraanil on loend aruande kohal, seega
      keritakse alati; laial ekraanil ainult siis, kui leht on kerinud aruande algusest mööda (nt lugenud pikka
      aruannet ja valib kleepuvast loendist teise), muidu algaks uus aruanne keskelt. */
   /* Sujuv kerimine; kui see ei hakka üldse liikuma (nt mõnes iframe'is, kus brauser animatsiooni ei käivita), hüpatakse kohale.
@@ -856,7 +856,7 @@
     var copied = copyViaTextarea(prompt);
     btn.focus({ preventScroll: true });
     var existing = box.querySelector(".ai-box__text");
-    // Kopeerimise õnnestumise teade on ainult ujuvas aknas või alanurgas (kasutaja otsus 06.11.2026: mitte topelt).
+    // Kopeerimise õnnestumise teade on ainult ujuvas aknas või alanurgas (mitte topelt).
     // Nupukasti jääb tekst ainult siis, kui kopeerimine ebaõnnestus, sest see juhendab sealset tekstikasti.
     if (copied) {
       msg.textContent = "";

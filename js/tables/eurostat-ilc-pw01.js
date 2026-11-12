@@ -7,10 +7,10 @@
  * vt js/module.js "Uus, üldine andmemudel". Andmeallikas on GET+query-string (mitte PxWeb POST),
  * vt TAI.fetchJsonStatUrl / TAI.EUROSTAT_BASE core.js-is.
  *
- * OLULINE MUSTER (17.09.2026 arutelu, kuidas "riik" täidab korraga kaks rolli):
+ * OLULINE MUSTER (kuidas "riik" täidab korraga kaks rolli):
  *   - Trend/KPI: config.seriesVar = "geo", aga config.seriesValues = ["EE"] piirab seeriaks AINULT
- *     Eesti — lihtne, kiirelt haaratav joon (kasutaja soov: "pilt on poliitikakujundajale kiirelt
- *     haaratav"). EL-27 keskmine lisatakse KPI-kaardile väikese võrdlusreana (config.kpiReference),
+ *     Eesti — lihtne, kiirelt haaratav joon poliitikakujundajale.
+ *     EL-27 keskmine lisatakse KPI-kaardile väikese võrdlusreana (config.kpiReference),
  *     mitte teise täisseeriana.
  *   - Breakdown: views.breakdown.var on SAMA "geo" muutuja, aga täies mahus (kõik riigid) — vaikimisi
  *     kompaktne komplekt (defaultValues), "Näita kõiki" nupp avab kõik. EL-27 (totalValue) kuvatakse
@@ -37,7 +37,7 @@
   var COUNTRY_LABELS = COUNTRIES.map(function (c) { return c[1]; });
   var COUNTRY_VALENCE = COUNTRY_CODES.map(function (c) { return c === "EE" ? "positive" : "neutral"; });
 
-  var DEFAULT_COUNTRIES = ["EE", "LV", "LT", "FI", "SE", "NO"]; // Balti + Põhjamaad (kasutaja valik 17.09.2026)
+  var DEFAULT_COUNTRIES = ["EE", "LV", "LT", "FI", "SE", "NO"]; // Balti + Põhjamaad
 
   TAI.registerTable({
     code: "ilc_pw01",
