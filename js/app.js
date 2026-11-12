@@ -200,9 +200,20 @@
   function renderFooter() {
     var footer = document.getElementById("site-footer");
     if (!footer) return;
-    footer.innerHTML = "Avaandmed pärinevad järgmistest andmeallikatest: " + TAI.getSources().map(function (s) {
+    footer.innerHTML = "<p>Avaandmed pärinevad järgmistest andmeallikatest: " + TAI.getSources().map(function (s) {
       return s.url ? TAI.externalLink(s.url, s.name) : esc(s.name);
-    }).join(", ");
+    }).join(", ") + "</p>" + privacyNoteHtml();
+  }
+
+  /* Privaatsusteade (turvaülevaatus 12.11.2026, leiud L1–L2): mis andmed lehelt kuhu liiguvad. Muuda koos js/usage.js-iga. */
+  function privacyNoteHtml() {
+    return '<p class="site-footer__privacy"><strong>Privaatsus.</strong> Leht loendab ligikaudselt vaatamisi ja ' +
+      "nupuvajutusi (nt filtri valik, AI-nupp) välise teenusega " +
+      TAI.externalLink("https://abacus.jasoncameron.dev", "Abacus") + ". " +
+      "Loendamisel näeb see teenus sinu IP-aadressi ja loenduri nime (nt andmestiku kood ETU42); " +
+      "lehe omanik IP-aadresse ei näe. Leht ei kasuta küpsiseid. " +
+      "AI-nupud kopeerivad lehe andmed sinu lõikelauale ja avavad valitud AI-teenuse sinu enda brauseris; " +
+      "seal kehtivad selle teenuse tingimused.</p>";
   }
 
   function backLink() {
@@ -795,11 +806,20 @@
       : "(Ctrl+A, Ctrl+C)") + " ja kleebi avanenud vestlusaknasse:";
   }
 
+  /* Avab akna ja katkestab kohe selle viite meie aknale (window.opener = null), et AI-teenuse leht ei saaks
+     näidikulaua akent juhtida. "noopener" features-stringis ei sobi: siis tagastab window.open alati null
+     ja allolev varuhaar arvaks, et aken blokeeriti. Turvaülevaatus 12.11.2026, leid L3. */
+  function openDetached(url, name, features) {
+    var win = features ? window.open(url, name, features) : window.open(url, name);
+    if (win) { try { win.opener = null; } catch (e) { /* ei õnnestunud — aken avaneb siiski */ } }
+    return win;
+  }
+
   function openAiService(url) {
-    if (isTouchDevice()) return window.open(url, "tai-ai-analysis");
+    if (isTouchDevice()) return openDetached(url, "tai-ai-analysis");
     var w = Math.round(screen.availWidth * 0.5), h = screen.availHeight - 40;
     var left = (screen.availLeft || 0) + screen.availWidth - w, top = screen.availTop || 0;
-    return window.open(url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
+    return openDetached(url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
   }
 
   function setAiEnabled(on) {
@@ -855,7 +875,7 @@
     }
 
     var opened = openAiService(target.url);
-    if (!opened) opened = window.open(target.url, "_blank");
+    if (!opened) opened = openDetached(target.url, "_blank");
     showAiNotice(copied ? aiCopiedText() : msg.textContent, opened);
 
     usage.track(usage.keyAction(view.config.code, "ai-" + target.id));
@@ -867,7 +887,8 @@
   var usage = TAI.usage;
   var numberFmt = new Intl.NumberFormat("et-EE");
 
-  function viewsText(n) { return numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
+  // „ligikaudu“: avalikku loendurit saab suurendada ka väljastpoolt lehte (turvaülevaatus 12.11.2026, leid L1)
+  function viewsText(n) { return "ligikaudu " + numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
 
   function showCount(el, value) {
     if (!el || value == null) return;

@@ -439,6 +439,8 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   padding: 16px 24px 24px;
   font-size: 0.85rem; color: var(--tekst-2);
 }
+.site-footer p { margin: 0; max-width: 72em; }
+.site-footer p + p { margin-top: 8px; }
 
 /* ---- kitsas ekraan -------------------------------------------------- */
 
