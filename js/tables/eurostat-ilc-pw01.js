@@ -146,7 +146,11 @@
       "Küsimus: „Kui rahul olete Te oma eluga üldiselt?“, hinnatud skaalal 0 (üldse mitte rahul) kuni " +
       "10 (täiesti rahul). Allikas: EL-SILC (sissetulekute ja elutingimuste uuring).",
       "Andmed pärinevad liikmesriikide endi küsitlustest ja koondatakse Eurostati poolt ühtsel kujul " +
-      "kõigi Euroopa Liidu riikide võrdlemiseks."
+      "kõigi Euroopa Liidu riikide võrdlemiseks.",
+      // Eurostati taaskasutustingimused: töötlemine tuleb märkida ja lisada, et Eurostat ei vastuta
+      "Sellel lehel on Eurostati andmeid töödeldud: valitud on riigid ja rühmad, nimetused on eesti keeles ning " +
+      "joonised ja kokkuvõttelaused on lehe koostatud. Eurostat ei vastuta selle lehe ega andmete töötlemise eest. " +
+      "Andmete taaskasutus on lubatud allikale viidates (CC BY 4.0)."
     ]
   });
 })(window.TAI);
