@@ -22,6 +22,20 @@ Repos on ainult leht ja selle andmed. Arendus- ja abifailid hoitakse eraldi.
 TAI tabelid asuvad PxWebi kaustas `Andmebaas/05Uuringud/01ETeU/04VaimneTervis/`. Kui otsepäring TAI-sse
 ebaõnnestub, pakub leht võimalust laadida PxWebist alla laaditud JSON-stat2 fail ise üles.
 
+## Litsentsid ja andmete kasutustingimused
+
+**Lehe kood** (HTML, CSS, JavaScript) on avaldatud [MIT litsentsiga](LICENSE). See litsents **ei kehti andmetele
+ega fontidele**: neile kehtivad allikate endi tingimused allpool.
+
+| Osa | Omanik | Tingimused (seisuga 12.11.2026) |
+|---|---|---|
+| ETU41–ETU43 andmed | Tervise Arengu Instituut | Andmebaasi kasutamine on tasuta ja TAI palub andmete kasutamisel viidata allikale: kõigepealt algallikas (Eesti terviseuuring), siis avaldamiskanal (TAI tervisestatistika andmebaas) ja kasutamise kuupäev ([andmebaasi info](https://statistika.tai.ee/Resources/Info/TSTUA.html)). Eraldi nimelist litsentsi (nt CC BY) TAI ei ole välja toonud. |
+| Tervisekassa andmed (`data/tervisekassa/`) | Tervisekassa | Andmed on Tervisekassa avalikult avaldatud väljavõtted ([allikaleht](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed)). Allikalehel ei ole litsentsi ega kasutustingimusi märgitud, seega kasutatakse andmeid allikaviitega. Failid on allika väljavõtetest JSON-kujule teisendatud; enne edasikasutamist on kindlam vaadata algallikat. |
+| Eurostati andmed (ilc_pw01) | Euroopa Liit, Eurostat | Taaskasutus on lubatud allikale viidates ([Eurostati autoriõiguse teade](https://ec.europa.eu/eurostat/en/help/copyright-notice), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). Allikas: Eurostat, ilc_pw01. Lehel on andmeid töödeldud: valitud riigid ja rühmad, eestikeelsed nimetused, joonised ja kokkuvõttelaused. Eurostat ei vastuta selle lehe ega andmete töötlemise eest. |
+| Font Roboto (`fonts/`) | The Roboto Project Authors | [SIL Open Font License 1.1](fonts/OFL.txt) |
+
+Näidikulaud ei ole ühegi andmeallika ametlik väljaanne. Ametlikud arvud ja metoodika on allikate endi lehtedel.
+
 ## Privaatsus ja turvalisus
 
 - **Lehel ei ole isiklikke võtmeid, tokeneid ega kontosid.** Kõik andmepäringud teeb külastaja brauser otse
