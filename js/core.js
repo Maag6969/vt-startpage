@@ -99,6 +99,16 @@
     return code === "Sugu" && !(config.vars.Sugu && config.vars.Sugu.optionLabels);
   };
 
+  /* Filtri vaikeväärtus: muutuja oma defaultValue (nt HBSC kiusamine „vähemalt kahel korral kuus“), siis koond, siis esimene väärtus. */
+  TAI.filterDefault = function (v) {
+    return v.defaultValue != null ? v.defaultValue : v.totalValue != null ? v.totalValue : v.values[0];
+  };
+
+  /* Mõõdiku nimi: tekst või function(state), nt HBSC kategooriafiltri või PKH4 mõõdikufiltri järgi. */
+  TAI.measureLabelOf = function (config, state) {
+    return typeof config.measureLabel === "function" ? config.measureLabel(state || {}) : config.measureLabel;
+  };
+
   var COMPARE_KINDS = {
     sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
             usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
@@ -317,7 +327,8 @@
       } else if (v.elimination) {
         return; // API annab koondväärtuse
       } else {
-        values = [v.defaultValue != null ? v.defaultValue : v.values[0]];
+        // selectionFromState jätab koondi valikust välja, seega koond enne defaultValue'd (PKH4: vaikimisi 0–14, aga „Kokku“ = koond)
+        values = [v.totalValue != null ? v.totalValue : v.defaultValue != null ? v.defaultValue : v.values[0]];
       }
 
       values.forEach(function (val) {

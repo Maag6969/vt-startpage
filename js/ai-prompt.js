@@ -43,6 +43,7 @@
     // HBSC kooliõpilaste tervisekäitumise uuring (KU12, KU121–123; 19.11.2026). Tähendus TAI tabeli märkusest.
     hbsc: {
       role: "laste ja noorte vaimse tervise andmeanalüütik",
+      // KU12 tähendus; teised HBSC pered (hbsc-pered.js) annavad oma config.ai.measure
       measure: "Numbrid on kooliõpilaste küsitluse (HBSC, 11-, 13- ja 15-aastased) tulemused: vastanute osakaal, kellel on viimasel 12 kuul esinenud depressiivne episood. See ei ole arsti pandud diagnoos. TAI märkuse järgi on andmed kaalumata.",
       direction: "Sõnu „paranes“ ja „halvenes“ kasuta ainult näitaja kohta (nt „osakaalu kasv on näitaja järgi ebasoodne“). Ära kirjuta, et laste vaimne tervis paranes või halvenes.",
       explanations: "Võimalikke põhjuseid võid nimetada ainult oletusena. Ära tee järeldusi üksiku lapse, kooli ega pere kohta.",
@@ -66,6 +67,20 @@
         "Ära liida diagnoose ega aastaid: sama inimene võib olla nii F32 kui ka F33 all ja mitmel aastal. Ära arvuta ka „perioodi isikuid“.",
         "Retseptide arv ei ole ravimeid saanud inimeste arv ja arvete arv ei ole visiitide arv.",
         "Ära arvuta määrasid (nt 100 000 elaniku kohta): rahvaarve aruandes ei ole."
+      ]
+    },
+    // TAI registrid (19.11.2026): enesekahjustus VIG13/VIG10, enesetapud SD21, haiglaravi PH01 ja PKH4. Arvud, mitte määrad.
+    register: {
+      role: "rahvatervise statistika analüütik",
+      measure: "Numbrid on Tervise Arengu Instituudi registriandmed: juhtude, inimeste või haiglaravi episoodide arv aastas (PKH4 puhul ka voodipäevad ja keskmine ravikestus). Need ei ole määrad rahvaarvu kohta ega näita haiguse levimust.",
+      direction: "Kirjelda muutust arvudes („kasvas“, „vähenes“). Ära nimeta arvu muutust inimeste vaimse tervise paranemiseks ega halvenemiseks.",
+      explanations: "Selgitustena võid oletusena nimetada ka abi otsimise, teenuste kättesaadavuse, registreerimise ja kodeerimise muutusi. Ära tee järeldusi üksiku inimese, kooli ega pere kohta.",
+      advice: "võimalikud küsimused andmeomanikule ja ennetuse valdkonnale",
+      international: "Ära väida, et need arvud on teiste riikide omadega otse võrreldavad.",
+      rules: [
+        "Ära arvuta määrasid (nt 100 000 elaniku kohta): rahvaarve aruandes ei ole.",
+        "Väikeste arvude puhul (nt alla 18-aastased) kõigub aastane arv juhuslikult: ära tõlgenda ühe aasta muutust trendina.",
+        "Ära liida kattuvaid vanuserühmi (nt 0–17 ja 15–24) ega sugusid koondiga."
       ]
     },
     // Eurostat ilc_pw01
@@ -117,7 +132,8 @@
     return [
       "Oled " + p.role + ". Allpool on Eesti vaimse tervise näidikulaua üks aruanne koos kasutaja valitud lõikega ja kõigi ekraanil kuvatud andmetega. Kirjuta eesti keeles selge, neutraalse tooniga analüüs, mida saab lugeda ka ilma statistika taustata.",
       "",
-      "Mida number tähendab: " + p.measure,
+      // config.ai.measure: aruande oma selgitus (nt HBSC kiusamine), muidu profiili oma
+      "Mida number tähendab: " + (config.ai.measure || p.measure),
       "",
       "Kasuta täpselt seda struktuuri:",
       "1. Lühikirjeldus: mida näitaja mõõdab ja milline lõige on praegu valitud.",

@@ -175,8 +175,8 @@
     return config.vars[code].param || PARAM_NAMES[code] || code.toLowerCase();
   }
 
-  /* Vaikimisi: kõik võrdlused väljas, filter koondil; koondita filtril (nt HBSC kodukeel) esimene väärtus. */
-  function filterDefault(v) { return v.totalValue != null ? v.totalValue : v.values[0]; }
+  /* Vaikimisi: kõik võrdlused väljas, filter muutuja defaultValue-l või koondil; koondita filtril (nt HBSC kodukeel) esimene väärtus. */
+  var filterDefault = TAI.filterDefault;
 
   function defaultState(config) {
     var state = {};
@@ -197,7 +197,7 @@
         if (comp.kind === "sugu" || !TAI.activeComparison(config, state)) {
           comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
           state[comp.flag] = true;
-          state[code] = config.vars[code].totalValue;
+          state[code] = filterDefault(config.vars[code]);
         }
       } else if (TAI.isEtuSex(config, code)) {
         if (val === SEX_PARAM["1"]) state.Sugu = "1";
@@ -534,7 +534,7 @@
     var html = TAI.renderKpis(model);   // valitud lõige on KPI kastis (module.js)
     if (callout) html += '<p class="callout">' + esc(callout) + "</p>";
 
-    var measureLabel = config.seriesVar ? config.measureLabel : config.indicator.label;
+    var measureLabel = config.seriesVar ? TAI.measureLabelOf(config, stateOf(config)) : config.indicator.label;
     var unitTxt = config.seriesVar ? TAI.unitText(config, stateOf(config)) : "%";
     var yearOf = function (y) { return config.seriesVar ? TAI.yearLabel(config, y) : y; };
     var trendNote = typeof config.trendNote === "function" ? config.trendNote() : config.trendNote;   // võib sõltuda andmetest
@@ -666,7 +666,7 @@
     comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
     state[comp.flag] = turnOn;
     var fv = config.vars[comp.filter];
-    state[comp.filter] = fv.totalValue != null ? fv.totalValue : fv.values[0];   // koondita filter (HBSC KU122/123): esimene rühm
+    state[comp.filter] = filterDefault(fv);   // koond; koondita filter (HBSC KU122/123): esimene rühm; või muutuja defaultValue (PKH4 0–14)
     usage.track(usage.keyFilter(config.code, comp.filter, turnOn ? comp.usageOn : comp.usageOff));
     history.replaceState(null, "", hashFor(config));
     refreshFilters();

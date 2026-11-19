@@ -672,6 +672,10 @@
   function seriesOfGeneral(config, state) {
     var v = config.vars[config.seriesVar];
     var codes = config.seriesValues || v.values;
+    // Seeriamuutuja filtrina (kategooriafilter, nt HBSC masenduse sagedus, PKH4 mõõdik): üks seeria, valitud väärtus
+    if ((config.filters || []).indexOf(config.seriesVar) >= 0) {
+      codes = [state[config.seriesVar] != null ? state[config.seriesVar] : TAI.filterDefault(v)];
+    }
     // Võrdlus: üks joon iga võrreldava rühma kohta (seeriamuutuja esimene väärtus, nt Eesti)
     var cmp = TAI.activeComparison(config, state);
     if (cmp) {
@@ -726,9 +730,12 @@
     var latest = years[years.length - 1];
     var prev = years.length > 1 ? years[years.length - 2] : null;
 
+    // config.zeroIsMissing (true või function(state)): 0 = andmed puuduvad, nt PKH4 keskmine ravikestus, kui ravijuhte polnud
+    var zeroMissing = typeof config.zeroIsMissing === "function" ? config.zeroIsMissing(state) : !!config.zeroIsMissing;
     function valueAt(reader, sel) {
       if (!reader) return null;
       var v = reader.get(sel);
+      if (zeroMissing && v === 0) return null;
       return v === undefined ? null : v;
     }
 
@@ -914,7 +921,7 @@
       if (valid.length > 1) {
         var ranked = valid.slice().sort(function (a, c) { return c.value - a.value; });
         var top1 = ranked[0], low1 = ranked[ranked.length - 1], u = unitPhrase(config, model.state);
-        var when = capitalize(TAI.inYear(config, valid[0].year)) + suffix + " oli " + config.measureLabel.toLowerCase();
+        var when = capitalize(TAI.inYear(config, valid[0].year)) + suffix + " oli " + TAI.measureLabelOf(config, model.state).toLowerCase();
         sentences.push(valid.length === 2
           ? when + " rühmas „" + top1.label + "“ " + fmt(top1.value) + u + " ja rühmas „" + low1.label + "“ " + fmt(low1.value) + u + "."
           : when + " " + compareExtremes(valid, fmt, u) + ".");
@@ -922,7 +929,7 @@
     } else if (valid.length === 1) {
       var only = valid[0];
       // only.year / only.prevYear == model.latest / model.prev, v.a connectGaps-tabelitel (viimane olemasolev aasta)
-      var s0 = capitalize(TAI.inYear(config, only.year)) + suffix + " oli " + config.measureLabel.toLowerCase() + " " + fmt(only.value) + unitPhrase(config, model.state);
+      var s0 = capitalize(TAI.inYear(config, only.year)) + suffix + " oli " + TAI.measureLabelOf(config, model.state).toLowerCase() + " " + fmt(only.value) + unitPhrase(config, model.state);
       if (only.delta) {
         var d0 = only.delta;
         s0 += d0.direction === "flat"
@@ -958,7 +965,7 @@
       if (valid2.length > 1) {
         valid2.sort(function (a, c) { return c.values[0] - a.values[0]; });
         var hi = valid2[0], lo = valid2[valid2.length - 1];
-        sentences.push(capitalize(b.inPhrase) + " oli " + config.measureLabel.toLowerCase() + " kõrgeim „" + hi.label +
+        sentences.push(capitalize(b.inPhrase) + " oli " + TAI.measureLabelOf(config, model.state).toLowerCase() + " kõrgeim „" + hi.label +
           "“ (" + fmt(hi.values[0]) + ") ja madalaim „" + lo.label + "“ (" + fmt(lo.values[0]) + ").");
       }
     }
@@ -1017,7 +1024,7 @@
     var heads = model.series.map(function (s) { return '<th scope="col" class="num">' + esc(s.label) + "</th>"; }).join("");
 
     if (model.trend) {
-      html += '<table class="data-table"><caption>' + esc(config.measureLabel) + unitSuffix + " aastate kaupa" + captionSlice(TAI.trendSlice(model)) + "</caption>" +
+      html += '<table class="data-table"><caption>' + esc(TAI.measureLabelOf(config, model.state)) + unitSuffix + " aastate kaupa" + captionSlice(TAI.trendSlice(model)) + "</caption>" +
         '<thead><tr><th scope="col">' + (config.periodYears ? "Periood" : "Aasta") + "</th>" + heads + "</tr></thead><tbody>" +
         config.years.map(function (y, i) {
           return '<tr><th scope="row">' + esc(yl(config, y)) + "</th>" + model.trend.map(function (s) {
