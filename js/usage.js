@@ -34,12 +34,14 @@
     return false;
   }
 
+  // → Promise<number|null|undefined>: number = väärtus, null = loendurit pole (404) või teenus pole kasutatav,
+  // undefined = ajutine tõrge (nt 429/5xx või võrk): sel juhul võib hiljem uuesti proovida
   function request(action, key) {
     if (typeof fetch !== "function") return Promise.resolve(null);
     return fetch(API + action + "/" + NAMESPACE + "/" + key)
-      .then(function (res) { return res.ok ? res.json() : null; })
-      .then(function (data) { return data && typeof data.value === "number" ? data.value : null; })
-      .catch(function () { return null; });
+      .then(function (res) { return res.ok ? res.json() : (res.status === 404 ? null : undefined); })
+      .then(function (data) { return data === undefined ? undefined : (data && typeof data.value === "number" ? data.value : null); })
+      .catch(function () { return undefined; });
   }
 
   var usage = {
