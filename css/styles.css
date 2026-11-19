@@ -115,6 +115,31 @@ a:hover { text-decoration-thickness: 2px; }
 .home-link:hover { text-decoration-thickness: 2px; }
 .home-link:focus-visible { outline: 2px solid var(--som-keskmine-sinine); outline-offset: 3px; border-radius: 2px; }
 
+/* Kleepuv riba (arvutivaates, proov 19.11.2026): kui leht on päisest mööda kerinud, jääb päis kompaktse ribana ekraani
+   ülaserva (väike pealkiri, Avaleht, AI-nupud). #site-top hoiab päise koha (kõrgus pannakse JS-iga), et sisu ei hüppaks.
+   Telefonivaates (alla 768 px) riba ei kinnitu: AI-nupud on seal suured ja kolmel real. */
+:root { --bar-h: 46px; }
+@media (min-width: 768px) {
+  html { scroll-padding-top: calc(var(--bar-h) + 8px); }
+  .site-top.is-stuck .site-header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    height: var(--bar-h); box-sizing: border-box; padding: 0 24px;
+    flex-wrap: nowrap; align-items: center; gap: 16px; overflow: hidden;
+    background: var(--taust); box-shadow: 0 2px 8px rgba(24, 30, 84, 0.15);
+  }
+  .site-top.is-stuck .site-header__title { flex: 1 1 0; min-width: 0; }
+  .site-top.is-stuck .site-header__row { flex-wrap: nowrap; align-items: center; }
+  .site-top.is-stuck .site-header h1 { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .site-top.is-stuck .home-link { flex: 0 0 auto; }
+  .site-top.is-stuck .site-header__views { display: none; }
+  .site-top.is-stuck .ai-box { flex: 0 0 auto; flex-wrap: nowrap; }
+  .site-top.is-stuck .ai-box__row { flex-wrap: nowrap; }
+  .site-top.is-stuck .ai-box__label, .site-top.is-stuck .ai-box__btn { white-space: nowrap; }
+  /* kleepuv loend jääb ribast allapoole */
+  .site-top.is-stuck ~ .layout .panel-list { top: var(--bar-h); max-height: calc(100vh - var(--bar-h)); }
+}
+@media print { .site-top.is-stuck .site-header { position: static; box-shadow: none; height: auto; } }
+
 /* ---- paneelid ------------------------------------------------------ */
 
 .layout {

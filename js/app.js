@@ -978,6 +978,25 @@
     });
   }
 
+  // Kleepuv riba (arvutivaates, proov): kui leht on päisest mööda kerinud, jääb päis kompaktse ribana ekraani ülaserva.
+  // #site-top hoiab päise koha (kõrgus CSSOM-iga), et sisu ei hüppaks; telefonivaates (MOBILE_QUERY) riba ei kinnitu.
+  var siteTop = document.getElementById("site-top");
+  var barH = 0;   // päise kõrgus laiendatud kujul
+  function setStuck(on) {
+    if (on) { siteTop.style.height = siteTop.offsetHeight + "px"; siteTop.classList.add("is-stuck"); }
+    else { siteTop.classList.remove("is-stuck"); siteTop.style.height = ""; }
+  }
+  function updateStickyBar() {
+    if (!siteTop) return;
+    var stuck = siteTop.classList.contains("is-stuck");
+    if (MOBILE_QUERY.matches) { if (stuck) setStuck(false); return; }
+    if (!stuck) barH = siteTop.offsetHeight;
+    var want = window.scrollY > barH;
+    if (want !== stuck) setStuck(want);
+  }
+  window.addEventListener("scroll", updateStickyBar, { passive: true });
+  window.addEventListener("resize", function () { if (siteTop) setStuck(false); updateStickyBar(); });
+
   aiBoxEl.addEventListener("click", function (evt) {
     var btn = evt.target.closest("button[data-ai]");
     if (!btn || !view) return;
@@ -999,6 +1018,7 @@
       if (existing) existing.parentNode.removeChild(existing);
     } else {
       msg.textContent = aiManualCopyText();
+      window.scrollTo(0, 0);   // teade ja käsitsi kopeerimise kast on päises: kleepuv riba neid ei mahuta
       if (!existing) {
         existing = document.createElement("textarea");
         existing.className = "ai-box__text";
