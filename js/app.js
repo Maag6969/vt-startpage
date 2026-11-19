@@ -73,7 +73,17 @@
         }
       });
     }
+    checkLatestYears();
   }
+
+  /* Viimase andmeaasta taustakontroll (19.11.2026, vt core.js TAI.checkLatestYears): loendi tabelite viimane aasta
+     küsitakse taustal; kui API-s on uuem aasta, muutub rea kirjeldus ja järjekord (uusim aasta ees) ning loend
+     joonistatakse uuesti (refreshListIfChanged: sama käitumine mis tabeli avamisel uue aasta tulles). Kui midagi ei
+     muutunud, ei juhtu loendiga midagi. Juba kontrollitud tabeleid uuesti ei küsita. */
+  function checkLatestYears() {
+    TAI.checkLatestYears(TAI.getTables());
+  }
+  TAI.onLatestYear = function () { refreshListIfChanged(); };
 
   /* Loendi sisu allkiri (tabelite järjekord ja kirjeldused): kui API-st tuli uus aasta, muutub kirjeldus (TAI.describe) ja
      vahel ka järjekord (uusima aasta järgi); siis joonistatakse loend uuesti, aktiivne rida ja vaatamiste arvud säilivad. */

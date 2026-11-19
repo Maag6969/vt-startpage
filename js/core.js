@@ -31,8 +31,8 @@
    * ise ei loe.
    */
   function latestYearOf(t) {
-    var code = t.years[t.years.length - 1];
-    var label = t.seriesVar ? TAI.yearLabel(t, code) : code; // TAI.yearLabel (module.js) — vt allpool
+    // TAI.lastYear arvestab ka kerget viimase aasta kontrolli (config.latest, vt allpool); ilma `vars`-ita tabelil on silt kood
+    var label = TAI.lastYear(t).label;
     var found = String(label).match(/\d{4}/g);   // periood „2024/2025“ loeb viimase aasta järgi
     return found ? parseInt(found[found.length - 1], 10) : 0;
   }
@@ -576,6 +576,9 @@
     var out = {};
     names.forEach(function (name, i) { out[name] = readers[i]; });
     TAI.syncYears(config, out.trend || readers[0]);
+    // täisandmed on autoriteetsed: viimase aasta kerget kontrolli (config.latest) pole enam vaja
+    latestState[config.code] = "done";
+    config.latest = null;
     return out;
   };
 
@@ -607,8 +610,15 @@
   };
 
   /* Aastate loetelu eesti keeles: "2006", "2006 ja 2014", "2006, 2014 ja 2019". */
-  function yearListText(config) {
+  function yearLabels(config) {
     var labels = config.years.map(function (y) { return TAI.labelOf(config, config.yearVar, y); });
+    // kerge viimase aasta kontroll (config.latest, vt TAI.lastYear) võib olla uuem kui täisandmetest teada aastad
+    var ly = TAI.lastYear(config);
+    if (ly.code !== config.years[config.years.length - 1]) labels.push(ly.label);
+    return labels;
+  }
+  function yearListText(config) {
+    var labels = yearLabels(config);
     if (labels.length <= 1) return labels.join("");
     return labels.slice(0, -1).join(", ") + " ja " + labels[labels.length - 1];
   }
@@ -623,16 +633,132 @@
     var text = config.description || "";
     text = text.replace(/\{aastad\}/g, function () { return yearListText(config); })
       .replace(/\{aastatel\}/g, function () {
-        return config.years.length === 1 ? yearListText(config) + ". aastal" : "aastatel " + yearListText(config);
+        return yearLabels(config).length === 1 ? yearListText(config) + ". aastal" : "aastatel " + yearListText(config);
       });
     var re = /\d{4}(?:\/\d{4})?–\d{4}(?:\/\d{4})?/g, m, lastMatch = null;
     while ((m = re.exec(text))) lastMatch = m;
-    if (lastMatch && config.years.length > 1) {
+    if (lastMatch && yearLabels(config).length > 1) {
       var first = TAI.labelOf(config, config.yearVar, config.years[0]);
-      var last = TAI.labelOf(config, config.yearVar, config.years[config.years.length - 1]);
+      var last = TAI.lastYear(config).label;   // arvestab ka kerget viimase aasta kontrolli (config.latest)
       text = text.slice(0, lastMatch.index) + first + "–" + last + text.slice(lastMatch.index + lastMatch[0].length);
     }
     return text;
+  };
+
+  /*
+   * Viimane andmeaasta ilma täisandmeid laadimata (19.11.2026). Loendi periood („Eesti, 2011–2023") tuleb
+   * seadistusest, mis uueneb alles tabeli avamisel (TAI.syncYears). Siin küsitakse iga tabeli kohta ainult
+   * viimast aastat ja hoitakse see eraldi väljal config.latest. config.years'i EI muudeta: syncYears lisab
+   * ainult aastaid, mis on viimasest uuemad, seega vahele jäänud aasta ei tuleks hiljem enam tagasi.
+   *  - Eurostat: päringule lisatakse &lastTimePeriod=1;
+   *  - OECD (SDMX): &lastNObservations=1;
+   *  - TAI PxWeb: GET tabeli aadressile annab metaandmed (aastate nimekirja), andmeid ei laeta.
+   * Päringuid tehakse korraga vähe (LATEST_CONCURRENCY); 429/403 peatab kontrolli selleks külastuseks.
+   * Tulemus kantakse vahemällu (localStorage, LATEST_TTL_MS), et korduval külastusel päringuid ei tehtaks.
+   * Vigu kasutajale ei näidata: loend jääb seadistuse järgi, tabeli avamine töötab nagu enne.
+   * TAI.checkLatestYears(tabelid) seab tabelid järjekorra ette; TAI.onLatestYear(config) kutsutakse iga
+   * kontrollitud tabeli järel (app.js uuendab loendirea).
+   */
+  var LATEST_TTL_MS = 12 * 60 * 60 * 1000;
+  var LATEST_CONCURRENCY = 3;
+  var LATEST_CACHE_PREFIX = "tai-latest-v1:";
+  var latestState = {};      // tabeli kood → "queued" | "running" | "done" | "failed"
+  var latestQueue = [];
+  var latestRunning = 0;
+  var latestHalted = false;
+
+  function yearCmp(a, b) {
+    return /^\d+$/.test(a) && /^\d+$/.test(b) ? Number(a) - Number(b) : (a < b ? -1 : a > b ? 1 : 0);
+  }
+
+  /* Viimane teadaolev aasta loendi jaoks: täisandmetest (config.years) või kergest kontrollist
+     (config.latest), kumb on uuem. Tagastab { code, label }. */
+  TAI.lastYear = function (config) {
+    var code = config.years[config.years.length - 1];
+    var l = config.latest;
+    if (l && yearCmp(l.code, code) > 0) return { code: l.code, label: l.label };
+    return { code: code, label: config.vars && config.vars[config.yearVar] ? TAI.labelOf(config, config.yearVar, code) : code };
+  };
+
+  function readLatestCache(config) {
+    try {
+      var raw = localStorage.getItem(LATEST_CACHE_PREFIX + config.code);
+      var v = raw && JSON.parse(raw);
+      if (v && v.c != null && v.t && Date.now() - v.t < LATEST_TTL_MS) return { code: String(v.c), label: String(v.l != null ? v.l : v.c) };
+    } catch (e) { /* vahemälu pole saadaval — pole oluline */ }
+    return null;
+  }
+
+  function writeLatestCache(config, hit) {
+    try {
+      localStorage.setItem(LATEST_CACHE_PREFIX + config.code, JSON.stringify({ c: hit.code, l: hit.label, t: Date.now() }));
+    } catch (e) { /* vahemälu pole saadaval — pole oluline */ }
+  }
+
+  async function fetchLatest(config) {
+    var queries = config.queries({});
+    var q = queries.trend || queries[Object.keys(queries)[0]];
+    if (Array.isArray(q)) q = q[0];
+    var yv = config.yearVar, best = null;
+    if (typeof q === "string") {
+      var isSdmx = config.source && config.source.format === "sdmx";
+      var url = q + (q.indexOf("?") < 0 ? "?" : "&") + (isSdmx ? "lastNObservations=1" : "lastTimePeriod=1");
+      var reader = isSdmx ? await TAI.fetchSdmxJson(url) : await TAI.fetchJsonStatUrl(url);
+      var d = reader && reader.dims && reader.dims[yv];
+      if (!d || !d.indexMap) return null;
+      Object.keys(d.indexMap).forEach(function (c) { if (best === null || yearCmp(c, best) > 0) best = c; });
+      return best === null ? null : { code: best, label: (d.label && d.label[best]) || best };
+    }
+    // TAI PxWeb: GET annab ainult metaandmed
+    var meta = await doFetch(TAI.apiUrl(config), {});
+    var v = ((meta && meta.variables) || []).filter(function (x) { return x.code === yv; })[0];
+    if (!v || !v.values || !v.values.length) return null;
+    var bi = 0;
+    v.values.forEach(function (c, i) { if (yearCmp(c, v.values[bi]) > 0) bi = i; });
+    return { code: v.values[bi], label: (v.valueTexts && v.valueTexts[bi]) || v.values[bi] };
+  }
+
+  async function runLatest(config) {
+    try {
+      var hit = readLatestCache(config);
+      if (!hit) {
+        hit = await fetchLatest(config);
+        if (hit) writeLatestCache(config, hit);
+      }
+      if (hit) config.latest = hit;
+      latestState[config.code] = hit ? "done" : "failed";
+    } catch (e) {
+      latestState[config.code] = "failed";
+      var status = e && e.details && e.details.status;
+      if (status === 429 || status === 403) latestHalted = true;
+      return;
+    }
+    if (hit && TAI.onLatestYear) {
+      try { TAI.onLatestYear(config); } catch (e2) { console.error(e2); }
+    }
+  }
+
+  function pumpLatest() {
+    while (!latestHalted && latestRunning < LATEST_CONCURRENCY && latestQueue.length) {
+      var c = latestQueue.shift();
+      if (latestState[c.code] !== "queued") continue;
+      latestState[c.code] = "running";
+      latestRunning++;
+      runLatest(c).then(function () { latestRunning--; pumpLatest(); });
+    }
+  }
+
+  /* Seab kontrollimata tabelid järjekorra ette (uue vaate tabelid enne eelmise vaate omi); kontrollitud
+     ja parajasti kontrollitavaid ei puututa. */
+  TAI.checkLatestYears = function (configs) {
+    // ainult API-tabelid: valmis failidest andmetel (config.loadData) pole aastaid, mida küsida
+    var todo = (configs || []).filter(function (c) {
+      return c && typeof c.queries === "function" && !c.loadData && (!latestState[c.code] || latestState[c.code] === "queued");
+    });
+    var codes = {};
+    todo.forEach(function (c) { codes[c.code] = true; latestState[c.code] = "queued"; });
+    latestQueue = todo.concat(latestQueue.filter(function (c) { return !codes[c.code]; }));
+    pumpLatest();
   };
 
   /**
