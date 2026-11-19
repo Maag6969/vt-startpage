@@ -34,7 +34,8 @@
         '<button type="button" class="dataset__button" aria-controls="content" ' +
             'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.familyTitle || t.title) + "</span>" +
-          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(TAI.describe(t)) + "</span>" +
+          // kirjeldus on loendis kuni 2 rida (CSS): täistekst hiirevihjena
+          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '" title="' + esc(TAI.describe(t)) + '">' + esc(TAI.describe(t)) + "</span>" +
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +

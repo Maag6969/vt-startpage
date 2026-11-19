@@ -132,10 +132,13 @@ a:hover { text-decoration-thickness: 2px; }
 
 .dataset-list { list-style: none; margin: 0; padding: 0; }
 
+/* Tihedam loend (19.11.2026): vahed 16 → 8 px, loendi kirjasuurused −10%, kirjeldus kuni 2 rida, allikarida ainult valitud real;
+   rida ~130 → ~80 px, et suurel ekraanil mahuks rohkem teemasid nähtavale. Ainult M2 (A9). */
+
 /* Grupi pealkiri: väike hall rida rea kohal */
 .dataset-group-heading {
-  margin: 0; padding: 14px 20px 6px 24px;
-  font-size: 0.8rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+  margin: 0; padding: 10px 20px 4px 24px;
+  font-size: 0.72rem; font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
   color: var(--tekst-2);
 }
 .dataset-list + .dataset-group-heading { border-top: 1px solid var(--joon); margin-top: 0; }
@@ -154,9 +157,9 @@ a:hover { text-decoration-thickness: 2px; }
 .dataset.is-active::before { background: var(--som-keskmine-sinine); }
 
 .dataset__button {
-  display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+  display: grid; grid-template-columns: 1fr auto; gap: 1px 12px; align-items: center;
   width: 100%;
-  padding: 16px 20px 4px 24px;
+  padding: 8px 20px 8px 24px;
   background: none; border: none; text-align: left; cursor: pointer;
   font: inherit; color: inherit;
 }
@@ -164,19 +167,25 @@ a:hover { text-decoration-thickness: 2px; }
 .dataset__button:focus-visible { outline-offset: -3px; }
 
 .dataset__title {
-  grid-column: 1; color: var(--tekst-pealkiri); font-weight: 500; font-size: 1.05rem;
+  grid-column: 1; color: var(--tekst-pealkiri); font-weight: 500; font-size: 0.945rem; line-height: 1.3;
 }
-.dataset__desc { grid-column: 1; color: var(--tekst-2); font-size: 0.9rem; }
+/* Kirjeldus kuni 2 rida („…“); täistekst on title-vihjes, ekraanilugejal ja aruande alapealkirjas */
+.dataset__desc {
+  grid-column: 1; color: var(--tekst-2); font-size: 0.81rem; line-height: 1.35;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+}
 .dataset__chevron {
   grid-column: 2; grid-row: 1 / span 2;
-  color: var(--som-tumesinine); font-size: 1.6rem; line-height: 1;
+  color: var(--som-tumesinine); font-size: 1.44rem; line-height: 1;
 }
 
+/* Allikarida (link, vaatamiste arv, laadimise olek) ainult valitud real; allikas on ka aruande päises ja jaluses */
 .dataset__footer {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px;
-  padding: 2px 20px 16px 24px;
-  font-size: 0.8rem; color: var(--tekst-2);
+  padding: 0 20px 8px 24px; line-height: 1.3;
+  font-size: 0.72rem; color: var(--tekst-2);
 }
+.dataset:not(.is-active) .dataset__footer { display: none; }
 .dataset__views { font-variant-numeric: tabular-nums; }
 .dataset__views[hidden] { display: none; }
 .dataset__status { display: inline-flex; align-items: center; gap: 6px; }
@@ -314,9 +323,9 @@ a:hover { text-decoration-thickness: 2px; }
 
 /* Vaate nupud loendi kohal („Üldvaade“ | „Lapsed ja noored“) ja õdetabelite lõike lüliti aruande päises
    (19.11.2026, kujundus nagu M3-s: kontuurnupud, valitud täidetud) */
-.list-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 20px 6px 24px; }
+.list-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 20px 4px 24px; }
 .view-toggle {
-  font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  font: inherit; font-size: 0.7875rem; font-weight: 500; cursor: pointer;
   padding: 4px 14px; border-radius: 999px;
   color: var(--som-keskmine-sinine); background: var(--taust); border: 1px solid var(--som-keskmine-sinine);
 }
@@ -462,8 +471,8 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   .site-header h1 { font-size: 1.6875rem; }  /* 1.35rem × 1,25 */
   .layout { grid-template-columns: 1fr; min-height: 0; }
   .panel-list { position: static; max-height: none; overflow-y: visible; border-bottom: 1px solid var(--joon); padding: 0; }
-  .dataset__button { padding: 14px 16px 4px 20px; }
-  .dataset__footer { padding: 2px 16px 14px 20px; }
+  .dataset__button { padding: 12px 16px 12px 20px; }
+  .dataset__footer { padding: 0 16px 12px 20px; }
   .panel-content { border-left: none; padding: 20px 16px 40px; }
   .back-link { display: inline-block; }
   .site-footer { padding: 16px; }
