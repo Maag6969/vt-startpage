@@ -263,6 +263,8 @@
 
   function renderEmpty() {
     view = null;
+    requestId++;   // pooleli aruande laadimise tulemus jäetakse kõrvale (nt „Tagasi“ avalehele enne laadimise lõppu)
+    TAI.getTables().forEach(function (t) { setRowStatus(t.code, null); });
     setAiEnabled(false, "Vali enne andmestik");
     clearAiNotice();
     document.title = BASE_TITLE;

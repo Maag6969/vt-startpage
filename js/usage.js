@@ -38,7 +38,8 @@
   // undefined = ajutine tõrge (nt 429/5xx või võrk): sel juhul võib hiljem uuesti proovida
   function request(action, key) {
     if (typeof fetch !== "function") return Promise.resolve(null);
-    return fetch(API + action + "/" + NAMESPACE + "/" + key)
+    // ilma Referer-päiseta ja küpsisteta: loenduriteenus ei näe, millisest aadressist päring tuleb
+    return fetch(API + action + "/" + NAMESPACE + "/" + key, { referrerPolicy: "no-referrer", credentials: "omit" })
       .then(function (res) { return res.ok ? res.json() : (res.status === 404 ? null : undefined); })
       .then(function (data) { return data === undefined ? undefined : (data && typeof data.value === "number" ? data.value : null); })
       .catch(function () { return undefined; });
