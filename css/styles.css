@@ -31,13 +31,13 @@
 
   --series-1: #4B7DFF;
   --series-2: #d4621a;   /* raamatu oranž #f17a29 tumendatud: graafikuelemendi kontrast ≥ 3:1 */
-  /* Rühmade võrdluse jooned (vanuserühmad, haridustasemed; SoM lisavärvid tumendatud, 35–64 lilla). 7 värvi
+  /* Rühmade võrdluse jooned (vanuserühmad, haridustasemed; põhipaleti lisavärvid tumendatud, 35–64 lilla). 7 värvi
      validaatoriga kontrollitud valgel taustal (06.11.2026: kõrvuti olevate halvim värvipimeduse ΔE 12,1, tavanägemisel 26,6,
      kontrast ≥ 3:1). Järjekord on fikseeritud: sama värv kõigis aruannetes, kus vanuserühmi võrreldakse. */
   --age-1: #d4621a;   /* oranž */
   --age-2: #2a8fd1;   /* helesinine tumendatud */
   --age-3: #b88a00;   /* kollane tumendatud */
-  --age-4: #7c3fbf;   /* lilla (SoM paletis lillat pole; kaks sinist oleks eristamatud) */
+  --age-4: #7c3fbf;   /* lilla (põhipaletis lillat pole; kaks sinist oleks eristamatud) */
   --age-5: #4e9a3a;   /* heleroheline tumendatud */
   --age-6: #9b2774;   /* roosakaslilla */
   --age-7: #0093a8;   /* türkiis */
