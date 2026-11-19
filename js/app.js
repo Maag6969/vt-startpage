@@ -990,8 +990,8 @@
   var usage = TAI.usage;
   var numberFmt = new Intl.NumberFormat("et-EE");
 
-  // „ligikaudu“: avalikku loendurit saab suurendada ka väljastpoolt lehte (turvaülevaatus 12.11.2026, leid L1)
-  function viewsText(n) { return "ligikaudu " + numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
+  // arv ilma sõnata „ligikaudu“; et loendur on ligikaudne, ütleb jaluse privaatsusteade
+  function viewsText(n) { return numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
 
   function showCount(el, value) {
     if (!el || value == null) return;
