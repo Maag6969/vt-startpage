@@ -283,7 +283,10 @@
       "nupuvajutusi (nt filtri valik, AI-nupp) välise teenusega " +
       TAI.externalLink("https://abacus.jasoncameron.dev", "Abacus") + ". " +
       "Loendamisel näeb see teenus sinu IP-aadressi ja loenduri nime (nt andmestiku kood ETU42); " +
-      "lehe omanik IP-aadresse ei näe. Leht ei kasuta küpsiseid. " +
+      "lehe omanik IP-aadresse ei näe. " +
+      "Andmed loetakse otse Tervise Arengu Instituudi ja Eurostati andmebaasist (ka need näevad sinu IP-aadressi); " +
+      "lehe avamisel küsitakse sealt iga andmestiku viimast aastat ja sinu brauser jätab selle 12 tunniks meelde. " +
+      "Isikuandmeid ei salvestata ja küpsiseid ei kasutata. " +
       "AI-nupud kopeerivad lehe andmed sinu lõikelauale ja avavad valitud AI-teenuse sinu enda brauseris; " +
       "seal kehtivad selle teenuse tingimused.</p>";
   }

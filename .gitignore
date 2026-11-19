@@ -1,17 +1,17 @@
-# Stiiliraamat — ei avaldata avalikus repos
+# PDF-failid
 *.pdf
 
-# Arendus- ja abifailid — ainult kohalikus arvutis, avalikku repo ei lähe (disain.md p. 2 „Viimistlus“)
+# Arendus- ja abifailid
 .claude/
 tests/
 tools/
 cors-test.html
 tai_vaimse_tervise_dashboard.html
 
-# Vaatamiste loenduri halduskood (salajane)
+# Vaatamiste loenduri halduskood
 .counter-admin-key*
 
-# Töö- ja metoodikadokumendid, skriptid ja toored väljavõtted: ainult kohalikus arvutis (GitHubi läheb ainult leht ja selle andmed)
+# Töödokumendid, skriptid ja toored väljavõtted
 TASKS.md
 TASKS-ARHIIV.md
 disain.md
