@@ -4,7 +4,7 @@
  * (config.listView = "noored", 19.11.2026).
  *
  * Üks aruanne, neli lõiget (õdetabelid, lüliti „Lõige:“ aruande päises, vt app.js): KU12 sugu ja vanus (võrdlusnupud),
- * KU121 piirkond, KU122 kodukeel, KU123 majanduslik olukord (rühmad vaikimisi võrdlusena, config.compareDefault).
+ * KU121 piirkond, KU122 kodukeel, KU123 majanduslik olukord (rühmad kõrvuti võrdlusnupuga; vaikimisi esimene väärtus).
  * Üldmudel (config.seriesVar), sest ETU indikaatorimudel on seotud „mehed/naised“ sõnastusega.
  *
  * API kontrollitud 19.11.2026 (GET metaandmed ja üks POST): Aasta koodid 2006…2022, sildid perioodid „2005/2006“…;
@@ -119,7 +119,6 @@
       config: {
         filters: ["Piirkond"],
         compare: { Piirkond: "piirkond" },
-        compareDefault: "piirkond",
         views: { trend: true, breakdown: { var: "Piirkond", title: "Piirkondade võrdlus", inPhrase: "piirkondade lõikes" } },
         queries: queries("KU121", ["Piirkond"], "Piirkond")
       }
@@ -136,7 +135,6 @@
       config: {
         filters: ["Kodus räägitav põhikeel"],
         compare: { "Kodus räägitav põhikeel": "keel" },
-        compareDefault: "keel",
         views: { trend: true, breakdown: { var: "Kodus räägitav põhikeel", title: "Kodukeelte võrdlus", inPhrase: "kodukeelte lõikes" } },
         queries: queries("KU122", ["Kodus räägitav põhikeel"], "Kodus räägitav põhikeel")
       }
@@ -153,7 +151,6 @@
       config: {
         filters: ["Majanduslik olukord"],
         compare: { "Majanduslik olukord": "majandus" },
-        compareDefault: "majandus",
         views: { trend: true, breakdown: { var: "Majanduslik olukord", title: "Majandusliku olukorra võrdlus", inPhrase: "majandusliku olukorra lõikes" } },
         queries: queries("KU123", ["Majanduslik olukord"], "Majanduslik olukord")
       }

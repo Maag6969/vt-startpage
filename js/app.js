@@ -175,11 +175,13 @@
     return config.vars[code].param || PARAM_NAMES[code] || code.toLowerCase();
   }
 
-  /* config.compareDefault = võrdluse liik, mis on vaikimisi sees (nt HBSC KU121–123: rühmad kõrvuti, 19.11.2026). */
+  /* Vaikimisi: kõik võrdlused väljas, filter koondil; koondita filtril (nt HBSC kodukeel) esimene väärtus. */
+  function filterDefault(v) { return v.totalValue != null ? v.totalValue : v.values[0]; }
+
   function defaultState(config) {
     var state = {};
-    comparisonsOf(config).forEach(function (c) { state[c.flag] = c.kind === config.compareDefault; });
-    (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
+    comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
+    (config.filters || []).forEach(function (v) { state[v] = filterDefault(config.vars[v]); });
     return state;
   }
 
@@ -202,7 +204,7 @@
         else if (val === SEX_PARAM["2"]) state.Sugu = "2";
       } else if (config.vars[code].values.indexOf(val) >= 0) {
         state[code] = val;
-        // väärtus aadressis = selle filtri võrdlus välja (ka siis, kui see on vaikimisi sees, config.compareDefault)
+        // väärtus aadressis = selle filtri võrdlus välja
         TAI.comparisonsFor(config, code).forEach(function (c) { state[c.flag] = false; });
       }
     });
@@ -219,10 +221,8 @@
         parts.push(name + "=" + comp.param);
       } else if (TAI.isEtuSex(config, code)) {
         if (SEX_PARAM[state.Sugu]) parts.push(name + "=" + SEX_PARAM[state.Sugu]);
-      } else if (state[code] != null && (state[code] !== config.vars[code].totalValue ||
-          // vaikimisi sees võrdlus (config.compareDefault) on välja lülitatud: koond tuleb aadressi kirjutada, muidu tähendaks
-          // aadress ilma parameetrita jälle võrdlust (nt KU121 „Eesti keskmine“ → #KU121?piirkond=0)
-          TAI.comparisonsFor(config, code).some(function (c) { return c.kind === config.compareDefault; }))) {
+      } else if (state[code] != null && state[code] !== filterDefault(config.vars[code])) {
+        // vaikeväärtus (koond või koondita filtri esimene väärtus) aadressi ei lähe: #KU122, mitte #KU122?keel=0
         parts.push(name + "=" + encodeURIComponent(state[code]));
       }
     });

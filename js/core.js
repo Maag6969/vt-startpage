@@ -108,7 +108,7 @@
     kooselu: { flag: "compareCoh", label: "Kooselu vrdl", buttonLabel: "Kooselu võrdlus", buttonId: "compare-coh" },
     aktiivsus: { flag: "compareEco", label: "Majanduslik aktiivsus vrdl", buttonLabel: "Majandusliku aktiivsuse võrdlus", buttonId: "compare-eco" },
     sissetulek: { flag: "compareInc", label: "Kvintiilid vrdl", buttonLabel: "Sissetulekurühmade võrdlus", buttonId: "compare-inc" },   // M2-s praegu kasutuseta, liigid samad mis M3-s ja skeletis
-    // HBSC õdetabelid KU121–123 (19.11.2026): igal tabelil üks lõige, rühmad vaikimisi võrdlusena (config.compareDefault)
+    // HBSC õdetabelid KU121–123 (19.11.2026): igal tabelil üks lõige, rühmad kõrvuti võrdlusnupuga
     piirkond: { flag: "compareReg", label: "Piirkonnad vrdl", buttonLabel: "Piirkondade võrdlus", buttonId: "compare-reg" },
     keel: { flag: "compareLang", label: "Kodukeeled vrdl", buttonLabel: "Kodukeelte võrdlus", buttonId: "compare-lang" },
     majandus: { flag: "compareEcon", label: "Majanduslik olukord vrdl", buttonLabel: "Majandusliku olukorra võrdlus", buttonId: "compare-econ" }
