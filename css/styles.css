@@ -106,6 +106,14 @@ a:hover { text-decoration-thickness: 2px; }
 }
 .site-header__views { margin: 2px 0 0; font-size: 0.875rem; color: var(--tekst-2); font-variant-numeric: tabular-nums; }
 .site-header__views[hidden] { display: none; }
+/* Pealkiri ja selle kõrval „Avaleht“ (19.11.2026): link viib avalehele (tühi olek, nagu lehe esmakordsel avamisel) */
+.site-header__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 18px; }
+.home-link {
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--som-tumesinine); text-decoration: underline; text-underline-offset: 3px;
+}
+.home-link:hover { text-decoration-thickness: 2px; }
+.home-link:focus-visible { outline: 2px solid var(--som-keskmine-sinine); outline-offset: 3px; border-radius: 2px; }
 
 /* ---- paneelid ------------------------------------------------------ */
 
@@ -503,7 +511,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 @media print {
   @page { margin: 15mm; }
   html, body { font-size: 11pt; }
-  .skip-link, .panel-list, .back-link, .filters, .dataset__status, .site-header__views,
+  .skip-link, .panel-list, .back-link, .home-link, .filters, .dataset__status, .site-header__views,
   .module__status, .ai-box, .ai-toast, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
 

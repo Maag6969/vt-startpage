@@ -54,7 +54,7 @@ Näidikulaud ei ole ühegi andmeallika ametlik väljaanne. Ametlikud arvud ja me
 - **Vaatamiste loendur:** leht loendab ligikaudselt vaatamisi ja nupuvajutusi avaliku teenusega
   [Abacus](https://abacus.jasoncameron.dev) (`js/usage.js`). Teenus näeb külastaja IP-aadressi ja loenduri nime;
   lehe omanik IP-aadresse ei näe. Küpsiseid ei kasutata. Sama teade on lehe jaluses.
-- **AI-nupud** aruande päises (Claude, ChatGPT, Gemini) kopeerivad vaate andmed (valitud filtreid arvestades) koos
+- **AI-nupud** lehe päises (Claude, ChatGPT, Gemini; üks komplekt kogu lehele, nad analüüsivad parajasti avatud aruannet) kopeerivad vaate andmed (valitud filtreid arvestades) koos
   ettevalmistatud analüüsi prompt'iga külastaja lõikelauale ja avavad valitud AI-teenuse külastaja enda brauseris,
   lahti seotuna näidikulaua aknast (`window.opener = null`). Seal kehtivad selle teenuse tingimused külastaja konto
   võimaluste järgi ning analüüsi kvaliteet sõltub valitud AI-mudelist (tasuta teenus võib anda väga halva tulemuse).

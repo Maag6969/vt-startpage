@@ -11,8 +11,9 @@
 
   var listEl = document.getElementById("dataset-list");
   var contentEl = document.getElementById("content");
+  var aiBoxEl = document.getElementById("ai-box");   // AI-nupud lehe päises (analüüsivad parajasti avatud aruannet)
 
-  var current = null;      // valitud tabeli kood
+  var current = null;     // valitud tabeli kood
   var requestId = 0;       // vanemate päringute tulemused jäetakse kõrvale
   var states = {};         // filtrivalikud tabeli kaupa (säilivad tabelite vahel liikudes)
   var view = null;         // { config, data, source } — praegu kuvatud moodul
@@ -262,6 +263,8 @@
 
   function renderEmpty() {
     view = null;
+    setAiEnabled(false, "Vali enne andmestik");
+    clearAiNotice();
     document.title = BASE_TITLE;
     contentEl.innerHTML =
       '<div class="empty-state">' +
@@ -294,7 +297,7 @@
       "lehe avamisel küsitakse sealt iga andmestiku viimast aastat ja sinu brauser jätab selle 12 tunniks meelde. " +
       "Isikuandmeid ei salvestata ja küpsiseid ei kasutata.</p>" +
       // eraldi lõik rasvases kirjas: AI-analüüs on eraldiseisev teenus, mitte osa näidikulauast
-      '<p class="site-footer__ai"><strong>AI-nupud aruande päises (Claude, ChatGPT, Gemini) kopeerivad lehe andmed ' +
+      '<p class="site-footer__ai"><strong>AI-nupud lehe päises (Claude, ChatGPT, Gemini) kopeerivad avatud aruande andmed ' +
       "(sh valitud filtreid arvestades) koos ettevalmistatud analüüsi prompt'iga sinu lõikelauale ja avavad valitud " +
       "AI-teenuse sinu enda brauseris. Seal kehtivad selle teenuse tingimused vastavalt sinu enda konto võimalustele " +
       "ning saadava analüüsi kvaliteet võib oluliselt sõltuda ka valitud AI-mudelist: paremad mudelid annavad parema " +
@@ -341,25 +344,28 @@
     if (el) el.outerHTML = statusLineHtml(config, kind, updatedText);
   }
 
-  /* Ülemine rida (nagu M3): staatusrida ja selle kõrval AI-nupud. Nupud ainult siis, kui andmed on ekraanil ja
-     aruandel on AI-juhise reeglid (config.ai). .module__status peab jääma nuppudest eraldi: setStatus asendab selle. */
-  function topbarHtml(config, statusHtml, withAi) {
-    return '<div class="module__topbar">' + statusHtml + (withAi && TAI.aiAvailable(config) ? aiBoxHtml() : "") + "</div>";
+  /* Mooduli ülemine rida: ainult staatusrida (AI-nupud on alates 19.11.2026 lehe päises, vt aiBoxHtml). */
+  function topbarHtml(config, statusHtml) {
+    return '<div class="module__topbar">' + statusHtml + "</div>";
   }
 
+  /* AI-nupud lehe päises (js/app.js käivitus täidab #ai-box): üks nupukomplekt kogu lehele, mitte igasse aruandesse.
+     Nupud analüüsivad parajasti avatud aruannet (view) koos valitud filtritega; kui aruannet pole või andmed puuduvad,
+     on nupud keelatud (setAiEnabled). */
   function aiBoxHtml() {
-    return '<div class="ai-box">' +
-      '<div class="ai-box__row"><span class="ai-box__label">Analüüsi kuvatud andmeid AI-ga:</span>' +
+    return '<div class="ai-box__row"><span class="ai-box__label">Analüüsi kuvatud andmeid AI-ga:</span>' +
         TAI.aiTargets.map(function (t) {
           return '<button type="button" class="ai-box__btn" data-ai="' + esc(t.id) + '">' + esc(t.label) + "</button>";
         }).join("") +
       "</div>" +
-      '<p class="ai-box__msg" role="status" aria-live="polite"></p>' +
-    "</div>";
+      '<p class="ai-box__msg" role="status" aria-live="polite"></p>';
   }
+  if (aiBoxEl) aiBoxEl.innerHTML = aiBoxHtml();
 
   function renderLoading(config) {
     view = null;
+    setAiEnabled(false, "Andmed laaditakse");
+    clearAiNotice();
     contentEl.setAttribute("aria-busy", "true");
     contentEl.innerHTML =
       backLink() +
@@ -378,6 +384,8 @@
   function renderError(config, err) {
     view = null;
     var info = TAI.describeError(err, config);
+    setAiEnabled(false, "Andmeid ei õnnestunud laadida");
+    clearAiNotice();
     contentEl.setAttribute("aria-busy", "false");
     contentEl.innerHTML =
       backLink() +
@@ -493,7 +501,7 @@
       backLink() +
       '<article class="module">' +
         '<header class="module__head">' +
-          topbarHtml(config, statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data)), true) +
+          topbarHtml(config, statusLineHtml(config, source.source === "api" ? "loaded" : "none", tableUpdatedText(data))) +
           '<h2 tabindex="-1">' + esc(config.fullTitle) + "</h2>" +
           '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
           (meta.length ? '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" : "") +
@@ -526,7 +534,9 @@
     clearAiNotice();   // lõikelaual on nüüd teise lõike andmed: teade ja käsitsi kopeerimise tekst ei kehti enam
     var config = view.config;
     var model = TAI.buildModel(config, view.data, stateOf(config));
-    setAiEnabled(!model.notice);   // numbriteta lõikes pole AI-l midagi analüüsida (ta võiks hakata ise numbreid pakkuma)
+    // numbriteta lõikes pole AI-l midagi analüüsida (ta võiks hakata ise numbreid pakkuma); aruandel ilma AI-juhiseta (config.ai) nuppe ei ole
+    setAiEnabled(TAI.aiAvailable(config) && !model.notice,
+      !TAI.aiAvailable(config) ? "Sellel aruandel AI-analüüsi ei ole" : "Selles lõikes andmeid ei ole");
     // Toetamata filtrikombinatsioon: ainult teade, mitte tühjad kaardid ega liidetud hinnang (lõige näitab, mida valiti).
     if (model.notice) {
       body.innerHTML = TAI.sliceHtml(TAI.sliceParts(config, stateOf(config)).join(" · ")) + '<p class="callout">' + esc(model.notice) + "</p>";
@@ -931,15 +941,17 @@
     return openDetached(url, "tai-ai-analysis", "popup=yes,width=" + w + ",height=" + h + ",left=" + left + ",top=" + top);
   }
 
-  function setAiEnabled(on) {
-    contentEl.querySelectorAll("button[data-ai]").forEach(function (b) {
+  /* Nupud on lehe päises ja kehtivad avatud aruandele: keelatud, kui aruannet pole, see laeb või lõikes andmeid ei ole. */
+  function setAiEnabled(on, reason) {
+    if (!aiBoxEl) return;
+    aiBoxEl.querySelectorAll("button[data-ai]").forEach(function (b) {
       b.disabled = !on;
-      if (on) b.removeAttribute("title"); else b.title = "Selles lõikes andmeid ei ole";
+      if (on) b.removeAttribute("title"); else b.title = reason || "";
     });
   }
 
   function clearAiNotice() {
-    var box = contentEl.querySelector(".ai-box");
+    var box = aiBoxEl;
     if (box) {
       box.querySelector(".ai-box__msg").textContent = "";
       var ta = box.querySelector(".ai-box__text");
@@ -951,12 +963,27 @@
     if (dpip && dpip.window) { try { dpip.window.close(); } catch (e) { /* juba suletud */ } }
   }
 
-  contentEl.addEventListener("click", function (evt) {
+  // „Avaleht“ päises: näita avaleht (tühi olek) uuesti laadimata; Ctrl/Shift/keskmise klõpsuga avaneb leht tavaliselt
+  // (href="./"). Brauseri „Tagasi“ viib eelmise aruande juurde (hashchange → select()).
+  var homeLink = document.getElementById("home-link");
+  if (homeLink) {
+    homeLink.addEventListener("click", function (evt) {
+      if (evt.button !== 0 || evt.ctrlKey || evt.shiftKey || evt.altKey || evt.metaKey) return;
+      evt.preventDefault();
+      if (location.hash) history.pushState(null, "", location.pathname + location.search);
+      requestId++;   // pooleli aruande laadimise tulemus jäetakse kõrvale
+      TAI.getTables().forEach(function (t) { setRowStatus(t.code, null); });
+      current = null; setActiveRow(null); renderEmpty();
+      window.scrollTo(0, 0);
+    });
+  }
+
+  aiBoxEl.addEventListener("click", function (evt) {
     var btn = evt.target.closest("button[data-ai]");
     if (!btn || !view) return;
     var target = TAI.aiTargets.filter(function (t) { return t.id === btn.getAttribute("data-ai"); })[0];
     if (!target) return;
-    var box = btn.closest(".ai-box");
+    var box = aiBoxEl;
     var msg = box.querySelector(".ai-box__msg");
     var prompt = TAI.buildAiPrompt(view.config, contentEl);
 
