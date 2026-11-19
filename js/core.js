@@ -647,6 +647,14 @@
     return labels.slice(0, -1).join(", ") + " ja " + labels[labels.length - 1];
   }
 
+  /* Loendirea periood nagu M3-s (19.11.2026): esimene–viimane aasta või periood, nt „2016–2025“, „2005/2006–2021/2022“;
+     viimane arvestab kerget viimase aasta kontrolli (TAI.lastYear). */
+  TAI.yearRangeLabel = function (config) {
+    var labels = yearLabels(config);
+    if (!labels.length) return "";
+    return labels.length === 1 ? labels[0] : labels[0] + "–" + labels[labels.length - 1];
+  };
+
   /*
    * Kirjeldus, mis ei vanane uue aasta lisandumisel (05.11.2026). Toetab kahte viisi:
    *  - kohahoidjad kirjelduses: {aastad} → "2006, 2014 ja 2019"; {aastatel} → "aastal 2019" (üks aasta) või

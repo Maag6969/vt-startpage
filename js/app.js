@@ -27,19 +27,20 @@
 
   var pendingScroll = false;
 
+  /* Loendirida nagu M3-s (19.11.2026): pealkiri ja teisel real ainult trendi periood; täielik kirjeldus hiirevihjes ja
+     ekraanilugejale (aria-describedby). Allikalinki menüüs pole (allikas on aruande päises ja jaluses). Teisele reale võib hiljem
+     lisanduda strateegia või arengukava märk (nagu M3 RTA). Valitud real: vaatamiste arv ja laadimise olek. */
   function datasetRow(t) {
-    var sourceText = (t.source && t.source.listLabel) || "Allikas: " + (t.seriesVar ? TAI.sourceLabel(t) : "TAI") + " " + t.code;
     return (
       '<li class="dataset" data-code="' + esc(t.code) + '">' +
-        '<button type="button" class="dataset__button" aria-controls="content" ' +
+        '<button type="button" class="dataset__button" aria-controls="content" title="' + esc(TAI.describe(t)) + '" ' +
             'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.familyTitle || t.title) + "</span>" +
-          // kirjeldus on loendis kuni 2 rida (CSS): täistekst hiirevihjena
-          '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '" title="' + esc(TAI.describe(t)) + '">' + esc(TAI.describe(t)) + "</span>" +
+          '<span class="dataset__desc">' + esc(TAI.yearRangeLabel(t)) + "</span>" +
+          '<span class="visually-hidden" id="ds-desc-' + esc(t.code) + '">' + esc(TAI.describe(t)) + "</span>" +
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +
-          TAI.externalLink(t.seriesVar ? TAI.sourceUrl(t) : TAI.pxwebUrl(t), sourceText) +
           '<span class="dataset__views" hidden></span>' +
           '<span class="dataset__status" role="status"></span>' +
         "</div>" +
