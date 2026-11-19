@@ -33,7 +33,7 @@
       '<li class="dataset" data-code="' + esc(t.code) + '">' +
         '<button type="button" class="dataset__button" aria-controls="content" ' +
             'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
-          '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.title) + "</span>" +
+          '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.familyTitle || t.title) + "</span>" +
           '<span class="dataset__desc" id="ds-desc-' + esc(t.code) + '">' + esc(TAI.describe(t)) + "</span>" +
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
@@ -46,10 +46,48 @@
     );
   }
 
-  /* Grupid allika järgi (TAI.getTableGroups, core.js): väike hall pealkirjarida rea kohal; grupita
+  /* Vaated (19.11.2026, kujundus nagu M3-s): „Üldvaade“ (vaikimisi, kõik senised tabelid) ja „Lapsed ja noored“
+     (tabelid, mille config.listView === "noored", nt HBSC KU12). Mõlemas allikarühmad. Valik ei jää meelde: alati avaneb Üldvaade;
+     otselink teise vaate tabelile lülitab vaate ise (select). */
+  var listMode = "yld";
+  var toolbarEl = document.getElementById("view-toolbar");
+  function modeOf(t) { return t.listView || "yld"; }
+
+  /* Õdetabelid (ülevõetud M3-st 19.11.2026): üks aruanne, mille lõiget vahetab aruande päises lüliti „Lõige:“. Iga lõige on eraldi
+     TAI tabel (nt HBSC KU12 sugu ja vanus, KU121 piirkond). config.siblings = [{ code, label }, …] (esimene = peamine, mis on
+     loendis), config.familyTitle = loendirea pealkiri. Mitte-peamised õed loendis ei paista. */
+  function primaryOf(code) {
+    var t = TAI.getTable(code);
+    return t && t.siblings ? t.siblings[0].code : code;
+  }
+  function isSecondarySibling(t) { return !!t.siblings && t.siblings[0].code !== t.code; }
+
+  function siblingSwitchHtml(config) {
+    if (!config.siblings) return "";
+    return '<div class="sibling-switch" role="group" aria-label="Lõige"><span class="ai-box__label">Lõige:</span>' +
+      config.siblings.map(function (s) {
+        var on = s.code === config.code;
+        return '<button type="button" class="view-toggle' + (on ? " is-active" : "") + '" data-sibling="' + esc(s.code) +
+          '" aria-pressed="' + (on ? "true" : "false") + '">' + esc(s.label) + "</button>";
+      }).join("") + "</div>";
+  }
+
+  /** Praeguse vaate loendi tabelid (ilma mitte-peamiste õdedeta), getTables() järjekorras. */
+  function visibleTables() {
+    return TAI.getTables().filter(function (t) { return modeOf(t) === listMode && !isSecondarySibling(t); });
+  }
+
+  /* Grupid allika järgi (TAI.groupTables, core.js): väike hall pealkirjarida rea kohal; grupita
      tabelid jäävad pealkirjata. Iga grupp on oma <ul>, mis viitab pealkirjale aria-labelledby kaudu. */
   function renderList() {
-    listEl.innerHTML = TAI.getTableGroups().map(function (g, i) {
+    if (toolbarEl) {
+      Array.prototype.forEach.call(toolbarEl.querySelectorAll(".view-toggle"), function (b) {
+        var on = b.getAttribute("data-mode") === listMode;
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-pressed", on ? "true" : "false");
+      });
+    }
+    listEl.innerHTML = TAI.groupTables(visibleTables()).map(function (g, i) {
       var id = "dataset-group-" + i;
       return (g.name ? '<h2 class="dataset-group-heading" id="' + id + '">' + esc(g.name) + "</h2>" : "") +
         '<ul class="dataset-list"' + (g.name ? ' aria-labelledby="' + id + '"' : "") + ">" +
@@ -81,7 +119,18 @@
      joonistatakse uuesti (refreshListIfChanged: sama käitumine mis tabeli avamisel uue aasta tulles). Kui midagi ei
      muutunud, ei juhtu loendiga midagi. Juba kontrollitud tabeleid uuesti ei küsita. */
   function checkLatestYears() {
-    TAI.checkLatestYears(TAI.getTables());
+    TAI.checkLatestYears(visibleTables());   // vaate vahetusel uue vaate tabelid järjekorras ette
+  }
+
+  if (toolbarEl) {
+    toolbarEl.addEventListener("click", function (evt) {
+      var b = evt.target.closest(".view-toggle");
+      if (!b || b.getAttribute("data-mode") === listMode) return;
+      listMode = b.getAttribute("data-mode");
+      renderList();
+      setActiveRow(current);
+      Object.keys(rowCounts).forEach(function (code) { showRowCount(code, rowCounts[code]); });
+    });
   }
   TAI.onLatestYear = function () { refreshListIfChanged(); };
 
@@ -90,7 +139,7 @@
   var listSignature = "";
   var rowCounts = {};
   function listSignatureNow() {
-    return TAI.getTables().map(function (t) { return t.code + "|" + TAI.describe(t); }).join("\n");
+    return listMode + "\n" + visibleTables().map(function (t) { return t.code + "|" + TAI.describe(t); }).join("\n");
   }
   function refreshListIfChanged() {
     if (listSignatureNow() === listSignature) return;
@@ -121,9 +170,15 @@
   // Rühmasisesed võrdlused (soo, vanuse): ühised abifunktsioonid on core.js-is (TAI.comparisonsOf), sest valitud lõige (module.js) vajab neid samuti.
   var comparisonsOf = TAI.comparisonsOf;
 
+  /* Aadressi parameetri nimi: muutuja oma `param` (nt HBSC „keel“ pika muutujanime asemel), siis ühine nimi, siis väiketähtedega kood. */
+  function paramName(config, code) {
+    return config.vars[code].param || PARAM_NAMES[code] || code.toLowerCase();
+  }
+
+  /* config.compareDefault = võrdluse liik, mis on vaikimisi sees (nt HBSC KU121–123: rühmad kõrvuti, 19.11.2026). */
   function defaultState(config) {
     var state = {};
-    comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
+    comparisonsOf(config).forEach(function (c) { state[c.flag] = c.kind === config.compareDefault; });
     (config.filters || []).forEach(function (v) { state[v] = config.vars[v].totalValue || config.vars[v].values[0]; });
     return state;
   }
@@ -132,7 +187,7 @@
   function stateFromParams(config, params) {
     var state = defaultState(config);
     (config.filters || []).forEach(function (code) {
-      var val = params[PARAM_NAMES[code] || code.toLowerCase()];
+      var val = params[paramName(config, code)];
       if (val == null) return;
       var comp = TAI.comparisonsFor(config, code).filter(function (c) { return c.param === val; })[0];
       if (comp) {
@@ -142,11 +197,13 @@
           state[comp.flag] = true;
           state[code] = config.vars[code].totalValue;
         }
-      } else if (code === "Sugu") {
+      } else if (TAI.isEtuSex(config, code)) {
         if (val === SEX_PARAM["1"]) state.Sugu = "1";
         else if (val === SEX_PARAM["2"]) state.Sugu = "2";
       } else if (config.vars[code].values.indexOf(val) >= 0) {
         state[code] = val;
+        // väärtus aadressis = selle filtri võrdlus välja (ka siis, kui see on vaikimisi sees, config.compareDefault)
+        TAI.comparisonsFor(config, code).forEach(function (c) { state[c.flag] = false; });
       }
     });
     return state;
@@ -156,24 +213,29 @@
     var state = states[config.code] || defaultState(config);
     var parts = [];
     (config.filters || []).forEach(function (code) {
-      var name = PARAM_NAMES[code] || code.toLowerCase();
+      var name = paramName(config, code);
       var comp = TAI.activeComparisonFor(config, state, code);
       if (comp) {
         parts.push(name + "=" + comp.param);
-      } else if (code === "Sugu") {
+      } else if (TAI.isEtuSex(config, code)) {
         if (SEX_PARAM[state.Sugu]) parts.push(name + "=" + SEX_PARAM[state.Sugu]);
-      } else if (state[code] != null && state[code] !== config.vars[code].totalValue) {
+      } else if (state[code] != null && (state[code] !== config.vars[code].totalValue ||
+          // vaikimisi sees võrdlus (config.compareDefault) on välja lülitatud: koond tuleb aadressi kirjutada, muidu tähendaks
+          // aadress ilma parameetrita jälle võrdlust (nt KU121 „Eesti keskmine“ → #KU121?piirkond=0)
+          TAI.comparisonsFor(config, code).some(function (c) { return c.kind === config.compareDefault; }))) {
         parts.push(name + "=" + encodeURIComponent(state[code]));
       }
     });
     return "#" + config.code + (parts.length ? "?" + parts.join("&") : "");
   }
 
-  function rowOf(code) { return listEl.querySelector('.dataset[data-code="' + code + '"]'); }
+  // õe laadimisel/vigade korral näidatakse olekut peamise õe real (ainult see on loendis)
+  function rowOf(code) { return listEl.querySelector('.dataset[data-code="' + (code ? primaryOf(code) : code) + '"]'); }
 
   function setActiveRow(code) {
+    var primary = code ? primaryOf(code) : code;   // peamise õe rida esindab kogu peret
     Array.prototype.forEach.call(listEl.querySelectorAll(".dataset"), function (row) {
-      var active = row.getAttribute("data-code") === code;
+      var active = row.getAttribute("data-code") === primary;
       row.classList.toggle("is-active", active);
       var btn = row.querySelector(".dataset__button");
       if (active) btn.setAttribute("aria-current", "true"); else btn.removeAttribute("aria-current");
@@ -373,7 +435,7 @@
       var comparing = !!active;
       // optionLabels (valikuline): rippmenüü sildid hierarhia-taandega (nt „– Kardioloog“); mujal kasutatakse puhtaid labels'eid
       var optionLabels = v.optionLabels || v.labels;
-      var options = code === "Sugu" ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, optionLabels[i]]; });
+      var options = TAI.isEtuSex(config, code) ? SEX_OPTIONS : v.values.map(function (val, i) { return [val, optionLabels[i]]; });
       html += '<div class="field"><label for="' + esc(id) + '">' + esc(v.label) + "</label>" +
         '<select id="' + esc(id) + '" data-filter="' + esc(code) + '">' +
         options.map(function (o) {
@@ -422,6 +484,7 @@
           '<p class="module__subtitle">' + esc(TAI.describe(config)) + "</p>" +
           (meta.length ? '<ul class="module__meta">' + meta.map(function (m) { return '<li class="pill">' + esc(m) + "</li>"; }).join("") + "</ul>" : "") +
         "</header>" +
+        siblingSwitchHtml(config) +
         renderFilters(config, state) +
         '<div class="module__body" aria-live="polite"></div>' +
         '<footer class="module__footnotes">' +
@@ -568,6 +631,20 @@
     renderBody();
   });
 
+  // Õdetabeli lõike vahetus (ülevõetud M3-st): ühised filtrid, mille väärtus sobib ka õele, võetakse kaasa.
+  contentEl.addEventListener("click", function (evt) {
+    var b = evt.target.closest("[data-sibling]");
+    if (!b || !view) return;
+    var target = TAI.getTable(b.getAttribute("data-sibling"));
+    if (!target || target === view.config) return;
+    var from = stateOf(view.config), to = stateOf(target);
+    (target.filters || []).forEach(function (code) {
+      var v = target.vars[code];
+      if (from[code] != null && v && v.values.indexOf(from[code]) >= 0) to[code] = from[code];
+    });
+    location.hash = hashFor(target);   // hashchange → select()
+  });
+
   // "Võrdlus" nupud: võrdlus sisse/välja. Sisse: selle filtri väärtus läheb koondile ja teine võrdlus lülitub välja (üks korraga);
   // välja: filter tagasi koondile ("Kokku").
   contentEl.addEventListener("click", function (evt) {
@@ -580,7 +657,8 @@
     var turnOn = !state[comp.flag];
     comparisonsOf(config).forEach(function (c) { state[c.flag] = false; });
     state[comp.flag] = turnOn;
-    state[comp.filter] = config.vars[comp.filter].totalValue;
+    var fv = config.vars[comp.filter];
+    state[comp.filter] = fv.totalValue != null ? fv.totalValue : fv.values[0];   // koondita filter (HBSC KU122/123): esimene rühm
     usage.track(usage.keyFilter(config.code, comp.filter, turnOn ? comp.usageOn : comp.usageOff));
     history.replaceState(null, "", hashFor(config));
     refreshFilters();
@@ -638,6 +716,13 @@
     opts = opts || {};
     var config = TAI.getTable(code);
     if (!config) { current = null; setActiveRow(null); renderEmpty(); return; }
+
+    // otselink teise vaate tabelile (nt #KU12 Üldvaates): lülita loend selle vaatesse, et aktiivne rida oleks nähtav
+    if (modeOf(TAI.getTable(primaryOf(code))) !== listMode) {
+      listMode = modeOf(TAI.getTable(primaryOf(code)));
+      renderList();
+      Object.keys(rowCounts).forEach(function (c) { showRowCount(c, rowCounts[c]); });
+    }
 
     current = code;
     var myRequest = ++requestId;
@@ -908,13 +993,14 @@
 
   function showRowCount(code, value) {
     if (value != null) rowCounts[code] = value;   // jääb meelde loendi uuesti joonistamiseks (refreshListIfChanged)
-    var row = rowOf(code);
+    // õe (nt KU121) arv ei tohi kirjutada üle peamise õe rea arvu: loendireal on peamise tabeli vaatamised
+    var row = primaryOf(code) === code ? rowOf(code) : null;
     showCount(row && row.querySelector(".dataset__views"), value);
   }
 
   function loadViewCount() {
     usage.track("vt-startpage", { everyTime: true }).then(function (v) { showCount(document.getElementById("view-count"), v); });
-    TAI.getTables().forEach(function (t) {
+    TAI.getTables().filter(function (t) { return !isSecondarySibling(t); }).forEach(function (t) {
       usage.get(usage.keyDataset(t.code)).then(function (v) { showRowCount(t.code, v); });
     });
   }

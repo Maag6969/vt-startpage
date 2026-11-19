@@ -40,6 +40,19 @@
       international: "Ära väida, et Eesti tulemused on rahvusvaheliselt hästi võrreldavad, ega seda, kus Eesti teiste riikide suhtes asub.",
       rules: []
     },
+    // HBSC kooliõpilaste tervisekäitumise uuring (KU12, KU121–123; 19.11.2026). Tähendus TAI tabeli märkusest.
+    hbsc: {
+      role: "laste ja noorte vaimse tervise andmeanalüütik",
+      measure: "Numbrid on kooliõpilaste küsitluse (HBSC, 11-, 13- ja 15-aastased) tulemused: vastanute osakaal, kellel on viimasel 12 kuul esinenud depressiivne episood. See ei ole arsti pandud diagnoos. TAI märkuse järgi on andmed kaalumata.",
+      direction: "Sõnu „paranes“ ja „halvenes“ kasuta ainult näitaja kohta (nt „osakaalu kasv on näitaja järgi ebasoodne“). Ära kirjuta, et laste vaimne tervis paranes või halvenes.",
+      explanations: "Võimalikke põhjuseid võid nimetada ainult oletusena. Ära tee järeldusi üksiku lapse, kooli ega pere kohta.",
+      advice: "võimalikud sisulised sammud ja küsimused laste ja noorte vaimse tervise ennetuse valdkonnale",
+      international: "HBSC on rahvusvaheline uuring, kuid ära väida, kus Eesti teiste riikide suhtes asub, ega too teiste riikide numbreid.",
+      rules: [
+        "Uuring toimub iga nelja aasta tagant (õppeaastad, nt 2021/2022): vahepealsete aastate kohta andmeid ei ole, ära kirjelda aastast muutust.",
+        "Ära liida vanuseid ega lõikeid (sugu, piirkond, kodukeel, majanduslik olukord): need on eri rühmitused samadest vastajatest."
+      ]
+    },
     // Tervisekassa avaandmed (TERVISEKASSA.md p. 3)
     tervisekassa: {
       role: "tervishoiu raviandmete analüütik",
@@ -73,6 +86,9 @@
     var notes = [];
     if (years.length === 1) {
       notes.push("Andmetes on ainult üks aasta (" + years[0] + "): trendi ega aastatevahelist muutust ära analüüsi, kirjelda osas 2 ainult erinevusi rühmade vahel.");
+    } else if (years.length > 1 && config.periodYears) {
+      // Perioodid (nt HBSC „2021/2022“): koodid on aastaarvud, aga lugejale näidatakse silte
+      notes.push("Andmetes on perioodid " + years.map(function (y) { return TAI.labelOf(config, config.yearVar, y); }).join(", ") + ".");
     } else if (years.length > 1) {
       // Perioodid („2024/2025“) ei ole arvud: lünkade kohta siis midagi ei väideta
       var gaps = years.every(function (y) { return /^\d+$/.test(y); }) &&

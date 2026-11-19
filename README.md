@@ -3,7 +3,8 @@
 **Leht:** https://maag6969.github.io/vt-startpage/
 (otselink vaatele, nt https://maag6969.github.io/vt-startpage/#ETU41?sugu=vordlus)
 
-Eesti vaimse tervise ja heaolu avaandmed ühel lehel. Vasakus loendis on andmestikud allikate kaupa; valitud
+Eesti vaimse tervise ja heaolu avaandmed ühel lehel. Vasakus loendis on andmestikud allikate kaupa kahes vaates
+(„Üldvaade“ ja „Lapsed ja noored“); valitud
 andmestiku näidikulaud (KPI-kaardid, trendi- ja võrdlusjoonised, automaatne kokkuvõttelause, andmetabel)
 avaneb paremal. Iga vaate saab printida ja selle andmed AI-teenusesse analüüsiks kaasa võtta.
 
@@ -18,6 +19,7 @@ Repos on ainult leht ja selle andmed. Arendus- ja abifailid hoitakse eraldi.
 | **ETU43** | Uneaja piisavus soo ja vanuserühma järgi | sama | otse TAI PxWeb API-st |
 | **TK-diagnoosid** | Diagnoosid raviandmetes: depressioon (F32, F33) | [Tervisekassa avaandmed](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed) | ettevalmistatud failid kaustas `data/tervisekassa/` |
 | **ilc_pw01** | Eluga rahulolu soo, vanuse ja hariduse lõikes, riikide võrdluses | [Eurostat](https://ec.europa.eu/eurostat/databrowser/product/view/ilc_pw01) | otse Eurostati API-st |
+| **KU12**, KU121–KU123 | Depressiivsete episoodide esinemine kooliõpilaste seas viimasel 12 kuul: soo ja vanuse (11, 13, 15), piirkonna, kodukeele ja pere majandusliku olukorra järgi (vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__05Uuringud__03HBSC__01Tervis/), Kooliõpilaste tervisekäitumise uuring (HBSC) | otse TAI PxWeb API-st |
 
 TAI tabelid asuvad PxWebi kaustas `Andmebaas/05Uuringud/01ETeU/04VaimneTervis/`. Kui otsepäring TAI-sse
 ebaõnnestub, pakub leht võimalust laadida PxWebist alla laaditud JSON-stat2 fail ise üles.

@@ -65,9 +65,12 @@
     keyDataset: function (code) { return "ds-" + code; },
     keyAction: function (code, action) { return "a-" + code + "-" + action; },
     keyFilter: function (code, varCode, value) {
-      var name = PARAM_NAMES[varCode] || varCode.toLowerCase();
-      var val = varCode === "Sugu" ? SEX_VALUES[value] : value;
+      var t = TAI.getTable(code), v = t && t.vars[varCode];
+      // muutuja oma lühinimi (nt HBSC „keel“ muutuja „Kodus räägitav põhikeel“ asemel), nagu aadressiski
+      var name = (v && v.param) || PARAM_NAMES[varCode] || varCode.toLowerCase();
+      var val = t && TAI.isEtuSex(t, varCode) && SEX_VALUES[value] ? SEX_VALUES[value] : value;
       // Abacuse võtmes on lubatud ainult tähed, numbrid ning _ - . (nt vanuserühm "65+" → "65plus")
+      name = String(name).replace(/[^A-Za-z0-9_.-]/g, "-");
       val = String(val).replace(/\+/g, "plus").replace(/[^A-Za-z0-9_.-]/g, "-");
       return "f-" + code + "-" + name + "-" + val;
     },
@@ -82,7 +85,7 @@
         (t.filters || []).forEach(function (varCode) {
           var v = t.vars[varCode];
           var comps = TAI.comparisonsFor(t, varCode);
-          var values = varCode === "Sugu" ? Object.keys(SEX_VALUES).filter(function (k) { return k !== "compare"; }) : v.values.slice();
+          var values = TAI.isEtuSex(t, varCode) ? Object.keys(SEX_VALUES).filter(function (k) { return k !== "compare"; }) : v.values.slice();
           comps.forEach(function (c) { values.push(c.usageOn); });   // võrdlusnupud
           values.forEach(function (val) {
             var comp = comps.filter(function (c) { return c.usageOn === val; })[0];

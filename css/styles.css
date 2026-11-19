@@ -312,6 +312,19 @@ a:hover { text-decoration-thickness: 2px; }
 .compare-btn[aria-pressed="true"] { background: var(--som-tumesinine); border-color: var(--som-tumesinine); color: #fff; }
 .compare-btn:focus-visible { outline: 3px solid var(--som-keskmine-sinine); outline-offset: 2px; }
 
+/* Vaate nupud loendi kohal („Üldvaade“ | „Lapsed ja noored“) ja õdetabelite lõike lüliti aruande päises
+   (19.11.2026, kujundus nagu M3-s: kontuurnupud, valitud täidetud) */
+.list-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 20px 6px 24px; }
+.view-toggle {
+  font: inherit; font-size: 0.875rem; font-weight: 500; cursor: pointer;
+  padding: 4px 14px; border-radius: 999px;
+  color: var(--som-keskmine-sinine); background: var(--taust); border: 1px solid var(--som-keskmine-sinine);
+}
+.view-toggle:hover, .view-toggle:focus-visible { background: var(--som-keskmine-sinine); color: #fff; }
+.view-toggle:focus-visible { outline: 3px solid var(--som-tumesinine); outline-offset: 2px; }
+.view-toggle.is-active { background: var(--som-keskmine-sinine); color: #fff; }
+.sibling-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 14px; }
+
 .module__body { transition: opacity 0.15s; }
 .module__body.is-loading { opacity: 0.45; pointer-events: none; }
 
@@ -463,7 +476,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
   .ai-box__label { flex-basis: 100%; font-size: 0.875rem; }
   .ai-box__btn { flex: 1 1 0; min-height: 40px; font-size: 0.875rem; }
   .ai-toast__close { min-height: 40px; }
-  .compare-btn, .field select { min-height: 40px; }
+  .compare-btn, .field select, .view-toggle { min-height: 40px; }
   .back-link { padding: 9px 0; }
   .dataset__footer a { display: inline-block; padding: 6px 0; }
   /* Mitme veeruga võrdlustabel kitsal ekraanil: tabel keritav, leht mitte. Padding hoiab fookusjoone nähtaval. */

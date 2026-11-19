@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta property="og:locale" content="et_EE">
 <meta property="og:title" content="Vaimse tervise näidikulaud">
-<meta property="og:description" content="Eesti vaimse tervise ja heaolu avaandmed ühel lehel: depressioon, distress, uneaja piisavus ja eluga rahulolu. Allikad: Tervise Arengu Instituut, Tervisekassa, Eurostat.">
+<meta property="og:description" content="Eesti vaimse tervise ja heaolu avaandmed ühel lehel: depressioon, distress, uneaja piisavus, eluga rahulolu ja koolinoorte depressiivsed episoodid. Allikad: Tervise Arengu Instituut, Tervisekassa, Eurostat.">
 <meta property="og:url" content="https://maag6969.github.io/vt-startpage/">
 <meta name="twitter:card" content="summary">
 <!--
@@ -34,6 +34,10 @@
 
 <div class="layout">
   <nav class="panel-list" aria-label="Andmestikud">
+    <div class="list-toolbar" id="view-toolbar" role="group" aria-label="Loendi vaade">
+      <button type="button" class="view-toggle is-active" data-mode="yld" aria-pressed="true" aria-controls="dataset-list">Üldvaade</button>
+      <button type="button" class="view-toggle" data-mode="noored" aria-pressed="false" aria-controls="dataset-list">Lapsed ja noored</button>
+    </div>
     <div id="dataset-list"></div>
   </nav>
 
@@ -50,6 +54,7 @@
 <script src="js/tables/eurostat-ilc-pw01.js"></script>
 <script src="js/tables/tervisekassa-adapter.js"></script>
 <script src="js/tables/tervisekassa-diagnoosid.js"></script>
+<script src="js/tables/hbsc-ku12.js"></script>
 <script src="js/module.js"></script>
 <script src="js/usage.js"></script>
 <script src="js/ai-prompt.js"></script>

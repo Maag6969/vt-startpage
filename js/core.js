@@ -93,6 +93,12 @@
    * Mitu rühmitust ühes filtris (nt ETU41 Taustatunnus): väärtuseks massiiv, iga rühmitus saab oma nupu; aadressis „vordlus-<liik>“.
    * Kasutavad app.js (nupud, menüü) ja module.js (seeriad, valitud lõige). `buttonLabel` = nupu tekst, `label` = menüü rida ja lõige.
    */
+  /* ETU soo muutuja (TAI.sexVar): rippmenüüs „Kokku | Mehed | Naised“ ja aadressis „mehed/naised“. Teistel soo muutujatel
+     (nt HBSC „Poisid/Tüdrukud“, optionLabels olemas) kasutatakse muutuja enda silte ja aadressis väärtuse koodi. */
+  TAI.isEtuSex = function (config, code) {
+    return code === "Sugu" && !(config.vars.Sugu && config.vars.Sugu.optionLabels);
+  };
+
   var COMPARE_KINDS = {
     sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
             usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
@@ -101,7 +107,11 @@
     rahvus: { flag: "compareNat", label: "Rahvused vrdl", buttonLabel: "Rahvuste võrdlus", buttonId: "compare-nat" },
     kooselu: { flag: "compareCoh", label: "Kooselu vrdl", buttonLabel: "Kooselu võrdlus", buttonId: "compare-coh" },
     aktiivsus: { flag: "compareEco", label: "Majanduslik aktiivsus vrdl", buttonLabel: "Majandusliku aktiivsuse võrdlus", buttonId: "compare-eco" },
-    sissetulek: { flag: "compareInc", label: "Kvintiilid vrdl", buttonLabel: "Sissetulekurühmade võrdlus", buttonId: "compare-inc" }   // M2-s praegu kasutuseta, liigid samad mis M3-s ja skeletis
+    sissetulek: { flag: "compareInc", label: "Kvintiilid vrdl", buttonLabel: "Sissetulekurühmade võrdlus", buttonId: "compare-inc" },   // M2-s praegu kasutuseta, liigid samad mis M3-s ja skeletis
+    // HBSC õdetabelid KU121–123 (19.11.2026): igal tabelil üks lõige, rühmad vaikimisi võrdlusena (config.compareDefault)
+    piirkond: { flag: "compareReg", label: "Piirkonnad vrdl", buttonLabel: "Piirkondade võrdlus", buttonId: "compare-reg" },
+    keel: { flag: "compareLang", label: "Kodukeeled vrdl", buttonLabel: "Kodukeelte võrdlus", buttonId: "compare-lang" },
+    majandus: { flag: "compareEcon", label: "Majanduslik olukord vrdl", buttonLabel: "Majandusliku olukorra võrdlus", buttonId: "compare-econ" }
   };
   var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
 
@@ -116,6 +126,9 @@
         var kind = COMPARE_KINDS[spec.kind], v = config.vars[code];
         var param = specs.length > 1 ? "vordlus-" + spec.kind : "vordlus";
         list.push(Object.assign({}, kind, {
+          // spec.label / spec.buttonLabel kirjutavad liigi sildi üle (nt HBSC: „Poisid vrdl Tüdrukud“, mitte „Mehed vrdl Naised“)
+          label: spec.label || kind.label,
+          buttonLabel: spec.buttonLabel || kind.buttonLabel,
           kind: spec.kind,
           filter: code,
           param: param,

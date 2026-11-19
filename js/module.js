@@ -263,7 +263,7 @@
    * Tulbale ei kehti tema enda võrdlustelje filter (tulbas on kõik rühmad), seepärast oma lause (TAI.breakdownSlice).
    */
   function sliceValueLabel(config, code, val) {
-    if (code === "Sugu") {
+    if (TAI.isEtuSex(config, code)) {
       var o = TAI.SEX_OPTIONS.filter(function (x) { return x[0] === val; })[0];
       if (o) return o[1];
     }
@@ -702,7 +702,11 @@
     Object.keys(config.vars).forEach(function (code) {
       if (code === config.yearVar || code === config.seriesVar) return;
       var v = config.vars[code];
-      if (v.totalValue == null) return;
+      // Koondita filter (nt HBSC KU122 kodukeel: ainult „Eesti“ ja „Mitte-eesti“): valitud väärtus olekust
+      if (v.totalValue == null) {
+        if (state[code] != null && (config.filters || []).indexOf(code) >= 0) sel[code] = state[code];
+        return;
+      }
       sel[code] = state[code] != null ? state[code] : v.totalValue;
     });
     return sel;
@@ -882,6 +886,8 @@
     var parts = [];
     (config.filters || []).forEach(function (code) {
       if (code === config.seriesVar) return;
+      // võrreldav filter ei ole valik (koondita filtril, nt HBSC kodukeel, on olekus esimene rühm, aga näha on kõik)
+      if (TAI.activeComparisonFor(config, state, code)) return;
       var v = config.vars[code];
       if (state[code] != null && state[code] !== v.totalValue) {
         parts.push(v.label.toLowerCase() + " „" + TAI.labelOf(config, code, state[code]) + "“");
