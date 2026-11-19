@@ -75,7 +75,8 @@
         values: COUNTRY_CODES.concat(["EU27_2020"]),
         labels: COUNTRY_LABELS.concat(["EL-27 keskmine"]),
         valence: COUNTRY_VALENCE.concat(["neutral"]),
-        totalValue: "EU27_2020"
+        totalValue: "EU27_2020",
+        totalLabel: "EL-27 keskmine"   // koondrea ja -joone silt tabelis ja graafikul (vaikimisi „Kokku“)
       },
       sex: {
         label: "Sugu",

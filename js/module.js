@@ -1027,7 +1027,7 @@
       var rowTotals = b.totals || b.tableTotals;
       html += '<table class="data-table"><caption>' + esc(b.title) + ", " + esc(yl(config, b.year)) + unitSuffix + captionSlice(TAI.breakdownSlice(model)) + "</caption>" +
         "<thead><tr>" + (b.groups[0].label ? '<th scope="col">Rühm</th>' : "") + '<th scope="col">' + esc(varLabel) + "</th>" + heads + "</tr></thead><tbody>" +
-        (rowTotals ? '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">Kokku</th>' +
+        (rowTotals ? '<tr class="is-total">' + (b.groups[0].label ? "<td></td>" : "") + '<th scope="row">' + esc(config.vars[b.varCode].totalLabel || "Kokku") + "</th>" +
           rowTotals.map(function (v) { return '<td class="num">' + fmt(v) + "</td>"; }).join("") + "</tr>" : "") +
         b.groups.map(function (g) {
           return g.items.map(function (it, i) {
@@ -1236,7 +1236,8 @@
         class: "ref-line", x1: rx, x2: rx, y1: 18 * si + 14, y2: H - 4,
         stroke: nSeries === 1 ? "var(--som-tumesinine)" : s.color
       }));
-      var label = (nSeries > 1 ? s.label + " kokku " : "Kokku ") + fmt(v);
+      var tl = config.vars[b.varCode].totalLabel;   // nt Eurostatil „EL-27 keskmine“ (mitte „Kokku“, kui koond ei ole summa)
+      var label = (nSeries > 1 ? s.label + " " + (tl || "kokku") + " " : (tl || "Kokku") + " ") + fmt(v);
       var anchor = rx > W - 90 ? "end" : rx < barX + 60 ? "start" : "middle";
       refLayer.appendChild(el("text", { class: "ref-label", x: rx, y: 18 * si + 11, "text-anchor": anchor }, label));
     });
