@@ -28,16 +28,20 @@
   var pendingScroll = false;
 
   /* Loendirida nagu M3-s (19.11.2026): pealkiri ja teisel real ainult trendi periood; täielik kirjeldus hiirevihjes ja
-     ekraanilugejale (aria-describedby). Allikalinki menüüs pole (allikas on aruande päises ja jaluses). Teisele reale võib hiljem
-     lisanduda strateegia või arengukava märk (nagu M3 RTA). Valitud real: vaatamiste arv ja laadimise olek. */
+     ekraanilugejale (aria-describedby). Allikalinki menüüs pole (allikas on aruande päises ja jaluses). Teisel real enne perioodi
+     RTA märk ja programm, kui aruanne on täpselt RTA näitaja või programmi mõõdik (js/rta.js; programmi täisnimi ja mõõdik
+     hiirevihjes). Valitud real: vaatamiste arv ja laadimise olek. */
   function datasetRow(t) {
+    var rta = TAI.rtaOf && TAI.rtaOf(primaryOf(t.code));
+    var hint = TAI.describe(t) + (rta ? "\n\n" + rta.hint : "");
     return (
       '<li class="dataset" data-code="' + esc(t.code) + '">' +
-        '<button type="button" class="dataset__button" aria-controls="content" title="' + esc(TAI.describe(t)) + '" ' +
+        '<button type="button" class="dataset__button" aria-controls="content" title="' + esc(hint) + '" ' +
             'aria-labelledby="ds-title-' + esc(t.code) + '" aria-describedby="ds-desc-' + esc(t.code) + '">' +
           '<span class="dataset__title" id="ds-title-' + esc(t.code) + '">' + esc(t.familyTitle || t.title) + "</span>" +
-          '<span class="dataset__desc">' + esc(TAI.yearRangeLabel(t)) + "</span>" +
-          '<span class="visually-hidden" id="ds-desc-' + esc(t.code) + '">' + esc(TAI.describe(t)) + "</span>" +
+          '<span class="dataset__desc">' + (rta ? '<span class="rta-pill">RTA</span> ' + esc(rta.short) + ", " : "") +
+            '<span class="dataset__years">' + esc(TAI.yearRangeLabel(t)) + "</span></span>" +
+          '<span class="visually-hidden" id="ds-desc-' + esc(t.code) + '">' + esc(hint) + "</span>" +
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +

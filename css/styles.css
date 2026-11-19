@@ -26,6 +26,7 @@
   --taust:          #ffffff;
   --joon:           #e7eaea;
   --sinine-15:      #E4ECFF;
+  --rta-taust:      #FFEFC2;   /* RTA märgi pastelne kollakas taust (nagu M3-s, 19.11.2026) */
   --positiivne:     #677c36;
   --negatiivne:     #c0392b;
 
@@ -169,8 +170,13 @@ a:hover { text-decoration-thickness: 2px; }
 .dataset__title {
   grid-column: 1; color: var(--tekst-pealkiri); font-weight: 700; font-size: 1rem; line-height: 1.2;
 }
-/* Teine rida: trendi periood (täielik kirjeldus hiirevihjes ja ekraanilugejal) */
+/* Teine rida: RTA märk ja programm (kui on, js/rta.js) ning trendi periood (täielik kirjeldus hiirevihjes ja ekraanilugejal) */
 .dataset__desc { grid-column: 1; color: var(--tekst-2); font-size: 0.833rem; line-height: 1.2; }
+/* RTA märk nagu M3-s: tumesinine kiri pastelsel kollakal taustal (kontrast > 12:1) */
+.rta-pill {
+  background: var(--rta-taust); color: var(--som-tumesinine); font-weight: 500;
+  border-radius: var(--pill); padding: 0 7px; white-space: nowrap;
+}
 .dataset__chevron {
   grid-column: 2; grid-row: 1 / span 2;
   color: var(--som-tumesinine); font-size: 1.6rem; line-height: 1;
