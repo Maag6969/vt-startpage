@@ -5,8 +5,8 @@
  * kontol avatud teenusesse (kopeerimine ja avamine: app.js). Juhis töötab seega iga mudeliga, ka tasutaga,
  * mistõttu kõik reeglid on tekstis endas.
  *
- * Juhis = ühine struktuur + allika profiil (config.ai.profile) + aruande enda märkused (config.ai.notes) +
- * ekraanil nähtav aruanne. Aruandel ilma config.ai väljata nuppe ei näidata: uue allika reeglid tuleb enne
+ * Juhis = ühine struktuur (prompti mall v3.1, 24.11.2026) + allika profiil (config.ai.profile) + aruande enda märkused
+ * (config.ai.notes) + ekraanil nähtav aruanne. Mudeli vastust leht ei näe ega töötle. Aruandel ilma config.ai väljata nuppe ei näidata: uue allika reeglid tuleb enne
  * läbi mõelda (eriti, mida selle allika number EI tähenda).
  *
  * Aastate märkused tulevad config.years ja config.provisionalYears väljadest, nii et uus aasta ei vaja juhise muutmist.
@@ -20,9 +20,10 @@
     { id: "gemini", label: "Gemini", url: "https://gemini.google.com/app" }
   ];
 
+  // Ühised üldreeglid kõigile aruannetele (prompti mall v3.1, 24.11.2026); aruande enda reeglid on profiilis ja config.ai.notes-is
   var COMMON_RULES = [
     "Ära anna meditsiinilist ega isiklikku nõu ega hinda ühegi inimese tervist.",
-    "Kasuta numbritena ainult allpool antud andmeid. Ära too väljast numbreid ega arvuta näitajaid, mida aruandes pole (nt levimus, määr, inimeste arv).",
+    "Kasuta numbritena ainult allpool antud andmeid. Kahe esitatud väärtuse vahe võid nimetada, kuid ära too väljast numbreid ega arvuta osakaale, keskmisi, suhtarve ega muid näitajaid, mida aruandes pole (nt levimus, määr, inimeste arv).",
     "Ära liida kattuvaid rühmi ega võrdle eri allikate numbreid, nagu mõõdaksid need sama asja.",
     "Ära esita põhjust faktina.",
     "Ära tee rühmade kohta üldistavaid ega häbimärgistavaid väiteid (nt rahvus, haridus, sugu): erinevus kirjeldab andmeid, mitte rühma omadusi.",
@@ -142,25 +143,77 @@
   TAI.aiAvailable = function (config) { return !!(config.ai && PROFILES[config.ai.profile]); };
 
   /* Juhise tekst ilma aruande andmeteta (eraldi, et seda saaks testida ja üle vaadata). */
+  /*
+   * Prompti mall v3.1 (24.11.2026): ühine struktuur kõigile aruannetele; aruande enda osad (mida number tähendab, suunasõnad,
+   * selgitused, soovitused, rahvusvaheline võrdlus, erireeglid) tulevad profiilist (PROFILES) ja config.ai.notes-ist.
+   * Jooniseid prompt ei nõua ega keela: iga AI-teenus teeb oma moodi; tekst peab olema täielik ka ilma joonisteta.
+   * Lingireegel: AI-teenused lisavad vahel ise jälgimisparameetri (nt ?utm_source=chatgpt.com); seepärast ei paluta linke,
+   * vaid allika nime ja otsinguvihjet, ja kui link siiski tuleb, peab see olema puhas põhiaadress.
+   */
   TAI.aiInstructions = function (config) {
     var p = PROFILES[config.ai.profile];
-    var rules = COMMON_RULES.concat(p.rules, config.ai.notes || [], yearNotes(config));
+    var special = (p.rules || []).concat(config.ai.notes || [], yearNotes(config));
     return [
+      "ROLL JA EESMÄRK",
       "Oled " + p.role + ". Allpool on Eesti vaimse tervise näidikulaua üks aruanne koos kasutaja valitud lõikega ja kõigi ekraanil kuvatud andmetega. Kirjuta eesti keeles selge, neutraalse tooniga analüüs, mida saab lugeda ka ilma statistika taustata.",
       "",
+      "MIDA NUMBER TÄHENDAB",
       // config.ai.measure: aruande oma selgitus (nt HBSC kiusamine), muidu profiili oma
-      "Mida number tähendab: " + (config.ai.measure || p.measure),
+      (config.ai.measure || p.measure),
       "",
-      "Kasuta täpselt seda struktuuri:",
-      "1. Lühikirjeldus: mida näitaja mõõdab ja milline lõige on praegu valitud.",
-      "2. Trend või muutus: suund, murdepunktid, erinevused rühmade vahel. Nimeta iga trendiväite juures, mitu andmepunkti seda toetab; kui väide põhineb ühel-kahel andmepunktil, nimeta seda esialgseks märgiks, mitte trendiks. " + p.direction,
-      "3. Seosed ja võimalikud selgitused: märgi iga väide kas „andmetest tulenev“ või „oletus“. Sõnasta oletused ettevaatlikult („võib olla seotud“, „üks võimalik selgitus“); ära kasuta väljendeid „kindlasti“, „ilmselt“ ega „suure tõenäosusega“. " + p.explanations,
-      "4. Soovitused: jaga kaheks: (a) " + p.advice + "; (b) mida andmestik võiks lisaks sisaldada. Sõnasta ettevaatlikult, ilma kategooriliste väideteta. Ära soovita, milliseid filtreid lehel valida: see on lugeja otsus.",
-      "5. Rahvusvaheline võrdlus: kui tead samal teemal usaldusväärset avalikku allikat (nt Eurostat, OECD), nimeta see võimaliku võrdlusallikana. Välisallikast ära too numbreid, ainult viide. Ära leiuta linke; kui sa pole kindel, et leht on olemas, ütle seda. Kirjuta lingid puhtal kujul, ilma jälgimisparameetriteta (nt ilma „?utm_source=…“ lisandita). " + p.international,
-      "6. Piirangud: andmete olemus, ajavahemik ja metoodika. Lõpeta analüüs nende kahe lausega: „See ei ole meditsiiniline nõuanne.“ ja „Kui sul endal on mure, tasub pöörduda perearsti või vaimse tervise spetsialisti poole.“ Telefoninumbreid ega muid kontakte ära lisa.",
+      "VORM",
+      "- Kirjuta kogu vastus eesti keeles.",
+      "- Kasuta lihtteksti. Jaotise pealkiri on eraldi real kujul „1. Lühikirjeldus“, selle all on tavalised lõigud. Ära kasuta markdowni pealkirjamärke (#), tabeleid, paksu kirja ega eraldi esile tõstetud suuri numbreid. Loetelu on lubatud ainult jaotises 4.",
+      "- Pikkus kokku umbes 500–800 sõna.",
+      "- Vastus algab jaotisega 1 ja lõpeb jaotise 6 kahe kohustusliku lausega. Enne jaotist 1 ega pärast viimast lauset ei tohi olla midagi: ei sissejuhatust, kokkuvõtet, pakkumisi (nt „Kui soovid, võin …“) ega küsimusi lugejale.",
+      "- Analüüsi tekst peab olema täielik ka ilma joonisteta: nimeta olulised arvud tekstis. Kui sinu vestlusliides lisab ise jooniseid, kasuta neis ainult allpool antud arve.",
       "",
-      "Reeglid:"
-    ].concat(bullets(rules)).join("\n");
+      "STRUKTUUR (kasuta täpselt seda)",
+      "",
+      "1. Lühikirjeldus",
+      "Mida näitaja mõõdab ja milline lõige on praegu valitud.",
+      "",
+      "2. Trend või muutus",
+      "- Aegrida: kirjelda suunda arvudes („kasvas“, „vähenes“). Nimeta iga trendiväite juures, mitu andmepunkti seda toetab. Kui väide põhineb ühel või kahel andmepunktil, nimeta seda esialgseks märgiks, mitte trendiks. Murdepunkti nimeta ainult siis, kui andmepunkte on selle tuvastamiseks piisavalt; muidu ütle, et seda ei saa eristada.",
+      "- Pooleli aasta: ära tõlgenda selle väiksemat arvu vähenemisena ega suuremat arvu lõpliku suurusena. Võid öelda, et osaline väärtus on juba suurem või väiksem kui eelmise täisaasta oma, ja lisa, et lõplik väärtus ei ole teada.",
+      "- Rühmade võrdlus (nt vanus, sugu, maakond): nimeta kõrgeim ja madalaim väärtus. Kirjelda jaotuse kuju järgmiselt: enne kirjutamist võrdle iga kõrvutiste rühmade paari. Väide „alates rühmast X on iga järgmine väärtus väiksem (või suurem)“ on lubatud ainult siis, kui X on esimene rühm, millest alates see kehtib. Kui suuna sees on lõik väga väikeste erinevustega, kirjelda seda kui aeglasemat muutust, mitte kui suuna katkemist, ja too selle lõigu väärtused.",
+      "- Ühe aasta rühmavõrdlus kirjeldab jaotust, mitte trendi. Nimeta, mitme rühma andmetel kirjeldus põhineb.",
+      "- Kasuta hinnanguliste omadussõnade („märgatav“, „oluline“, „järsk“, „suur“) asemel arve. Sõna „oluline“ ära kasuta statistilises tähenduses.",
+      "- " + p.direction,
+      "",
+      "3. Seosed ja võimalikud selgitused",
+      "- Märgi iga väide lause alguses kas „Andmetest tulenev:“ või „Oletus:“.",
+      "- Sõnasta oletused ettevaatlikult („võib olla seotud“, „üks võimalik selgitus“). Ära kasuta väljendeid „kindlasti“, „ilmselt“ ega „suure tõenäosusega“.",
+      "- " + p.explanations,
+      "",
+      "4. Soovitused",
+      "(a) " + p.advice + ". Ära esita küsimusi, mis eeldavad isikute või rühmade liitmist (nt „milliste rühmade kasvu arvelt koguarv kasvas“); küsi selle asemel, kas andmeomanikul on selline lõige olemas. Kui aruande väljad (pealkiri, kirjeldus, märkused, metaandmed) on omavahel vastuolus, sõnasta see küsimusena andmeomanikule ja ära lahenda vastuolu ise.",
+      "(b) Mida andmestik võiks lisaks sisaldada.",
+      "Sõnasta ettevaatlikult, ilma kategooriliste väideteta. Ära soovita, milliseid filtreid lehel valida: see on lugeja otsus.",
+      "",
+      "5. Rahvusvaheline võrdlus",
+      "- Kui tead samal teemal usaldusväärset avalikku allikat (nt Eurostat, OECD, WHO), nimeta 1–3 neist asutuse ja väljaande või andmetabeli nimega võimaliku võrdlusallikana.",
+      "- Välisallikast ära too ühtegi arvu: mitte väärtusi, osakaale, näitajate arvu ega uuringulainete aastaid. Väljaande ilmumisaasta viites on lubatud.",
+      "- Ära lisa linke: nimeta allikas (asutus, väljaande või andmetabeli nimi) ja kust seda otsida. Kui sa siiski lisad lingi, peab see olema puhas põhiaadress, kus pole küsimärgi järel midagi: ilma jälgimisparameetriteta (nt ilma „?utm_source=chatgpt.com“, „?utm_source=claude“, „?utm_source=gemini“, „fbclid“ ega „gclid“ lisandita). Ära leiuta linke.",
+      "- Ütle, et välisallika arvud ei ole selle aruande arvudega otse võrreldavad, ja kui tead, nimeta lühidalt põhjus (nt küsitlusandmed vs arveandmed). " + p.international,
+      "",
+      "6. Piirangud",
+      "Andmete olemus, ajavahemik ja metoodika. Lõpeta analüüs täpselt nende kahe lausega:",
+      "„See ei ole meditsiiniline nõuanne.“",
+      "„Kui sul endal on mure, tasub pöörduda perearsti või vaimse tervise spetsialisti poole.“",
+      "Nende järel ei tohi olla midagi. Telefoninumbreid ega muid kontakte ära lisa.",
+      "",
+      "ÜLDREEGLID"
+    ].concat(bullets(COMMON_RULES), [
+      "",
+      "ENNE VASTAMIST KONTROLLI (ära näita kontrolli vastuses)",
+      "- Iga arv on aruandes olemas samal kujul (tühik tuhandete eraldajana, koma kümnendmärgina).",
+      "- Iga järjestuse väide („kõrgeim“, „madalaim“, „alates … väheneb“) on kontrollitud kõrvutiste väärtustega.",
+      "- Igal trendiväitel on andmepunktide arv.",
+      "- Jaotises 3 on iga väide märgistatud.",
+      "- Jaotises 5 ei ole välisallika arve ega linke jälgimisparameetritega (kui linke üldse on).",
+      "- Vastus algab jaotisega 1 ja lõpeb kahe kohustusliku lausega; nende järel pole midagi."
+    ], special.length ? ["", "SELLE ARUANDE ERIPÄRAD"].concat(bullets(special)) : []).join("\n");
   };
 
   // Väliste linkide märge („↗ avaneb uues aknas“, TAI.externalLink) on ekraanilugeja jaoks, juhises oleks see müra
