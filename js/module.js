@@ -433,8 +433,11 @@
       if ((cur + " " + w).trim().length <= maxChars || !cur) lines[lines.length - 1] = (cur + " " + w).trim();
       else lines.push(w);
     });
-    if (lines.length > 2) lines = [lines[0], lines.slice(1).join(" ")];
-    return lines;
+    // Kuni 3 rida; mis ei mahu, lõigatakse „…“-ga (kitsal ekraanil jäi pikk nimi muidu joonise servast välja).
+    // Täisnimi on tulba hõljumisel (aria-label, data-label) ja andmetabelis.
+    var MAX_LINES = 3;
+    if (lines.length > MAX_LINES) lines = lines.slice(0, MAX_LINES - 1).concat([lines.slice(MAX_LINES - 1).join(" ")]);
+    return lines.map(function (l) { return l.length > maxChars ? l.slice(0, maxChars - 1).trimEnd() + "…" : l; });
   }
 
   /** format: tabeli enda väärtuse vormindaja; vaikimisi protsent (vana mudel). */

@@ -18,11 +18,13 @@ Repos on ainult leht ja selle andmed. Arendus- ja abifailid hoitakse eraldi.
 | **ETU42** | Emotsionaalse distressi esinemine soo ja vanuserühma järgi | sama | otse TAI PxWeb API-st |
 | **ETU43** | Uneaja piisavus soo ja vanuserühma järgi | sama | otse TAI PxWeb API-st |
 | **TK-diagnoosid** | Diagnoosid raviandmetes: depressioon (F32, F33) | [Tervisekassa avaandmed](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed) | ettevalmistatud failid kaustas `data/tervisekassa/` |
+| **TK-erialad** | Psühhiaatria ja psühholoogia erialad: psühhiaatria, lastepsühhiaatria ja iseseisva psühholoogia eriala kõik teenused (ka kokku); isikud, arved, teenuste hulk ja kulu aastate kaupa, soo, vanuserühma, maakonna ja diagnoosirühma järgi | [Tervisekassa avaandmed](https://tervisekassa.ee/koik-teenused), aruanne „Tervishoiuteenuste kasutus ja kulud“ | ettevalmistatud fail `data/tervisekassa/psyh.json` |
+| **TK-teenused** | Psühhoteraapia ja psühholoogi teenused (15 teenusekoodi) olenemata erialast, teenuserühmade, soo, vanuserühma ja maakonna järgi | sama | sama |
 | **ilc_pw01** | Eluga rahulolu soo, vanuse ja hariduse lõikes, riikide võrdluses | [Eurostat](https://ec.europa.eu/eurostat/databrowser/product/view/ilc_pw01) | otse Eurostati API-st |
 | **KU12**, KU121–KU123 | Depressiivsete episoodide esinemine kooliõpilaste seas viimasel 12 kuul: soo ja vanuse (11, 13, 15), piirkonna, kodukeele ja pere majandusliku olukorra järgi (vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__05Uuringud__03HBSC__01Tervis/), Kooliõpilaste tervisekäitumise uuring (HBSC) | otse TAI PxWeb API-st |
 | **KU1150**, KU1151–KU1153; **KU11**, KU111–KU113 | Masenduse või kurbuse tundmine viimase kuue kuu jooksul; tervise enesehinnang (samad lõiked, vaade „Lapsed ja noored“) | sama, HBSC | otse TAI PxWeb API-st |
 | **KU81**, KU811–KU813; **KU82**, KU821–KU823 | Koolis kiusamist ja küberkiusamist kogenud õpilased viimasel paaril kuul (samad lõiked, vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__05Uuringud__03HBSC__08Kiusamine/), HBSC | otse TAI PxWeb API-st |
-| **PKH4** | Psühhiaatria haiglaravilt väljakirjutatud, voodipäevad ja keskmine ravikestus diagnoosirühma ja vanuserühma (0–14, 15+) järgi (vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__02Haigestumus__05Psyyhikahaired/) | otse TAI PxWeb API-st |
+| **PKH4** | Psühhiaatria haiglaravilt väljakirjutatud, voodipäevad ja keskmine ravikestus diagnoosirühma järgi, kõik vanused alates 1997 ja vanuserühmad (0–14, 15+) alates 2011 (vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__02Haigestumus__05Psyyhikahaired/) | otse TAI PxWeb API-st |
 | **VIG13**, VIG10 | Ravi vajanud tahtlik enesekahjustus (X60–X84): inimesed ja juhud soo, vanuserühma ja elukoha järgi | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__02Haigestumus__09Vigastused/) | otse TAI PxWeb API-st |
 | **SD21** | Enesetapu tõttu surnute arv soo ja vanuserühma järgi | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__01Rahvastik__04Surmad/), surma põhjuste register | otse TAI PxWeb API-st |
 | **PH01** | Psüühika- ja käitumishäirete (F00–F99) tõttu haiglast lahkunud soo ja vanuserühma järgi | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__03Tervishoiuteenused__02Paevaravi/) | otse TAI PxWeb API-st |
@@ -40,7 +42,7 @@ ega fontidele**: neile kehtivad allikate endi tingimused allpool.
 | ETU41–ETU43 andmed | Tervise Arengu Instituut | Andmebaasi kasutamine on tasuta ja TAI palub andmete kasutamisel viidata allikale: kõigepealt algallikas (Eesti terviseuuring), siis avaldamiskanal (TAI tervisestatistika andmebaas) ja kasutamise kuupäev ([andmebaasi info](https://statistika.tai.ee/Resources/Info/TSTUA.html)). Eraldi nimelist litsentsi (nt CC BY) TAI ei ole välja toonud. |
 | KU12, KU121–KU123 andmed | Tervise Arengu Instituut | Samad TAI andmebaasi tingimused (kontrollitud 19.11.2026): viidatakse TAI-le ja täpsemale allikale, siin algallikas Kooliõpilaste tervisekäitumise uuring (HBSC) ja uuringuaastad, seejärel andmebaas, tabel ja kasutamise kuupäev. Lehel on see vaate staatusreal ja jaluses. |
 | Teised TAI tabelid (HBSC KU11, KU1150, KU81, KU82 ja nende õdetabelid; PKH4, VIG13, VIG10, SD21, PH01) | Tervise Arengu Instituut | Samad TAI andmebaasi tingimused: algallikas (HBSC, vigastuste andmed, surma põhjuste register, psüühikahäirete aruanne, haiglaravi andmed), siis TAI andmebaas, tabel ja kasutamise kuupäev. Lehel on see vaate staatusreal ja jaluses. |
-| Tervisekassa andmed (`data/tervisekassa/`) | Tervisekassa | Andmed on Tervisekassa avalikult avaldatud väljavõtted ([allikaleht](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed)). Allikalehel ei ole litsentsi ega kasutustingimusi märgitud, seega kasutatakse andmeid allikaviitega. Failid on allika väljavõtetest JSON-kujule teisendatud; enne edasikasutamist on kindlam vaadata algallikat. |
+| Tervisekassa andmed (`data/tervisekassa/`) | Tervisekassa | Andmed on Tervisekassa avalikult avaldatud väljavõtted ([vaimse tervise andmed](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed), [tervishoiuteenuste kasutus ja kulud](https://tervisekassa.ee/koik-teenused)). Allikalehel ei ole litsentsi ega kasutustingimusi märgitud, seega kasutatakse andmeid allikaviitega. Failid on allika väljavõtetest JSON-kujule teisendatud; enne edasikasutamist on kindlam vaadata algallikat. |
 | Eurostati andmed (ilc_pw01) | Euroopa Liit, Eurostat | Taaskasutus on lubatud allikale viidates ([Eurostati autoriõiguse teade](https://ec.europa.eu/eurostat/en/help/copyright-notice), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). Allikas: Eurostat, ilc_pw01. Lehel on andmeid töödeldud: valitud riigid ja rühmad, eestikeelsed nimetused, joonised ja kokkuvõttelaused. Eurostat ei vastuta selle lehe ega andmete töötlemise eest. |
 | Font Roboto (`fonts/`) | The Roboto Project Authors | [SIL Open Font License 1.1](fonts/OFL.txt) |
 
@@ -51,22 +53,20 @@ Näidikulaud ei ole ühegi andmeallika ametlik väljaanne. Ametlikud arvud ja me
 - **Lehel ei ole isiklikke võtmeid, tokeneid ega kontosid.** Kõik andmepäringud teeb külastaja brauser otse
   avalikku, autentimist mittevajavasse teenusesse. Kui tulevikus lisandub allikas, mis nõuab autentimist, tuleb
   see enne kasutuselevõttu eraldi läbi arutada.
-- **Vaatamiste loendur:** leht loendab ligikaudselt vaatamisi ja nupuvajutusi avaliku teenusega
-  [Abacus](https://abacus.jasoncameron.dev) (`js/usage.js`). Teenus näeb külastaja IP-aadressi ja loenduri nime;
-  lehe omanik IP-aadresse ei näe. Küpsiseid ei kasutata. Sama teade on lehe jaluses.
+- **Külastusi ei loendata:** lehel ei ole vaatamiste loendurit ega analüütikat. Küpsiseid ei kasutata. Sama teade on lehe jaluses.
 - **AI-nupud** lehe päises (Claude, ChatGPT, Gemini; üks komplekt kogu lehele, nad analüüsivad parajasti avatud aruannet) kopeerivad vaate andmed (valitud filtreid arvestades) koos
   ettevalmistatud analüüsi prompt'iga külastaja lõikelauale ja avavad valitud AI-teenuse külastaja enda brauseris,
   lahti seotuna näidikulaua aknast (`window.opener = null`). Seal kehtivad selle teenuse tingimused külastaja konto
   võimaluste järgi ning analüüsi kvaliteet sõltub valitud AI-mudelist (tasuta teenus võib anda väga halva tulemuse).
   AI poolne kirjeldav analüüs on eraldiseisev teenus, mille tulemus ei ole seotud näidikulauaga. Sama teade on lehe jaluses.
 - **Sisupoliitika (CSP)** `index.html`-is: skriptid, stiilid ja fondid ainult lehelt endalt; päringud ainult
-  andmeallikatele ja loendurile. Väliseid skripte ega CDN-e ei kasutata; väline tekst puhastatakse enne kuvamist.
+  andmeallikatele. Väliseid skripte ega CDN-e ei kasutata; väline tekst puhastatakse enne kuvamist.
 
 ## Tehniline ülevaade
 
 Leht koosneb staatilistest failidest GitHub Pagesil, ilma serveripoolse loogika ja build-sammuta.
 Skriptid on tavalised `<script>`-failid, mitte ES-moodulid, nii et leht töötab ka failina avatuna.
-Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `usage.js` → `ai-prompt.js` → `app.js`.
+Laadimisjärjekord: `core.js` → tabelifailid → `module.js` → `ai-prompt.js` → `app.js`.
 
 ```
 index.html                  leht (loend, kuvamisala, CSP)
@@ -77,7 +77,6 @@ js/core.js                  ühine tuummoodul, nimeruum window.TAI
 js/module.js                mooduli sisu: andmemudel, KPI-d, automaatne kokkuvõte, SVG-graafikud, andmetabel.
                             Kaks mudelit: "Indicator" (ETU, binaarne osakaal + soo võrdlus) ja üldine
                             "General" (suvaline seeriamuutuja, Eurostat, Tervisekassa)
-js/usage.js                 vaatamiste loendur (Abacus)
 js/ai-prompt.js             AI-analüüsi juhis (ühine osa + allika profiil + ekraanil nähtav aruanne)
 js/app.js                   lehe loogika: loend, valik (#KOOD aadressis), olekud, filtrid, jalus
 js/tables/etu41.js … 43.js  TAI tabelite konfiguratsioonid

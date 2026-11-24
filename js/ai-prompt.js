@@ -69,6 +69,22 @@
         "Ära arvuta määrasid (nt 100 000 elaniku kohta): rahvaarve aruandes ei ole."
       ]
     },
+    // Tervisekassa teenusmahud (24.11.2026): psühhiaatria ja psühholoogi teenused, aruanne „Tervishoiuteenuste kasutus ja kulud“ (TERVISEKASSA.md jaotis 9)
+    tervisekassaTeenused: {
+      role: "tervishoiuteenuste kasutuse analüütik",
+      measure: "Numbrid on Tervisekassa rahastatud teenuste maht makstud arvete järgi: isikute arv, arvete arv, teenuste hulk või kulu Tervisekassale. Need näitavad teenuste kasutust, mitte seda, kui paljudel inimestel on psüühikahäire.",
+      direction: "Kirjelda muutust arvudes („kasvas“, „vähenes“). Ära nimeta teenuste mahu muutust vaimse tervise paranemiseks ega halvenemiseks.",
+      explanations: "Selgitustena võid oletusena nimetada teenuse pakkumise, rahastamise, kättesaadavuse ja abi otsimise muutusi. Kliinilisi väiteid ära tee: ära väida midagi haiguse esinemise ega ravi tulemuste kohta.",
+      advice: "ainult küsimused andmeomanikule (Tervisekassa) ja edasiseks uurimiseks; ära soovita ravi ega rahastamise muudatusi",
+      international: "Ära väida, et need arvud on teiste riikide andmetega võrreldavad.",
+      rules: [
+        "Ära liida isikute arvu aastate, erialade, teenuste ega diagnoosirühmade vahel: sama inimene võib olla mitmes. Ära arvuta ka „perioodi isikuid“.",
+        "Arvete arvu ei saa teenuste vahel liita: üks arve võib sisaldada mitut teenust.",
+        "Teenuste hulk ei ole inimeste arv ja arvete arv ei ole visiitide arv.",
+        "Diagnoosirühm on arvele märgitud diagnoos (F00–F99), mitte teenuse põhjus; diagnoosirühmade arvud ei ole valdkonna kogumaht.",
+        "Ära arvuta määrasid (nt 100 000 elaniku kohta): rahvaarve aruandes ei ole."
+      ]
+    },
     // TAI registrid (19.11.2026): enesekahjustus VIG13/VIG10, enesetapud SD21, haiglaravi PH01 ja PKH4. Arvud, mitte määrad.
     register: {
       role: "rahvatervise statistika analüütik",

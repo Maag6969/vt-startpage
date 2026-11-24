@@ -14,7 +14,7 @@
   function range(from, to) { var out = []; for (var y = from; y <= to; y++) out.push(String(y)); return out; }
   function codes(n) { var out = []; for (var i = 0; i < n; i++) out.push(String(i)); return out; }
 
-  var SEX = { label: "Sugu", values: ["0", "1", "2"], labels: ["Mehed ja naised", "Mehed", "Naised"], totalValue: "0" };
+  var SEX = { label: "Sugu", values: ["0", "1", "2"], labels: ["Kokku", "Mehed", "Naised"], totalValue: "0" };
   function sex() { return Object.assign({}, SEX, { values: SEX.values.slice(), labels: SEX.labels.slice() }); }
 
   function queries(code, filterCodes, breakdownVar) {
@@ -33,10 +33,10 @@
 
   // ---- Tahtlik enesekahjustus: VIG13 inimesed, VIG10 juhud (õdetabelid) ----
   var VIG_SIBLINGS = [{ code: "VIG13", label: "Inimesed" }, { code: "VIG10", label: "Juhud" }];
-  var VIG_AGES = ["Kõik vanused", "0–17", "18 ja vanemad", "0", "1–4", "5–14", "15–24", "25–34", "35–44", "45–54", "55–64",
+  var VIG_AGES = ["Kokku", "0–17", "18 ja vanemad", "0", "1–4", "5–14", "15–24", "25–34", "35–44", "45–54", "55–64",
                   "65–74", "75–84", "85 ja vanemad", "Vanus teadmata"];
   var VIG_PLACES = { values: ["0", "00", "37", "39", "45", "50", "52", "56", "60", "64", "68", "71", "74", "79", "81", "84", "87", "999", "9999", "99999"],
-    labels: ["Kõik elukohad", "Eesti", "Harju maakond", "Hiiu maakond", "Ida-Viru maakond", "Jõgeva maakond", "Järva maakond", "Lääne maakond",
+    labels: ["Elukohad kokku", "Eesti", "Harju maakond", "Hiiu maakond", "Ida-Viru maakond", "Jõgeva maakond", "Järva maakond", "Lääne maakond",
              "Lääne-Viru maakond", "Põlva maakond", "Pärnu maakond", "Rapla maakond", "Saare maakond", "Tartu maakond", "Valga maakond",
              "Viljandi maakond", "Võru maakond", "Maakond teadmata", "Elukoht väljaspool Eestit", "Elukoht teadmata"] };
   var VIG_NOTES = [
@@ -44,7 +44,7 @@
       "Arv näitab ravi vajanud juhtumeid, mitte kõiki enesekahjustusi: arsti juurde mitte jõudnud juhtumid siin ei kajastu.",
     "TAI märkus: ühe aasta andmetes on ka varem saadud vigastused, mis vajasid jätkuvalt ravi; aasta lõpus saadud vigastus võib jääda järgmise aasta andmetesse.",
     "Inimesed (VIG13): iga inimene on ühe välispõhjuse rühmas üks kord, olenemata vigastuste arvust aastas. Juhud (VIG10): vigastusjuhtude arv.",
-    "Vanuserühmad 0–17 ja 18 ja vanemad on koondrühmad; neid ei saa liita teiste vanuserühmadega. Elukoht on rahvastikuregistri järgi; „Elukoht teadmata“ on „Kõik elukohad“ all, kuid mitte „Eesti“ all.",
+    "Vanuserühmad 0–17 ja 18 ja vanemad on koondrühmad; neid ei saa liita teiste vanuserühmadega. Elukoht on rahvastikuregistri järgi; „Elukoht teadmata“ on „Elukohad kokku“ all, kuid mitte „Eesti“ all.",
     "Mõisted ja metoodika: Tervise Arengu Instituudi andmebaasis tabeli juures."
   ];
 
@@ -90,7 +90,7 @@
   registerVig("VIG10", "juhud", "Ravi vajanud tahtliku enesekahjustuse juhtude arv");
 
   // ---- Enesetapud SD21 (aastane arv) ----
-  var SD_AGES = ["Kõik vanused", "0", "1–9", "10–14", "0–17", "15–19", "20–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54",
+  var SD_AGES = ["Kokku", "0", "1–9", "10–14", "0–17", "15–19", "20–24", "25–29", "30–34", "35–39", "40–44", "45–49", "50–54",
                  "55–59", "60–64", "65–69", "70–74", "75–79", "80–84", "85 ja vanemad", "85–89", "90–94", "95–99", "100 ja vanemad", "Vanus teadmata"];
   TAI.registerTable(Object.assign({
     code: "SD21",
@@ -134,7 +134,7 @@
   }, COUNT));
 
   // ---- Psüühika- ja käitumishäirete tõttu haiglast lahkunud PH01 ----
-  var PH_AGES = ["Kõik vanused", "0", "1–4", "5–9", "10–14", "15–19", "20–24", "25–34", "35–44", "45–54", "55–64", "65–74",
+  var PH_AGES = ["Kokku", "0", "1–4", "5–9", "10–14", "15–19", "20–24", "25–34", "35–44", "45–54", "55–64", "65–74",
                  "75 ja vanemad", "75–84", "85 ja vanemad"];
   TAI.registerTable(Object.assign({
     code: "PH01",
@@ -192,15 +192,15 @@
   TAI.registerTable({
     code: "PKH4",
     title: "Psühhiaatriline haiglaravi",
-    fullTitle: "Psühhiaatriline haiglaravi: lapsed (0–14) ja vanemad",
-    description: "Psühhiaatria haiglaravilt väljakirjutatud, voodipäevad ja keskmine ravikestus diagnoosirühma ja vanuserühma (0–14, 15+) järgi, 2011–2025.",
+    fullTitle: "Psühhiaatriline haiglaravi: kõik vanused, lapsed (0–14) ja vanemad",
+    description: "Psühhiaatria haiglaravilt väljakirjutatud, voodipäevad ja keskmine ravikestus diagnoosirühma järgi, 1997–2025; vanuserühmade (0–14, 15+) jaotus 2011–2025.",
     eyebrow: "Psüühikahäired · PKH4",
     group: "Tervise Arengu Instituut",
     listView: "noored",
     taiPath: "02Haigestumus/05Psyyhikahaired",
-    ai: { profile: "register", notes: ["Vanuserühmi on ainult kaks: 0–14 ja 15 ja vanemad. 15–17-aastased on rühmas 15 ja vanemad koos täiskasvanutega; ära tee nende kohta eraldi järeldusi."] },
+    ai: { profile: "register", notes: ["Vanuserühm „Kokku“ (kõik vanused) on andmed alates 1997; vanuserühmi on ainult kaks: 0–14 ja 15 ja vanemad, need on alates 2011. 15–17-aastased on rühmas 15 ja vanemad koos täiskasvanutega; ära tee nende kohta eraldi järeldusi."] },
 
-    years: range(2011, 2025),
+    years: range(1997, 2025),
     yearVar: "Aasta",
     seriesVar: "Väljakirjutatud ja ravikestus",
     measureLabel: function (state) { return PKH_MEASURES[Number(pkhMeasure(state))]; },
@@ -212,12 +212,12 @@
     // keskmine ravikestus on TAI tabelis 0, kui ravijuhte polnud: see ei ole kestus, vaid andmete puudumine
     zeroIsMissing: function (state) { return pkhMeasure(state) === "2"; },
     vars: {
-      Aasta: { label: "Aasta", values: range(2011, 2025), labels: range(2011, 2025) },
+      Aasta: { label: "Aasta", values: range(1997, 2025), labels: range(1997, 2025) },
       "Diagnoos (RHK-10)": {
         label: "Diagnoos", param: "diagnoos", values: PKH_DIAG.values.slice(), labels: PKH_DIAG.labels.slice(),
         optionLabels: PKH_DIAG.labels.map(function (l, i) { return i ? "– " + l : l; }), totalValue: "F00-F98"
       },
-      "Vanuserühm": { label: "Vanuserühm", values: ["0", "1", "2"], labels: ["Kõik vanused", "0–14", "15 ja vanemad"], totalValue: "0", defaultValue: "1" },
+      "Vanuserühm": { label: "Vanuserühm", values: ["0", "1", "2"], labels: ["Kokku", "0–14", "15 ja vanemad"], totalValue: "0", defaultValue: "0" },
       "Väljakirjutatud ja ravikestus": {
         label: "Näitaja", param: "naitaja", values: ["0", "1", "2"], labels: ["Haiglast väljakirjutatud", "Voodipäevad", "Keskmine ravikestus (päeva)"],
         defaultValue: "0", valence: ["neutral", "neutral", "neutral"]
@@ -234,7 +234,7 @@
     queries: queries("PKH4", ["Väljakirjutatud ja ravikestus", "Vanuserühm", "Diagnoos (RHK-10)"], "Diagnoos (RHK-10)"),
     footnotes: [
       "Psühhiaatriahaigla, -osakonna või psühhiaatrilise voodiprofiiliga haigla statsionaarsed ravijuhud lõpliku kliinilise põhidiagnoosi järgi (TAI märkus).",
-      "Vanuserühmi on kaks: 0–14 ja 15 ja vanemad; 15–17-aastased on koos täiskasvanutega. Vanuserühma kaupa on andmed alates 2011. aastast.",
+      "Vanuserühm „Kokku“ (kõik vanused) on andmed alates 1997. aastast. Vanuserühmi on kaks: 0–14 ja 15 ja vanemad; 15–17-aastased on koos täiskasvanutega. Vanuserühma kaupa on andmed alates 2011. aastast (varasemad aastad: „andmed puuduvad“).",
       "Väljakirjutatute ja voodipäevade arv on arvud, mitte määrad. Keskmine ravikestus on päevades; kui ravijuhte ei olnud, on TAI tabelis 0 ja siin „andmed puuduvad“.",
       "Andmed kogutakse iga-aastase aruandega „Psüühika- ja käitumishäired“. Mõisted ja metoodika: Tervise Arengu Instituudi andmebaasis tabeli juures."
     ]

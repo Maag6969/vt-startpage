@@ -111,7 +111,7 @@
 
   var COMPARE_KINDS = {
     sugu: { flag: "compareSexes", label: "Mehed vrdl Naised", buttonLabel: "Sooline võrdlus", buttonId: "compare-sexes",
-            usageOn: "compare", colors: ["var(--series-1)", "var(--series-2)"] },
+            colors: ["var(--series-1)", "var(--series-2)"] },
     vanus: { flag: "compareAges", label: "Vanuserühmad vrdl", buttonLabel: "Vanuserühmade võrdlus", buttonId: "compare-ages" },
     haridus: { flag: "compareEdu", label: "Haridustasemed vrdl", buttonLabel: "Haridustasemete võrdlus", buttonId: "compare-edu" },
     rahvus: { flag: "compareNat", label: "Rahvused vrdl", buttonLabel: "Rahvuste võrdlus", buttonId: "compare-nat" },
@@ -121,7 +121,10 @@
     // HBSC õdetabelid KU121–123 (19.11.2026): igal tabelil üks lõige, rühmad kõrvuti võrdlusnupuga
     piirkond: { flag: "compareReg", label: "Piirkonnad vrdl", buttonLabel: "Piirkondade võrdlus", buttonId: "compare-reg" },
     keel: { flag: "compareLang", label: "Kodukeeled vrdl", buttonLabel: "Kodukeelte võrdlus", buttonId: "compare-lang" },
-    majandus: { flag: "compareEcon", label: "Majanduslik olukord vrdl", buttonLabel: "Majandusliku olukorra võrdlus", buttonId: "compare-econ" }
+    majandus: { flag: "compareEcon", label: "Majanduslik olukord vrdl", buttonLabel: "Majandusliku olukorra võrdlus", buttonId: "compare-econ" },
+    // Tervisekassa teenusmahud (24.11.2026, ainult M2): erialad joontena, maakonnad tulpadena (aruande enda buildModel)
+    eriala: { flag: "compareSpec", label: "Erialad vrdl", buttonLabel: "Erialade võrdlus", buttonId: "compare-spec" },
+    maakond: { flag: "compareCounty", label: "Maakonnad vrdl", buttonLabel: "Maakondade võrdlus", buttonId: "compare-county" }
   };
   var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
 
@@ -140,12 +143,11 @@
           label: spec.label || kind.label,
           buttonLabel: spec.buttonLabel || kind.buttonLabel,
           kind: spec.kind,
+          bars: !!spec.bars,   // võrdlus tulpdiagrammina (aruande buildModel), mitte joontena; regressioon kontrollib tulpi
           filter: code,
           param: param,
           values: spec.values || v.values.filter(function (x) { return x !== v.totalValue; }),
-          colors: spec.colors || kind.colors || GROUP_COLORS,
-          usageOn: kind.usageOn || param,
-          usageOff: v.totalValue
+          colors: spec.colors || kind.colors || GROUP_COLORS
         }));
       });
     });
@@ -228,7 +230,7 @@
     return {
       label: "Sugu",
       values: ["0", "1", "2"],
-      labels: ["Mehed ja naised", "Mehed", "Naised"],
+      labels: ["Kokku", "Mehed", "Naised"],
       totalValue: "0",
       elimination: !!elimination
     };

@@ -104,8 +104,6 @@ a:hover { text-decoration-thickness: 2px; }
   font-size: 2rem;          /* 1.6rem × 1,25 */
   line-height: 1.25;
 }
-.site-header__views { margin: 2px 0 0; font-size: 0.875rem; color: var(--tekst-2); font-variant-numeric: tabular-nums; }
-.site-header__views[hidden] { display: none; }
 /* Pealkiri ja selle kõrval „Avaleht“ (19.11.2026): link viib avalehele (tühi olek, nagu lehe esmakordsel avamisel) */
 .site-header__row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 18px; }
 .home-link {
@@ -131,7 +129,6 @@ a:hover { text-decoration-thickness: 2px; }
   .site-top.is-stuck .site-header__row { flex-wrap: nowrap; align-items: center; }
   .site-top.is-stuck .site-header h1 { font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .site-top.is-stuck .home-link { flex: 0 0 auto; }
-  .site-top.is-stuck .site-header__views { display: none; }
   .site-top.is-stuck .ai-box { flex: 0 0 auto; flex-wrap: nowrap; }
   .site-top.is-stuck .ai-box__row { flex-wrap: nowrap; }
   .site-top.is-stuck .ai-box__label, .site-top.is-stuck .ai-box__btn { white-space: nowrap; }
@@ -167,7 +164,7 @@ a:hover { text-decoration-thickness: 2px; }
 .dataset-list { list-style: none; margin: 0; padding: 0; }
 
 /* Loend nagu M3-s (19.11.2026): paks pealkiri, teisel real ainult periood, sinine rühmapealkiri, M3 kirjasuurused
-   ja vahed; allikalinki menüüs pole, valitud real vaatamiste arv ja olek. */
+   ja vahed; allikalinki menüüs pole, valitud real laadimise olek. */
 
 /* Rühmapealkiri (allikas): sinine, veidi suurem kui teemade pealkirjad */
 .dataset-group-heading {
@@ -215,15 +212,13 @@ a:hover { text-decoration-thickness: 2px; }
   color: var(--som-tumesinine); font-size: 1.6rem; line-height: 1;
 }
 
-/* Valitud real: vaatamiste arv ja laadimise olek */
+/* Valitud real: laadimise olek */
 .dataset__footer {
   display: flex; flex-wrap: wrap; align-items: center; gap: 2px 16px;
   padding: 0 20px 8px 24px;
   font-size: 0.75rem; color: var(--tekst-2); line-height: 1.2;
 }
 .dataset:not(.is-active) .dataset__footer { display: none; }
-.dataset__views { font-variant-numeric: tabular-nums; }
-.dataset__views[hidden] { display: none; }
 .dataset__status { display: inline-flex; align-items: center; gap: 6px; }
 .dataset__status.is-error { color: var(--negatiivne); font-weight: 500; }
 
@@ -536,7 +531,7 @@ svg.chart .mark:focus-visible { stroke: var(--som-tumesinine); stroke-width: 3; 
 @media print {
   @page { margin: 15mm; }
   html, body { font-size: 11pt; }
-  .skip-link, .panel-list, .back-link, .home-link, .filters, .dataset__status, .site-header__views,
+  .skip-link, .panel-list, .back-link, .home-link, .filters, .dataset__status,
   .module__status, .ai-box, .ai-toast, .btn, .error-box__upload, .data-details summary, .tooltip { display: none !important; }
   .print-only { display: block; }
 

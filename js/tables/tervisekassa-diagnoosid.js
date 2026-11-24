@@ -19,9 +19,9 @@
   var YEAR_LABELS = YEARS.map(function (y) { return PROVISIONAL.indexOf(y) >= 0 ? y + " (pooleli)" : y; });
   var AGE_VALUES = ["kokku", "0-18", "19-24", "25-34", "35-64", "65+"];
   // Vanuserühmade piirid on allika omad (0–18 ei ole 0–17).
-  var AGE_LABELS = ["Kõik vanused", "0–18", "19–24", "25–34", "35–64", "65+"];
+  var AGE_LABELS = ["Kokku", "0–18", "19–24", "25–34", "35–64", "65+"];
   var DIAGNOSES = {
-    F32F33: { short: "F32 + F33", label: "F32 + F33 (ühine valik)" },
+    F32F33: { short: "F32 + F33", label: "F32 + F33 (kokku)" },
     F32: { short: "F32", label: "F32 Depressiivne episood" },
     F33: { short: "F33", label: "F33 Korduv depressiivne häire" }
   };
@@ -120,7 +120,7 @@
 
     var unsupported = series.some(function (s) { return !store.isSupported(diag, s.sugu); });
     if (unsupported) {
-      model.notice = TK.UNSUPPORTED_MESSAGE + ". Soo järgi on väljavõte olemas ainult ühise valiku F32 + F33 kohta; " +
+      model.notice = TK.UNSUPPORTED_MESSAGE + ". Soo järgi on väljavõte olemas ainult valiku F32 + F33 (kokku) kohta;" +
         "F32 ja F33 eraldi on olemas ainult valikuga „Kokku“. Puuduvat väärtust ei tuletata teistest arvudest.";
       return model;
     }
@@ -295,10 +295,10 @@
     var o = model.overlap;
     if (o && o.f32 != null && o.f33 != null && o.joint != null) {
       if (state.Diagnoos === "F32F33") {
-        sentences.push("F32 eraldi on " + formatCount(o.f32) + " ja F33 eraldi " + formatCount(o.f33) + " isikut, kuid ühise valiku väärtus on " +
+        sentences.push("F32 eraldi on " + formatCount(o.f32) + " ja F33 eraldi " + formatCount(o.f33) + " isikut, kuid F32 + F33 (kokku) väärtus on " +
           formatCount(o.joint) + ", mitte nende summa " + formatCount(o.f32 + o.f33) + ": sama isik võib kuuluda mõlemasse rühma.");
       } else {
-        sentences.push("Sama isik võib kuuluda nii rühma F32 kui ka F33, seega nende arve ei saa kokku liita (ühise valiku väärtus on " + formatCount(o.joint) + ").");
+        sentences.push("Sama isik võib kuuluda nii rühma F32 kui ka F33, seega nende arve ei saa kokku liita (F32 + F33 (kokku) väärtus on " + formatCount(o.joint) + ").");
       }
     }
 

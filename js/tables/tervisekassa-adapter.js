@@ -2,7 +2,7 @@
  * Tervisekassa andmeadapter: loeb importskripti tehtud JSON-failid (data/tervisekassa/) ja tagastab
  * väärtuse TÄPSE filtrivõtme järgi. Lähteülesanne ja reeglid: TERVISEKASSA.md.
  *
- * Adapter ei liida ega lahuta midagi. Ühise valiku F32F33 väärtus tuleb alati ühisfailist ning
+ * Adapter ei liida ega lahuta midagi. Valiku F32F33 („F32 + F33 (kokku)“) väärtus tuleb alati ühisfailist ning
  * toetamata kombinatsioon (nt F32 + Mehed) tagastab staatuse "toetamata", mitte hinnangu.
  *
  * Staatused: olemas | null (tegelik 0) | puudub | varjatud | toetamata.

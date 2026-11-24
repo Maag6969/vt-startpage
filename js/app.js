@@ -31,7 +31,7 @@
   /* Loendirida nagu M3-s (19.11.2026): pealkiri ja teisel real ainult trendi periood; täielik kirjeldus hiirevihjes ja
      ekraanilugejale (aria-describedby). Allikalinki menüüs pole (allikas on aruande päises ja jaluses). Teisel real enne perioodi
      RTA märk ja programm, kui aruanne on täpselt RTA näitaja või programmi mõõdik (js/rta.js; programmi täisnimi ja mõõdik
-     hiirevihjes). Valitud real: vaatamiste arv ja laadimise olek. */
+     hiirevihjes). Valitud real: laadimise olek. */
   function datasetRow(t) {
     var rta = TAI.rtaOf && TAI.rtaOf(primaryOf(t.code));
     var hint = TAI.describe(t) + (rta ? "\n\n" + rta.hint : "");
@@ -46,7 +46,6 @@
           '<span class="dataset__chevron" aria-hidden="true">›</span>' +
         "</button>" +
         '<div class="dataset__footer">' +
-          '<span class="dataset__views" hidden></span>' +
           '<span class="dataset__status" role="status"></span>' +
         "</div>" +
       "</li>"
@@ -136,15 +135,13 @@
       listMode = b.getAttribute("data-mode");
       renderList();
       setActiveRow(current);
-      Object.keys(rowCounts).forEach(function (code) { showRowCount(code, rowCounts[code]); });
     });
   }
   TAI.onLatestYear = function () { refreshListIfChanged(); };
 
   /* Loendi sisu allkiri (tabelite järjekord ja kirjeldused): kui API-st tuli uus aasta, muutub kirjeldus (TAI.describe) ja
-     vahel ka järjekord (uusima aasta järgi); siis joonistatakse loend uuesti, aktiivne rida ja vaatamiste arvud säilivad. */
+     vahel ka järjekord (uusima aasta järgi); siis joonistatakse loend uuesti, aktiivne rida säilib. */
   var listSignature = "";
-  var rowCounts = {};
   function listSignatureNow() {
     return listMode + "\n" + visibleTables().map(function (t) { return t.code + "|" + TAI.describe(t); }).join("\n");
   }
@@ -152,7 +149,6 @@
     if (listSignatureNow() === listSignature) return;
     renderList();
     setActiveRow(current);
-    Object.keys(rowCounts).forEach(function (code) { showRowCount(code, rowCounts[code]); });
   }
 
   // ---- aadress: #KOOD?taustatunnus=3&vanus=2&sugu=vordlus ------------
@@ -288,13 +284,9 @@
     }).join(", ") + "</p>" + privacyNoteHtml();
   }
 
-  /* Privaatsusteade (turvaülevaatus 12.11.2026, leiud L1–L2): mis andmed lehelt kuhu liiguvad. Muuda koos js/usage.js-iga. */
+  /* Privaatsusteade (turvaülevaatus 12.11.2026, leiud L1–L2): mis andmed lehelt kuhu liiguvad. Vaatamiste loendurit lehel ei ole. */
   function privacyNoteHtml() {
-    return '<p class="site-footer__privacy"><strong>Privaatsus.</strong> Leht loendab ligikaudselt vaatamisi ja ' +
-      "nupuvajutusi (nt filtri valik, AI-nupp) välise teenusega " +
-      TAI.externalLink("https://abacus.jasoncameron.dev", "Abacus") + ". " +
-      "Loendamisel näeb see teenus sinu IP-aadressi ja loenduri nime (nt andmestiku kood ETU42); " +
-      "lehe omanik IP-aadresse ei näe. " +
+    return '<p class="site-footer__privacy"><strong>Privaatsus.</strong> Leht ei loenda külastusi ega kasuta analüütikat. ' +
       "Andmed loetakse otse Tervise Arengu Instituudi ja Eurostati andmebaasist (ka need näevad sinu IP-aadressi); " +
       "lehe avamisel küsitakse sealt iga andmestiku viimast aastat ja sinu brauser jätab selle 12 tunniks meelde. " +
       "Isikuandmeid ei salvestata ja küpsiseid ei kasutata.</p>" +
@@ -422,7 +414,6 @@
           Object.keys(config.queries(stateOf(config))).forEach(function (name) { data[name] = reader; });
           setRowStatus(config.code, null);
           renderModule(config, data, { source: "file", fileName: file.name });
-          usage.track(usage.keyAction(config.code, "fail"));
         }).catch(function (e) {
           renderError(config, e);
         });
@@ -629,7 +620,6 @@
     var state = stateOf(view.config);
     if (t.matches("select[data-filter]")) {
       state[t.getAttribute("data-filter")] = t.value;
-      usage.track(usage.keyFilter(view.config.code, t.getAttribute("data-filter"), t.value));
       // väärtuse valimine menüüst lülitab selle filtri võrdluse välja; menüü kaotab seejärel võrdluse rea
       var comp = TAI.activeComparisonFor(view.config, state, t.getAttribute("data-filter"));
       if (comp) {
@@ -685,7 +675,6 @@
     state[comp.flag] = turnOn;
     var fv = config.vars[comp.filter];
     state[comp.filter] = filterDefault(fv);   // koond; koondita filter (HBSC KU122/123): esimene rühm; või muutuja defaultValue (PKH4 0–14)
-    usage.track(usage.keyFilter(config.code, comp.filter, turnOn ? comp.usageOn : comp.usageOff));
     history.replaceState(null, "", hashFor(config));
     refreshFilters();
     reload();
@@ -747,7 +736,6 @@
     if (modeOf(TAI.getTable(primaryOf(code))) !== listMode) {
       listMode = modeOf(TAI.getTable(primaryOf(code)));
       renderList();
-      Object.keys(rowCounts).forEach(function (c) { showRowCount(c, rowCounts[c]); });
     }
 
     current = code;
@@ -765,7 +753,6 @@
       setRowStatus(code, null);
       renderModule(config, data, { source: "api" });
       refreshListIfChanged();
-      usage.track(usage.keyDataset(code)).then(function (v) { showRowCount(code, v); });
       if (opts.scroll) { scrollToContent(); focusHeading(); }
     } catch (err) {
       if (myRequest !== requestId) return;
@@ -1035,79 +1022,11 @@
     var opened = openAiService(target.url);
     if (!opened) opened = openDetached(target.url, "_blank");
     showAiNotice(copied ? aiCopiedText() : msg.textContent, opened);
-
-    usage.track(usage.keyAction(view.config.code, "ai-" + target.id));
   });
-
-  // ---- kasutusstatistika (js/usage.js, disain.md p. 2) --------------------
-  // Kui teenus ei vasta, arve lihtsalt ei kuvata — leht töötab edasi.
-
-  var usage = TAI.usage;
-  var numberFmt = new Intl.NumberFormat("et-EE");
-
-  // arv ilma sõnata „ligikaudu“; et loendur on ligikaudne, ütleb jaluse privaatsusteade
-  function viewsText(n) { return numberFmt.format(n) + (n === 1 ? " vaatamine" : " vaatamist"); }
-
-  function showCount(el, value) {
-    if (!el || value == null) return;
-    el.textContent = viewsText(value);
-    el.hidden = false;
-  }
-
-  function showRowCount(code, value) {
-    if (value != null) rowCounts[code] = value;   // jääb meelde loendi uuesti joonistamiseks (refreshListIfChanged)
-    // õe (nt KU121) arv ei tohi kirjutada üle peamise õe rea arvu: loendireal on peamise tabeli vaatamised
-    var row = primaryOf(code) === code ? rowOf(code) : null;
-    showCount(row && row.querySelector(".dataset__views"), value);
-  }
-
-  /* Loendurite lugemine: avaleht esimesena, siis andmestike arvud järjekorras (3 korraga, ajutise tõrke korral üks kordus),
-     sest loenduriteenus vastab vahel veaga, kui talle tuleb korraga kümneid päringuid. */
-  function loadViewCount() {
-    usage.track("vt-startpage", { everyTime: true }).then(function (v) {
-      if (v !== undefined) return v;
-      // ajutine tõrge: loe arv hiljem uuesti (ilma suurendamata, et avamist mitte topelt lugeda)
-      return new Promise(function (resolve) { setTimeout(resolve, 1500); }).then(function () { return usage.get("vt-startpage"); });
-    }).then(function (v) { showCount(document.getElementById("view-count"), v); });
-    var queue = TAI.getTables().filter(function (t) { return !isSecondarySibling(t); }).slice(), WORKERS = 3;
-    function readCount(t, retry) {
-      return usage.get(usage.keyDataset(t.code)).then(function (v) {
-        if (v === undefined && retry) {
-          return new Promise(function (resolve) { setTimeout(resolve, 1500); }).then(function () { return readCount(t, false); });
-        }
-        showRowCount(t.code, v);
-      });
-    }
-    function worker() {
-      var t = queue.shift();
-      if (!t) return Promise.resolve();
-      return readCount(t, true).then(worker);
-    }
-    for (var i = 0; i < WORKERS; i++) worker();
-  }
-
-  // andmetabeli avamine (toggle ei mullitu → capture)
-  contentEl.addEventListener("toggle", function (evt) {
-    if (view && evt.target.matches && evt.target.matches("details.data-details") && evt.target.open) {
-      usage.track(usage.keyAction(view.config.code, "andmetabel"));
-    }
-  }, true);
-
-  // TAI allikalingi klõps (loendis või moodulis; ka keskmise nupuga uude kaardi avamine)
-  function onSourceClick(evt) {
-    var link = evt.target.closest && evt.target.closest('a[href*="statistika.tai.ee/pxweb"], a[href*="ec.europa.eu/eurostat"], a[href*="tervisekassa.ee"]');
-    if (!link) return;
-    var row = link.closest(".dataset");
-    var code = row ? row.getAttribute("data-code") : (contentEl.contains(link) && view ? view.config.code : null);
-    if (code) usage.track(usage.keyAction(code, "allikas"));
-  }
-  document.addEventListener("click", onSourceClick);
-  document.addEventListener("auxclick", onSourceClick);
 
   // printimine: andmetabel avatakse, pärast taastatakse kasutaja valik
   var reopened = [];
   window.addEventListener("beforeprint", function () {
-    if (view) usage.track(usage.keyAction(view.config.code, "prindi"));
     reopened = Array.prototype.filter.call(contentEl.querySelectorAll("details.data-details"), function (d) { return !d.open; });
     reopened.forEach(function (d) { d.open = true; });
   });
@@ -1118,7 +1037,6 @@
 
   renderList();
   renderFooter();
-  loadViewCount();
   window.addEventListener("hashchange", onHashChange);
   if (TAI.getTable(parseHash().code)) {
     onHashChange();
