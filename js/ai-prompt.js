@@ -109,6 +109,19 @@
       advice: "võimalikud sisulised sammud ja küsimused heaolu valdkonnale",
       international: "Allpool aruandes olevate riikide numbreid võid kasutada. Muid riike nimeta ainult viitena, ilma numbriteta.",
       rules: []
+    },
+    // Statistikaamet TH76–TH79 (25.11.2026): 16-aastaste ja vanemate osatähtsus terviseseisundi järgi.
+    statistikaamet: {
+      role: "rahvatervise statistika analüütik",
+      measure: "Number on protsent 16-aastastest ja vanematest inimestest, kes hindavad oma tervist kas „väga hea või hea“ või „halb või väga halb“ (enda hinnang, mitte arstidiagnoos). Osakaal on sama rühma sees, mitte rahvaarv.",
+      direction: "Kirjelda muutust protsendipunktides („kasvas“, „vähenes“). Ära nimeta muutust rahvastiku tervise paranemiseks ega halvenemiseks.",
+      explanations: "Võimalikke põhjuseid võid nimetada ainult oletusena. Ära tee järeldusi üksiku inimese ega piirkonna kohta.",
+      advice: "võimalikud küsimused andmeomanikule ja tervisepoliitika valdkonnale",
+      international: "Ära väida, et need numbrid on teiste riikide omadega otse võrreldavad.",
+      rules: [
+        "Lõigete (sissetulek, sugu ja vanus, hõiveseisund, elukoht) numbrid ei ole omavahel liidetavad: ära liida kattuvaid rühmi.",
+        "Väikeste rühmade (nt maakond või vanuserühm 65+ eri lõigetes) puhul kõigub arv juhuslikult: ära tõlgenda ühe aasta muutust trendina."
+      ]
     }
   };
 

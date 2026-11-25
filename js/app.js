@@ -287,7 +287,7 @@
   /* Privaatsusteade (turvaülevaatus 12.11.2026, leiud L1–L2): mis andmed lehelt kuhu liiguvad. Vaatamiste loendurit lehel ei ole. */
   function privacyNoteHtml() {
     return '<p class="site-footer__privacy"><strong>Privaatsus.</strong> Leht ei loenda külastusi ega kasuta analüütikat. ' +
-      "Andmed loetakse otse Tervise Arengu Instituudi ja Eurostati andmebaasist (ka need näevad sinu IP-aadressi); " +
+      "Andmed loetakse otse Tervise Arengu Instituudi, Statistikaameti ja Eurostati andmebaasist (ka need näevad sinu IP-aadressi); " +
       "lehe avamisel küsitakse sealt iga andmestiku viimast aastat ja sinu brauser jätab selle 12 tunniks meelde. " +
       "Isikuandmeid ei salvestata ja küpsiseid ei kasutata.</p>" +
       // eraldi lõik rasvases kirjas: AI-analüüs on eraldiseisev teenus, mitte osa näidikulauast
@@ -295,8 +295,10 @@
       "(sh valitud filtreid arvestades) koos ettevalmistatud analüüsi prompt'iga sinu lõikelauale ja avavad valitud " +
       "AI-teenuse sinu enda brauseris. Seal kehtivad selle teenuse tingimused vastavalt sinu enda konto võimalustele " +
       "ning saadava analüüsi kvaliteet võib oluliselt sõltuda ka valitud AI-mudelist: paremad mudelid annavad parema " +
-      "kvaliteediga analüüsi, tasuta teenus võib anda väga halva tulemuse. AI poolne kirjeldav analüüs on eraldiseisev " +
-      "teenus, mille tulemus ei ole seotud siinsete näidikulaudadega.</strong></p>";
+      "kvaliteediga analüüsi, tasuta teenus võib anda väga halva tulemuse. AI poolt genereeritud kirjeldav analüüs on " +
+      "seega eraldiseisev tegevus, mille tulemuse kvaliteet ega õigsus ei ole seotud siinsete näidikulaudadega ega siin " +
+      "kasutatud andmeallikatega. AI-ga loodud sisu eest vastutab selle sisu genereerinud ja seda sisu kasutav isik." +
+      "</strong></p>";
   }
 
   function backLink() {
@@ -329,7 +331,8 @@
     var anyReader = data[Object.keys(data)[0]];
     if (anyReader && anyReader.statusNote) return anyReader.statusNote; // valmis väljavõte kirjeldab oma seisu ise
     var updated = anyReader && anyReader.raw.updated ? new Date(anyReader.raw.updated) : null;
-    return updated && !isNaN(updated) ? "Andmed uuendatud " + dateFmt.format(updated) : null;
+    // Statistikaamet annab tühja uuendusaja kohahoidjana 9999-12-31: sellist kuupäeva ei näita
+    return updated && !isNaN(updated) && updated.getFullYear() < 9000 ? "Andmed uuendatud " + dateFmt.format(updated) : null;
   }
 
   /* Filtrimuutusel (reload()) uuendatakse ainult juba ekraanil oleva mooduli staatusrida, mitte kogu päist. */

@@ -918,6 +918,13 @@
     var suffix = populationSuffixGeneral(config, model.state);
     var k = model.kpis;
 
+    // config.callout(model, fmt, suffix) → kogu kokkuvõttetekst tabeli enda sõnastuses (kui üldlause ei sobi, nt kaks
+    // seeriat, mis pole „vastused kategooriates“); võrdlusel kehtib üldlause. Peab tuginema ainult ekraanil olevatele arvudele.
+    if (typeof config.callout === "function" && !model.comparison) {
+      var own = config.callout(model, fmt, suffix);
+      return hasMissing(model) ? own + " Valitud lõike kohta osa andmeid puudub." : own;
+    }
+
     var valid = k.filter(function (x) { return x.value != null; });
     if (model.comparison) {
       // Võrdluse lause: ainult kirjeldav, toetub KPI-kaartide arvudele; hinnangut ega uusi arve ei anta

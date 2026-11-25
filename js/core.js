@@ -51,7 +51,7 @@
    * Tundmatu grupi nimi läheb tuntud gruppide järele, grupita tabelid (group puudub) kõige lõppu
    * pealkirjata. Grupi sees säilib ette antud järjekord (getTables(): uusim aasta, siis tähestik).
    */
-  TAI.GROUP_ORDER = ["Tervise Arengu Instituut", "Tervisekassa (avaandmed)", "Eurostat"];
+  TAI.GROUP_ORDER = ["Statistikaamet", "Tervise Arengu Instituut", "Tervisekassa (avaandmed)", "Eurostat"];
 
   TAI.groupTables = function (list) {
     var groups = [];
@@ -80,6 +80,7 @@
   TAI.GROUP_INFO = {
     "Tervise Arengu Instituut": { url: "https://statistika.tai.ee/pxweb/et/Andmebaas/" },
     "Tervisekassa (avaandmed)": { short: "Tervisekassa", url: "https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed" },
+    "Statistikaamet": { url: "https://andmed.stat.ee/et/stat" },
     "Eurostat": { url: "https://ec.europa.eu/eurostat" }
   };
 
@@ -124,7 +125,12 @@
     majandus: { flag: "compareEcon", label: "Majanduslik olukord vrdl", buttonLabel: "Majandusliku olukorra võrdlus", buttonId: "compare-econ" },
     // Tervisekassa teenusmahud (24.11.2026, ainult M2): erialad joontena, maakonnad tulpadena (aruande enda buildModel)
     eriala: { flag: "compareSpec", label: "Erialad vrdl", buttonLabel: "Erialade võrdlus", buttonId: "compare-spec" },
-    maakond: { flag: "compareCounty", label: "Maakonnad vrdl", buttonLabel: "Maakondade võrdlus", buttonId: "compare-county" }
+    maakond: { flag: "compareCounty", label: "Maakonnad vrdl", buttonLabel: "Maakondade võrdlus", buttonId: "compare-county" },
+    // Statistikaamet TH76 ja TH79 (25.11.2026, ainult M2): kaks rühma kõrvuti
+    vaesus: { flag: "comparePov", label: "Vaesuspiir: all vrdl ülal", buttonLabel: "Vaesuspiiri võrdlus", buttonId: "compare-pov",
+              colors: ["var(--series-1)", "var(--series-2)"] },
+    asula: { flag: "compareUrban", label: "Linn vrdl maa", buttonLabel: "Linna ja maa võrdlus", buttonId: "compare-urban",
+             colors: ["var(--series-1)", "var(--series-2)"] }
   };
   var GROUP_COLORS = [1, 2, 3, 4, 5, 6, 7].map(function (n) { return "var(--age-" + n + ")"; });
 
@@ -275,6 +281,8 @@
   var TAI_PXWEB_ROOT = "https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__";
 
   TAI.apiUrl = function (config) {
+    // config.apiUrl: teise PxWeb-allika täispikk aadress (nt Statistikaamet, andmed.stat.ee; ilma ".px"-ta)
+    if (config.apiUrl) return config.apiUrl;
     return (config.taiPath ? TAI_API_ROOT + config.taiPath + "/" : TAI.API_BASE) + config.code + ".px";
   };
   TAI.pxwebUrl = function (config) {

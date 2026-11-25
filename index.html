@@ -18,7 +18,7 @@
   Uue andmeallika lisamisel lisa selle aadress connect-src alla (muidu päring blokeeritakse). style-src on range: HTML-is ei tohi olla
   style="…" atribuuti, värve pannakse CSSOM-iga. Meta-tag ei toeta frame-ancestors'i (GitHub Pages ei lase HTTP-päiseid seadistada).
 -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://statistika.tai.ee https://ec.europa.eu; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://statistika.tai.ee https://andmed.stat.ee https://ec.europa.eu; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -65,6 +65,7 @@
 <script src="js/tables/tervisekassa-teenused.js"></script>
 <script src="js/tables/hbsc-ku12.js"></script>
 <script src="js/tables/hbsc-pered.js"></script>
+<script src="js/tables/statistikaamet-th7x.js"></script>
 <script src="js/rta.js"></script>
 <script src="js/module.js"></script>
 <script src="js/ai-prompt.js"></script>

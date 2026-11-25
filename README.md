@@ -20,6 +20,7 @@ Repos on ainult leht ja selle andmed. Arendus- ja abifailid hoitakse eraldi.
 | **TK-diagnoosid** | Diagnoosid raviandmetes: depressioon (F32, F33) | [Tervisekassa avaandmed](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed) | ettevalmistatud failid kaustas `data/tervisekassa/` |
 | **TK-erialad** | Psühhiaatria ja psühholoogia erialad: psühhiaatria, lastepsühhiaatria ja iseseisva psühholoogia eriala kõik teenused (ka kokku); isikud, arved, teenuste hulk ja kulu aastate kaupa, soo, vanuserühma, maakonna ja diagnoosirühma järgi | [Tervisekassa avaandmed](https://tervisekassa.ee/koik-teenused), aruanne „Tervishoiuteenuste kasutus ja kulud“ | ettevalmistatud fail `data/tervisekassa/psyh.json` |
 | **TK-teenused** | Psühhoteraapia ja psühholoogi teenused (15 teenusekoodi) olenemata erialast, teenuserühmade, soo, vanuserühma ja maakonna järgi | sama | sama |
+| **TH76–TH79** | Terviseseisund (16-aastased ja vanemad): hea või halb tervis sissetuleku, soo ja vanuse, hõiveseisundi ja elukoha järgi (üks aruanne, lõike lüliti) | [Statistikaamet](https://andmed.stat.ee/et/stat) | otse Statistikaameti API-st (andmed.stat.ee) |
 | **ilc_pw01** | Eluga rahulolu soo, vanuse ja hariduse lõikes, riikide võrdluses | [Eurostat](https://ec.europa.eu/eurostat/databrowser/product/view/ilc_pw01) | otse Eurostati API-st |
 | **KU12**, KU121–KU123 | Depressiivsete episoodide esinemine kooliõpilaste seas viimasel 12 kuul: soo ja vanuse (11, 13, 15), piirkonna, kodukeele ja pere majandusliku olukorra järgi (vaade „Lapsed ja noored“) | [Tervise Arengu Instituut](https://statistika.tai.ee/pxweb/et/Andmebaas/Andmebaas__05Uuringud__03HBSC__01Tervis/), Kooliõpilaste tervisekäitumise uuring (HBSC) | otse TAI PxWeb API-st |
 | **KU1150**, KU1151–KU1153; **KU11**, KU111–KU113 | Masenduse või kurbuse tundmine viimase kuue kuu jooksul; tervise enesehinnang (samad lõiked, vaade „Lapsed ja noored“) | sama, HBSC | otse TAI PxWeb API-st |
@@ -44,6 +45,7 @@ ega fontidele**: neile kehtivad allikate endi tingimused allpool.
 | Teised TAI tabelid (HBSC KU11, KU1150, KU81, KU82 ja nende õdetabelid; PKH4, VIG13, VIG10, SD21, PH01) | Tervise Arengu Instituut | Samad TAI andmebaasi tingimused: algallikas (HBSC, vigastuste andmed, surma põhjuste register, psüühikahäirete aruanne, haiglaravi andmed), siis TAI andmebaas, tabel ja kasutamise kuupäev. Lehel on see vaate staatusreal ja jaluses. |
 | Tervisekassa andmed (`data/tervisekassa/`) | Tervisekassa | Andmed on Tervisekassa avalikult avaldatud väljavõtted ([vaimse tervise andmed](https://tervisekassa.ee/vaimne-tervis-retseptide-ja-arvete-andmed), [tervishoiuteenuste kasutus ja kulud](https://tervisekassa.ee/koik-teenused)). Allikalehel ei ole litsentsi ega kasutustingimusi märgitud, seega kasutatakse andmeid allikaviitega. Failid on allika väljavõtetest JSON-kujule teisendatud; enne edasikasutamist on kindlam vaadata algallikat. |
 | Eurostati andmed (ilc_pw01) | Euroopa Liit, Eurostat | Taaskasutus on lubatud allikale viidates ([Eurostati autoriõiguse teade](https://ec.europa.eu/eurostat/en/help/copyright-notice), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). Allikas: Eurostat, ilc_pw01. Lehel on andmeid töödeldud: valitud riigid ja rühmad, eestikeelsed nimetused, joonised ja kokkuvõttelaused. Eurostat ei vastuta selle lehe ega andmete töötlemise eest. |
+| TH76–TH79 andmed | Statistikaamet | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.et) ([levitamise põhimõtted](https://stat.ee/et/statistikaamet/meist/strateegia/riikliku-statistika-levitamise-pohimotted), kontrollitud 25.11.2026): alati viidata Statistikaametile kui allikale. Allikas: Statistikaamet, tabelid TH76–TH79 (Eesti sotsiaaluuring; andmete kogumist kaasrahastas Euroopa Liit). Lehel on andmeid töödeldud: valitud näitajad ja rühmad, osa nimetusi lühendatud, joonised ja kokkuvõttelaused. Töödeldud andmed on jagatavad sama litsentsiga; lehe koodi MIT-litsents andmetele ei laiene. |
 | Font Roboto (`fonts/`) | The Roboto Project Authors | [SIL Open Font License 1.1](fonts/OFL.txt) |
 
 Näidikulaud ei ole ühegi andmeallika ametlik väljaanne. Ametlikud arvud ja metoodika on allikate endi lehtedel.
@@ -58,7 +60,9 @@ Näidikulaud ei ole ühegi andmeallika ametlik väljaanne. Ametlikud arvud ja me
   ettevalmistatud analüüsi prompt'iga külastaja lõikelauale ja avavad valitud AI-teenuse külastaja enda brauseris,
   lahti seotuna näidikulaua aknast (`window.opener = null`). Seal kehtivad selle teenuse tingimused külastaja konto
   võimaluste järgi ning analüüsi kvaliteet sõltub valitud AI-mudelist (tasuta teenus võib anda väga halva tulemuse).
-  AI poolne kirjeldav analüüs on eraldiseisev teenus, mille tulemus ei ole seotud näidikulauaga. Sama teade on lehe jaluses.
+  AI poolt genereeritud kirjeldav analüüs on seega eraldiseisev tegevus, mille tulemuse kvaliteet ega õigsus ei ole seotud
+  siinsete näidikulaudadega ega siin kasutatud andmeallikatega. AI-ga loodud sisu eest vastutab selle sisu genereerinud ja
+  seda sisu kasutav isik. Sama teade on lehe jaluses.
 - **Sisupoliitika (CSP)** `index.html`-is: skriptid, stiilid ja fondid ainult lehelt endalt; päringud ainult
   andmeallikatele. Väliseid skripte ega CDN-e ei kasutata; väline tekst puhastatakse enne kuvamist.
 
